@@ -34,7 +34,7 @@ Settings::Settings():
 	loadDrumKitMidiMap(getDrumKitConfigPath());
 
 	// Load pad settings
-	const fs::path& pathPadConfig = getUserSettingsPath();
+	const fs::path& pathPadConfig = getUserSettingsFile();
 	if (fs::exists(pathPadConfig))
 	{
 		// _padSettings
@@ -45,9 +45,9 @@ Settings::~Settings()
 {
 }
 
-fs::path Settings::getUserSettingsPath() const
+fs::path Settings::getUserSettingsFile() const
 {
-	return fs::path(_qSettings.value("PadConfigFile", "").toString().toStdString());
+	return fs::path(_qSettings.value("UserSettingsFile", "").toString().toStdString());
 }
 
 void Settings::setUserSettingsFile(const std::string& szUserSettingsFile)

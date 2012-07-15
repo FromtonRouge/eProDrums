@@ -192,7 +192,7 @@ MainWindow::MainWindow():
 	listWidgetSlots->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// Loading last user settings
-	loadUserSettings(_pSettings->getUserSettingsPath().generic_string());
+	loadUserSettings(_pSettings->getUserSettingsFile().generic_string());
 
 	_calibrationOffset = _userSettings.bufferLength;
 
@@ -800,7 +800,7 @@ void MainWindow::on_comboBoxMidiOut_currentIndexChanged(const QString& text)
 
 void MainWindow::on_actionSave_As_triggered()
 {
-    fs::path pathDefaultConfig(_pSettings->getUserSettingsPath());
+    fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
     QString qszDefaultDir(".\\default.epd");
     if (pathDefaultConfig.has_parent_path())
     {
@@ -818,7 +818,7 @@ void MainWindow::on_actionSave_As_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    fs::path pathDefaultConfig(_pSettings->getUserSettingsPath());
+    fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
     QString qszDefaultDir(".\\");
     if (pathDefaultConfig.has_parent_path() && fs::exists(pathDefaultConfig.parent_path()))
     {

@@ -43,7 +43,7 @@ public:
 	virtual ~Settings();
 
 public:
-	boost::filesystem::path getUserSettingsPath() const;
+	boost::filesystem::path getUserSettingsFile() const;
 	void setUserSettingsFile(const std::string& szPadConfigFile);
 
 	boost::filesystem::path getDrumKitConfigPath() const;
