@@ -1,0 +1,15 @@
+*.obj
+*.swp
+install/
+*/generated/
+*/Debug/
+*/Release/
+*.opensdf
+*.sdf
+*ui_*
+*.pdb
+*.suo
+*.sln
+*.vcxproj*
+*Makefile*
+*.exe

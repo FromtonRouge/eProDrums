@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/" >
+	<file>EProDrums.png</file>
+	<file>Add.png</file>
+	<file>Remove.png</file>
+    </qresource>
+</RCC>

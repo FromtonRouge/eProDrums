@@ -1,0 +1,16 @@
+v0.7.0
+- New: Flam cancel setting to avoid flams during rolls added
+- New: Independent Open/Close Threshold added
+- New: Hi-Hat hits caused by an open move can be canceled
+- Bass Drum ghost setting fixed
+- Speed and acceleration calculation bug fixed
+- Bug when a hi-hat flam is detected during a hi-hat cancel fixed
+
+v0.6.0
+- Curve drawing optimization
+- Better performances when minimized
+- Close and Open Markers added on the hihat position curve
+- Hi Hat blue note state is now displayed on the curve 
+- Mask times (Mt1, Mt2, Mt3) are now displayed on the curve
+- Measure tool fixed
+- Plot window settings added (refresh period and plot length)

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PadNotesWidget</class>
+ <widget class="QWidget" name="PadNotesWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>448</width>
+    <height>24</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="horizontalSpacing">
+    <number>0</number>
+   </property>
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item row="0" column="0">
+    <widget class="QPushButton" name="pushButtonAdd">
+     <property name="minimumSize">
+      <size>
+       <width>28</width>
+       <height>24</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="EProDrums.qrc">
+       <normaloff>:/Add.png</normaloff>:/Add.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="pushButtonRemove">
+     <property name="minimumSize">
+      <size>
+       <width>28</width>
+       <height>24</height>
+      </size>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="EProDrums.qrc">
+       <normaloff>:/Remove.png</normaloff>:/Remove.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QListWidget" name="listWidgetNotes">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>24</height>
+      </size>
+     </property>
+     <property name="flow">
+      <enum>QListView::LeftToRight</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="EProDrums.qrc"/>
+ </resources>
+ <connections/>
+</ui>
