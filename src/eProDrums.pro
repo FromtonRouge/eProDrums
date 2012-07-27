@@ -6,8 +6,8 @@ TEMPLATE = app
 TARGET = eProDrums
 DEPENDPATH += .
 INCLUDEPATH += .
-INCLUDEPATH += "E:/Dev/Cpp/Common/boost_1_49_0"
-INCLUDEPATH += "E:/Dev/Cpp/Common/Qwt-6.0.0-svn/include"
+INCLUDEPATH += $(BOOST_DIR)
+INCLUDEPATH += $(QWT_DIR)/include
 
 DEFINES -= UNICODE
 DEFINES += QWT_DLL
@@ -83,7 +83,7 @@ win32 {
 	RC_FILE = EProDrums.rc
 }
 
-LIBS += -L"E:/Dev/Cpp/Common/boost_1_49_0/stage/lib"
+LIBS += -L$(BOOST_DIR)/stage/lib
 LIBS += -lqtmain
 
 win32 {
@@ -91,9 +91,9 @@ win32 {
 }
 
 release {
-	LIBS += -L"E:/Dev/Cpp/Common/Qwt-6.0.0-svn/lib" -lqwt
+	LIBS += -L$(QWT_DIR)/lib -lqwt
 }
 
 debug {
-	LIBS += -L"E:/Dev/Cpp/Common/Qwt-6.0.0-svn/lib" -lqwtd
+	LIBS += -L$(QWT_DIR)/lib -lqwtd
 }
