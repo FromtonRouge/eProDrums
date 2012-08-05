@@ -227,7 +227,7 @@ MainWindow::MainWindow():
     {
 		groupBoxFootCancel1->setToolTip("This foot cancel strategy doesn't need a buffer length. The cancelling is done by interpreting position, speed and acceleration of the hi-hat");
 		const int MIN_ACCEL_FOOT_CANCEL(-20000000);
-        ValueControl* pFootCancelAccelLimit = new ValueControl("Accel", MIN_ACCEL_FOOT_CANCEL, MIN_ACCEL_FOOT_CANCEL);
+        ValueControl* pFootCancelAccelLimit = new ValueControl("Accel", MIN_ACCEL_FOOT_CANCEL, 0);
 		pFootCancelAccelLimit->setToolTip("[Optional] Hi-hat close acceleration limit (unit/s²) : The mask time can only begin if the current acceleration is greater or equal to this value");
 		connect(pFootCancelAccelLimit, SIGNAL(valueChanged(int)), this, SLOT(onFootCancelAccelLimit(int)));
         gridLayoutFootCancel1->addWidget(pFootCancelAccelLimit, 0,0);
