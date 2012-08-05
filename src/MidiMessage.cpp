@@ -25,7 +25,7 @@
 std::string MidiMessage::str() const
 {
     boost::format fmtMsg("hex=0x%X type=%d chan=%d note=%d vel=%d timestamp=%d");
-	return (fmtMsg%_dwParam1%getMsgType()%getChannel()%getOriginalNote()%getVelocity()%getTimestamp()).str();
+	return (fmtMsg%_dwParam1%getMsgType()%getChannel()%getOriginalNote()%getValue()%getTimestamp()).str();
 }
 void MidiMessage::print() const
 {
@@ -43,7 +43,7 @@ DWORD MidiMessage::computeOutputMessage() const
     byte2 = static_cast<char>(getOutputNote()) << 8;
 
     DWORD byte3 = 0;
-    byte3 = static_cast<char>(getVelocity()) << 16;
+    byte3 = static_cast<char>(getValue()) << 16;
     
     result = byte1 | byte2 | byte3;
     return result;

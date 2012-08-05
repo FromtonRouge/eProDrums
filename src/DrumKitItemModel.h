@@ -74,9 +74,9 @@ public:
 
 		if (role==Qt::EditRole)
 		{
-			DrumKitMidiMap::Description& rDescription = _pDrumKit->getDescription();
 			if (!value.isNull() && qVariantCanConvert<Pad::MidiDescription>(value))
 			{
+				DrumKitMidiMap::Description& rDescription = _pDrumKit->getDescription();
 				const Pad::MidiDescription& description = value.value<Pad::MidiDescription>();
 				rDescription[index.row()] = description;
 				emit dataChanged(index, this->index(index.row(), 1));

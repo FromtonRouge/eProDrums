@@ -61,7 +61,7 @@ public:
 	int getOriginalNote() const { return (_dwParam1 & 0x0000FF00) >> 8;}
 	int getOutputNote() const {return _outputNote;}
 	void changeOutputNote(int note, bool bChangeModifiedState=true);
-	int getVelocity() const { return (_dwParam1 & 0x00FF0000) >> 16;}
+	int getValue() const { return (_dwParam1 & 0x00FF0000) >> 16;}
 	int getTimestamp() const {return _dwParam2;}
 	void setTimestamp(int timestamp) {_dwParam2 = timestamp;}
 

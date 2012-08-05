@@ -422,7 +422,7 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 		{
 			if (midiMessage.isControllerMsg() && midiMessage.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 			{
-				emit hiHatPedalControl(127-midiMessage.getVelocity());
+				emit hiHatPedalControl(127-midiMessage.getValue());
 			}
 			else
 			{
@@ -433,11 +433,11 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 					// Update the timestamp of the last CC#4 to the same timestamp of the current note
 					_lastHiHatMsgControl.setTimestamp(midiMessage.getTimestamp());
 					const MidiMessage& m = _lastHiHatMsgControl;
-					emit updatePlot(m.getMsgType(), m.getChannel(), m.getOutputNote(), m.getVelocity(), m.getTimestamp(), m.hiHatSpeed, m.hiHatAcceleration);
+					emit updatePlot(m.getMsgType(), m.getChannel(), m.getOutputNote(), m.getValue(), m.getTimestamp(), m.hiHatSpeed, m.hiHatAcceleration);
 				}
 			}
 
-			emit updatePlot(midiMessage.getMsgType(), midiMessage.getChannel(), midiMessage.getOutputNote(), midiMessage.getVelocity(), midiMessage.getTimestamp(), midiMessage.hiHatSpeed, midiMessage.hiHatAcceleration);
+			emit updatePlot(midiMessage.getMsgType(), midiMessage.getChannel(), midiMessage.getOutputNote(), midiMessage.getValue(), midiMessage.getTimestamp(), midiMessage.hiHatSpeed, midiMessage.hiHatAcceleration);
 		}
 		else
 		{
@@ -467,7 +467,7 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 	bool bAddThisMidiMessage = false;
 	if (midiMessage.isNoteOnMsg())
 	{
-		emit midiNoteOn(midiMessage.getOriginalNote(), midiMessage.getVelocity());
+		emit midiNoteOn(midiMessage.getOriginalNote(), midiMessage.getValue());
 
 		// Filtering, we only process notes defined in the drumkit, we also change the default output note
 		const Slot::Ptr& pCurrentSlot = getCurrentSlot();
@@ -528,7 +528,7 @@ void CALLBACK MidiInProc(
 			// First filtering, we get only note_on and controller messages
 			if (midiMessage.isNoteOnMsg() || midiMessage.isControllerMsg())
 			{
-				if (midiMessage.isNoteOnMsg() && midiMessage.getVelocity()==0)
+				if (midiMessage.isNoteOnMsg() && midiMessage.getValue()==0)
 				{
 					// Ignore note_on with velocity 0 (it happens...)
 					// But we print the msg if logs are on
@@ -599,28 +599,28 @@ void MainWindow::midiThread()
             {
 				currentMsg.hiHatSpeed = 0.0f;
 				const HiHatPedalElement::Ptr& p = boost::dynamic_pointer_cast<HiHatPedalElement>(getCurrentSlot()->getPads()[Pad::HIHAT_PEDAL]);
-				p->setCurrentControlPos(127-currentMsg.getVelocity());
+				p->setCurrentControlPos(127-currentMsg.getValue());
 
 				// Compute the instant speed in unit/s
 				if (_lastHiHatMsgControl.isControllerMsg() && _lastHiHatMsgControl.getOutputNote()==DEFAULT_NOTE_MSG_CTRL)
 				{
-					int deltaPosition = _lastHiHatMsgControl.getVelocity() - currentMsg.getVelocity();
-					int deltaTime = currentMsg.getTimestamp()-_lastHiHatMsgControl.getTimestamp();
+					int deltaPosition = _lastHiHatMsgControl.getValue() - currentMsg.getValue();
+					float deltaTimeInS = float(currentMsg.getTimestamp()-_lastHiHatMsgControl.getTimestamp())/1000;
 
 					// If there is an existing delta in position and if the last message got the same
-					// timestamp as the current, we need a default deltaTime of 1 ms
-					if (deltaPosition!=0 && deltaTime==0)
+					// timestamp as the current, we need a default deltaTimeInS of 1 ms
+					if (deltaPosition!=0 && deltaTimeInS==0.0f)
 					{
-						deltaTime = 1;
+						deltaTimeInS = 1.0f;
 					}
 
-					if (deltaTime!=0)
+					if (deltaTimeInS!=0.0f)
 					{
-						currentMsg.hiHatSpeed = 1000.0f*float(deltaPosition)/deltaTime;
+						currentMsg.hiHatSpeed = float(deltaPosition)/deltaTimeInS;
 
 						// Acceleration computation
 						int deltaSpeed = currentMsg.hiHatSpeed - p->getCurrentControlSpeed();
-						currentMsg.hiHatAcceleration = float(deltaSpeed)/deltaTime;
+						currentMsg.hiHatAcceleration = float(deltaSpeed)/deltaTimeInS;
 						p->setCurrentControlAcceleration(currentMsg.hiHatAcceleration);
 
 						// Current speed
@@ -672,6 +672,8 @@ void MainWindow::midiThread()
 			else if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 			{
 				_lastHiHatMsgControl = currentMsg;
+				_lastHiHatMsgControl.hiHatSpeed = 0;
+				_lastHiHatMsgControl.hiHatAcceleration = 0;
 			}
         }
     }
@@ -1743,7 +1745,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// For Roland VH-11 and VH-12 Hi hat pedal
 					MidiMessage* pNextHiHat = getNextMessage(pElHihat);
 					if (pNextHiHat && currentMsg.isInTimeWindow(*pNextHiHat, pElHihatPedal->getAfterHitMaskTime()) &&
-							pNextHiHat->getVelocity() < pElHihatPedal->getAfterHitMaskVelocity())
+							pNextHiHat->getValue() < pElHihatPedal->getAfterHitMaskVelocity())
 					{
 						pNextHiHat->ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 					}
@@ -1756,11 +1758,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
 				if ( pElHihatPedal->isCancelOpenHitActivated()
 					 && currentControlPos >= pElHihatPedal->getCancelOpenHitThreshold() 
-					 && currentMsg.getVelocity()<pElHihatPedal->getCancelOpenHitVelocity())
+					 && currentMsg.getValue()<pElHihatPedal->getCancelOpenHitVelocity())
 				{
 					currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 				}
-				else if (currentMsg.getTimestamp() <= pElHihatPedal->getFootCancelTimeLimit() && currentMsg.getVelocity() < pElHihatPedal->getFootCancelVelocity())
+				else if (currentMsg.getTimestamp() <= pElHihatPedal->getFootCancelTimeLimit() && currentMsg.getValue() < pElHihatPedal->getFootCancelVelocity())
 				{
 					currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 				}
@@ -1777,7 +1779,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 						// VH-11 filtering. Check the next hh pedal hit
 						MidiMessage* pNextHiHatPedal = getNextMessage(pElHihatPedal);
 						if (pNextHiHatPedal && currentMsg.isInTimeWindow(*pNextHiHatPedal, pElHihatPedal->getBeforeHitMaskTime()) &&
-								currentMsg.getVelocity() < pElHihatPedal->getBeforeHitMaskVelocity() )
+								currentMsg.getValue() < pElHihatPedal->getBeforeHitMaskVelocity() )
 						{
 							currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 						}
@@ -1790,7 +1792,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 							if (pElHihatPedal->isA(rLastHiHatPedal.getOriginalNote()))
 							{
 								if (currentMsg.isInTimeWindow(rLastHiHatPedal, pElHihatPedal->getAfterHitMaskTime()) &&
-										currentMsg.getVelocity() < pElHihatPedal->getAfterHitMaskVelocity())
+										currentMsg.getValue() < pElHihatPedal->getAfterHitMaskVelocity())
 								{
 									currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 								}

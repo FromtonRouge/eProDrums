@@ -235,7 +235,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	const boost::shared_ptr<Pad>& pFlamElement = drumKit[_typeFlam];
 
 	// In buffer case, pNext != NULL, NULL otherwise
-	if (pCurrent->getVelocity() <= getGhostVelocityLimit())
+	if (pCurrent->getValue() <= getGhostVelocityLimit())
 	{
 		// Here we have a ghost note
 		// TODO: Cancel ghost note if another tom is hit at the same time
@@ -248,7 +248,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int t1stHit = pCurrent->getTimestamp();
 					int t2ndHit = pNext->getTimestamp();
 					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-					int vel1stHit = pCurrent->getVelocity();
+					int vel1stHit = pCurrent->getValue();
 					logFlams(fmtFlamTw1Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1() % vel1stHit % getGhostVelocityLimit());
 				}
 
@@ -256,7 +256,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			}
 		}
 		else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
-				pNext->getVelocity() >= int(pCurrent->getVelocity()*getFlamVelocityFactor()))
+				pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 			{
@@ -264,8 +264,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int t1stHit = pCurrent->getTimestamp();
 					int t2ndHit = pNext->getTimestamp();
 					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-					int vel1stHit = pCurrent->getVelocity();
-					int vel2ndHit = pNext->getVelocity();
+					int vel1stHit = pCurrent->getValue();
+					int vel2ndHit = pNext->getValue();
 					logFlams(fmtFlamTw2Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
 				}
 
@@ -275,7 +275,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 		else
 		{
 			{
-				logGhost(fmtGhostNote % pCurrent->getVelocity() % getGhostVelocityLimit());
+				logGhost(fmtGhostNote % pCurrent->getValue() % getGhostVelocityLimit());
 			}
 
 			pCurrent->ignore(MidiMessage::IGNORED_BECAUSE_GHOST);
@@ -296,7 +296,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 		}
 	}
 	else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
-			pNext->getVelocity() >= int(pCurrent->getVelocity()*getFlamVelocityFactor()))
+			pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
 	{
 		if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 		{
@@ -304,8 +304,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 				int t1stHit = pCurrent->getTimestamp();
 				int t2ndHit = pNext->getTimestamp();
 				int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-				int vel1stHit = pCurrent->getVelocity();
-				int vel2ndHit = pNext->getVelocity();
+				int vel1stHit = pCurrent->getValue();
+				int vel2ndHit = pNext->getValue();
 				logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
 			}
 
@@ -339,7 +339,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			}
 		}
 		else if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow2()) &&
-				pCurrent->getVelocity() >= int(rLast.getVelocity()*getFlamVelocityFactor()))
+				pCurrent->getValue() >= int(rLast.getValue()*getFlamVelocityFactor()))
 		{
 			if (history.size()<2 || isFlamAllowed(history[1], history[0]))
 			{
@@ -347,8 +347,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int t1stHit = rLast.getTimestamp();
 					int t2ndHit = pCurrent->getTimestamp();
 					int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
-					int vel1stHit = rLast.getVelocity();
-					int vel2ndHit = pCurrent->getVelocity();
+					int vel1stHit = rLast.getValue();
+					int vel2ndHit = pCurrent->getValue();
 					logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
 				}
 

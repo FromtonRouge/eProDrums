@@ -13,3 +13,4 @@ install/
 *.vcxproj*
 *Makefile*
 *.exe
+*.ipch
