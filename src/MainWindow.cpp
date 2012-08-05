@@ -154,7 +154,7 @@ MainWindow::MainWindow():
     gridLayoutHiHatControlPos->addWidget(_pHiHatBlueThreshold,0,0);
 
     // Speed Hi Hat pedal control
-    ValueControl* p = new ValueControl("Open Accel", 0, 5000);
+    ValueControl* p = new ValueControl("Open Accel", 0, 200000);
 	p->setToolTip("Max allowed acceleration (unit/s²) : To be definitively converted to blue cymbal, the current acceleration must be under or equal to this value");
     connect(p, SIGNAL(valueChanged(int)), this, SLOT(onHiHatBlueOpenAccelMax(int)));
     gridLayoutHiHatControlSpeed->addWidget(p,0,0);
@@ -226,7 +226,8 @@ MainWindow::MainWindow():
     if (pFootSplashCancel)
     {
 		groupBoxFootCancel1->setToolTip("This foot cancel strategy doesn't need a buffer length. The cancelling is done by interpreting position, speed and acceleration of the hi-hat");
-        ValueControl* pFootCancelAccelLimit = new ValueControl("Accel", -20000, 0);
+		const int MIN_ACCEL_FOOT_CANCEL(-20000000);
+        ValueControl* pFootCancelAccelLimit = new ValueControl("Accel", MIN_ACCEL_FOOT_CANCEL, MIN_ACCEL_FOOT_CANCEL);
 		pFootCancelAccelLimit->setToolTip("[Optional] Hi-hat close acceleration limit (unit/s²) : The mask time can only begin if the current acceleration is greater or equal to this value");
 		connect(pFootCancelAccelLimit, SIGNAL(valueChanged(int)), this, SLOT(onFootCancelAccelLimit(int)));
         gridLayoutFootCancel1->addWidget(pFootCancelAccelLimit, 0,0);
