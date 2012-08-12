@@ -31,11 +31,13 @@ Slot::MutableCrashSettings Slot::CRASH_TOM3		= 1<<4;
 
 Slot::Slot(const Slot& rOther)
 {
+	Mutex::scoped_lock lock(_mutex);
 	this->operator=(rOther);
 }
 
 Slot& Slot::operator=(const Slot& rOther)
 {
+	Mutex::scoped_lock lock(_mutex);
 	if (this != &rOther)
 	{
 		_szSlotName = rOther._szSlotName;
@@ -65,6 +67,7 @@ Slot& Slot::operator=(const Slot& rOther)
 
 void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path&)
 {
+	Mutex::scoped_lock lock(_mutex);
 	const DrumKitMidiMap::Description& desc = pDrumKit->getDescription();
 
 	Pad::List::iterator it = _pads.begin();
@@ -77,4 +80,51 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 			pPad->setMidiNotes(it->midiNotes);
 		}
 	}
+}
+const std::string& Slot::getName() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _szSlotName;
+}
+
+void Slot::setName(const std::string& szName)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_szSlotName = szName;
+}
+
+const Pad::List& Slot::getPads() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _pads;
+}
+
+Pad::List& Slot::getPads()
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _pads;
+}
+
+bool Slot::isMutableCrash(const MutableCrashSettings& bit) const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return (_mutableCrashSettings & bit) == bit; 
+}
+
+void Slot::setMutableCrash(const MutableCrashSettings& bit, const Parameter::Value& state)
+{
+	Mutex::scoped_lock lock(_mutex);
+   	_mutableCrashSettings = boost::get<bool>(state)?_mutableCrashSettings|bit:(_mutableCrashSettings|bit)^bit;
+}
+
+int Slot::getCymbalSimHitWindow() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_cymbalSimHitWindow);
+}
+
+void Slot::setCymbalSimHitWindow(const Parameter::Value& simHit)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_cymbalSimHitWindow = simHit;
 }

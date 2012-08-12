@@ -29,7 +29,7 @@
 #include <boost/serialization/bitset.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/export.hpp> 
-
+#include <boost/thread/recursive_mutex.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
 
@@ -42,9 +42,7 @@ class DrumKitMidiMap;
 
 /**
  * Slot configuration.
- * Note: copyable and assignable
- * but you have to do connections manually
- * \see connectMutex()
+ * Note: Thread safe
  */
 class Slot
 {
@@ -59,6 +57,9 @@ public:
 	static MutableCrashSettings CRASH_TOM2;
 	static MutableCrashSettings CRASH_TOM3;
 
+private:
+	typedef boost::recursive_mutex Mutex;
+
 public:
 
 	Slot(): _cymbalSimHitWindow(0) {}
@@ -67,28 +68,22 @@ public:
 
 	virtual ~Slot() {}
 
-	const std::string& getName() const {return _szSlotName;}
-	void setName(const std::string& szName) {_szSlotName = szName;}
-	const Pad::List& getPads() const {return _pads;}
-	Pad::List& getPads() {return _pads;}
-
+	const std::string& getName() const;
+	void setName(const std::string& szName);
+	const Pad::List& getPads() const;
+	Pad::List& getPads();
 	void onDrumKitLoaded(DrumKitMidiMap*, const boost::filesystem::path&);
-
-	bool isMutableCrash(const MutableCrashSettings& bit) const {return (_mutableCrashSettings & bit) == bit; }
-	void setMutableCrash(const MutableCrashSettings& bit, bool state) { _mutableCrashSettings = state?_mutableCrashSettings|bit:_mutableCrashSettings^bit; }
-
-	int getCymbalSimHitWindow() const {return _cymbalSimHitWindow;}
-	void setCymbalSimHitWindow(int simHit) {_cymbalSimHitWindow = simHit;}
-
-	void connectMutex(const Pad::SignalLockMutex::slot_function_type& funcLock, const Pad::SignalUnlockMutex::slot_function_type& funcUnlock)
-   	{
-		std::for_each(_pads.begin(), _pads.end(), boost::bind(&Pad::connectMutex, _1, funcLock, funcUnlock));
-	}
+	bool isMutableCrash(const MutableCrashSettings& bit) const;
+	void setMutableCrash(const MutableCrashSettings& bit, const Parameter::Value& state);
+	int getCymbalSimHitWindow() const;
+	void setCymbalSimHitWindow(const Parameter::Value& simHit);
 
 private:
-	std::string  _szSlotName;
-	Pad::List    _pads;
-    int          _cymbalSimHitWindow;
+	mutable Mutex	_mutex;
+	std::string  	_szSlotName;
+	Pad::List    		_pads;
+
+	Parameter::Value   	_cymbalSimHitWindow;
 
 	/**
 	 * 0 = crash-crash
@@ -101,7 +96,7 @@ private:
 
 private:
     friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive & ar, const unsigned int fileVersion)
+    template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		ar & BOOST_SERIALIZATION_NVP(_szSlotName);
 		ar & BOOST_SERIALIZATION_NVP(_pads);

@@ -12,6 +12,10 @@ INCLUDEPATH += $(QWT_DIR)/include
 DEFINES -= UNICODE
 DEFINES += QWT_DLL
 
+win32 {
+DEFINES += _SCL_SECURE_NO_WARNINGS
+}
+
 # Input
 HEADERS += AddMidiNote.h \
            DialogAbout.h \
@@ -27,8 +31,6 @@ HEADERS += AddMidiNote.h \
            EProPlotZoomer.h \
            FlamControl.h \
            FlamKitControl.h \
-           GhostControl.h \
-           GhostKitControl.h \
            HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
@@ -37,9 +39,13 @@ HEADERS += AddMidiNote.h \
            Pad.h \
            PadHandler.h \
            PadNotesWidget.h \
+		   ParamItemDelegate.h \
+		   ParamItemEditor.h \
+		   ParamItemModel.h \
            Settings.h \
            SettingsDlg.h \
            Slot.h \
+		   TreeViewParameters.h \
            UserSettings.h \
            ValueControl.h
 FORMS += AddMidiNote.ui \
@@ -62,8 +68,6 @@ SOURCES += AddMidiNote.cpp \
            EProPlotZoomer.cpp \
            FlamControl.cpp \
            FlamKitControl.cpp \
-           GhostControl.cpp \
-           GhostKitControl.cpp \
            HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \
@@ -72,6 +76,7 @@ SOURCES += AddMidiNote.cpp \
            MidiMessage.cpp \
            Pad.cpp \
            PadNotesWidget.cpp \
+		   ParamItemEditor.cpp \
            Settings.cpp \
            SettingsDlg.cpp \
            Slot.cpp \

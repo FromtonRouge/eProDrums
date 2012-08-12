@@ -326,123 +326,7 @@
              </attribute>
              <layout class="QGridLayout" name="gridLayout_2">
               <item row="0" column="0">
-               <widget class="QGroupBox" name="groupBoxSimHit">
-                <property name="title">
-                 <string>Sim Hit Window</string>
-                </property>
-                <layout class="QGridLayout">
-                 <item row="0" column="0">
-                  <layout class="QGridLayout" name="gridLayoutSimHit"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QGroupBox" name="groupBoxMutableCrashSettings">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="toolTip">
-                 <string>Mutable Crash Settings</string>
-                </property>
-                <property name="title">
-                 <string>M.Crash Settings</string>
-                </property>
-                <layout class="QGridLayout" name="gridLayoutCrashSettings">
-                 <item row="0" column="0">
-                  <widget class="QCheckBox" name="checkBoxMutableWithCrash">
-                   <property name="text">
-                    <string>G.Crash</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QCheckBox" name="checkBoxMutableWithRide">
-                   <property name="text">
-                    <string>Ride</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QCheckBox" name="checkBoxMutableWithSnare">
-                   <property name="text">
-                    <string>Snare</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QCheckBox" name="checkBoxMutableWithTom2">
-                   <property name="text">
-                    <string>Tom2</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QCheckBox" name="checkBoxMutableWithTom3">
-                   <property name="text">
-                    <string>Tom3</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QGroupBox" name="groupBoxHiHatControl">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="title">
-                 <string>Hi-Hat Blue Cymbal detection</string>
-                </property>
-                <layout class="QGridLayout" name="gridLayout_3">
-                 <property name="margin">
-                  <number>6</number>
-                 </property>
-                 <item row="0" column="0">
-                  <widget class="QGroupBox" name="groupBoxHiHatControlPos">
-                   <property name="title">
-                    <string>By Position</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <layout class="QGridLayout" name="gridLayout_4">
-                    <property name="margin">
-                     <number>6</number>
-                    </property>
-                    <item row="0" column="0">
-                     <layout class="QGridLayout" name="gridLayoutHiHatControlPos"/>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QGroupBox" name="groupBoxHiHatControlSpeed">
-                   <property name="title">
-                    <string>By Speed and Acceleration</string>
-                   </property>
-                   <property name="checkable">
-                    <bool>true</bool>
-                   </property>
-                   <layout class="QGridLayout" name="gridLayout_5">
-                    <property name="margin">
-                     <number>6</number>
-                    </property>
-                    <item row="0" column="0">
-                     <layout class="QGridLayout" name="gridLayoutHiHatControlSpeed"/>
-                    </item>
-                   </layout>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
+               <layout class="QGridLayout" name="gridLayoutHiHat"/>
               </item>
              </layout>
             </widget>
@@ -452,61 +336,7 @@
              </attribute>
              <layout class="QGridLayout" name="gridLayout_6">
               <item row="0" column="0">
-               <widget class="QGroupBox" name="groupBoxFootCancel1">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="title">
-                 <string>Cancel from Hi-Hat Control</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <layout class="QGridLayout" name="gridLayout_8">
-                 <item row="0" column="0">
-                  <layout class="QGridLayout" name="gridLayoutFootCancel1"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QGroupBox" name="groupBoxFootCancel2">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="title">
-                 <string>Cancel from Hi-Hat Pedal</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <layout class="QGridLayout" name="gridLayout_7">
-                 <item row="0" column="0">
-                  <layout class="QGridLayout" name="gridLayoutFootCancel2"/>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-              <item row="0" column="2">
-               <widget class="QGroupBox" name="groupBoxCancelOpenHit">
-                <property name="title">
-                 <string>Cancel while open</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <layout class="QGridLayout" name="gridLayout_16">
-                 <item row="0" column="0">
-                  <layout class="QGridLayout" name="gridLayoutCancelOpenHit"/>
-                 </item>
-                </layout>
-               </widget>
+               <layout class="QGridLayout" name="gridLayoutFootSplashCancel"/>
               </item>
              </layout>
             </widget>
@@ -519,6 +349,11 @@
              <attribute name="title">
               <string>Ghost Notes</string>
              </attribute>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayoutGhostNotes"/>
+              </item>
+             </layout>
             </widget>
             <widget class="QWidget" name="tab_3">
              <attribute name="title">

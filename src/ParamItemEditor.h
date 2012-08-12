@@ -21,22 +21,47 @@
 
 #pragma once
 
-#include "Pad.h"
-
 #include <QtGui/QWidget>
-#include <map>
 
-class GhostControl;
+struct Parameter;
+class QStackedWidget;
+class QCheckBox;
+class QSlider;
+class QSpinBox;
+class QDoubleSpinBox;
+class QLineEdit;
 
-class GhostKitControl : public QWidget
+/**
+ * Parameter Editor used in ParamItemDelegate.
+ */
+class ParamItemEditor : public QWidget
 {
-    Q_OBJECT
+	Q_OBJECT
+
+signals:
+	void editFinished(QWidget*);
+
 public:
-    GhostKitControl(const Pad::List& drumKit);
-    virtual ~GhostKitControl();
-    void setDrumKit(const Pad::List& drumKit);
+	ParamItemEditor(QWidget* pParent=NULL);
+	virtual ~ParamItemEditor();
+	void setData(Parameter* pData);
+	Parameter* getData() const {return _pData;}
+
+private slots:
+	void onCheckBoxValueChanged(int);
+	void onSliderValueChanged(int);
+	void onSpinBoxValueChanged(int);
+	void onDoubleSliderValueChanged(int);
+	void onDoubleSpinBoxValueChanged(double);
+	void onLineEditValueChanged(const QString&);
 
 private:
-    typedef std::map<Pad::Type, GhostControl*> Map;
-    Map _map;
+	Parameter*			_pData;
+	QStackedWidget*		_pStackedWidget;
+	QCheckBox*			_pCheckBox;
+	QSpinBox*			_pSpinBox;
+	QDoubleSpinBox*		_pDoubleSpinBox;
+	QSlider*			_pSlider;
+	QSlider*			_pDoubleSlider;
+	QLineEdit*			_pLineEdit;
 };

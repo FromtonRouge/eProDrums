@@ -45,24 +45,36 @@ std::string Pad::MidiDescription::getTypeLabel() const
 	return szLabel;
 }
 
-Pad::Pad(
-                    Type type,
-                    int defaultMidiNote,
-                    int ghostVelocityLimit,
-                    double flamVelocityFactor,
-                    int flamTimeWindow1,
-                    int flamTimeWindow2,
-					int flamCancelDuringRoll
-					):
+Pad::Pad(	Type type,
+			int defaultMidiNote,
+			int ghostVelocityLimit,
+			float flamVelocityFactor,
+			int flamTimeWindow1,
+			int flamTimeWindow2,
+			int flamCancelDuringRoll):
 	_type(type),
 	_typeFlam(type),
-    _defaultOutputNote(defaultMidiNote),
-    _ghostVelocityLimit(ghostVelocityLimit),
-    _flamVelocityFactor(flamVelocityFactor),
-    _flamTimeWindow1(flamTimeWindow1),
-    _flamTimeWindow2(flamTimeWindow2),
+	_defaultOutputNote(defaultMidiNote),
+	_ghostVelocityLimit(ghostVelocityLimit),
+	_flamVelocityFactor(flamVelocityFactor),
+	_flamTimeWindow1(flamTimeWindow1),
+	_flamTimeWindow2(flamTimeWindow2),
 	_flamCancelDuringRoll(flamCancelDuringRoll)
 {
+	typedef std::map<int, std::string> DictColors;
+	DictColors dictColors;
+	dictColors[SNARE] = "#FF7070";
+	dictColors[HIHAT] = "#FFFD70";
+	dictColors[HIHAT_PEDAL] = "#FFFD70";
+	dictColors[TOM1] = "#FFFD70";
+	dictColors[TOM2] = "#70A5FF";
+	dictColors[TOM3] = "#86FF70";
+	dictColors[CRASH1] = "#86FF70";
+	dictColors[CRASH2] = "#86FF70";
+	dictColors[CRASH3] = "#FFFD70";
+	dictColors[RIDE] = "#70A5FF";
+	dictColors[BASS_DRUM] = "#FFD970";
+	_color = dictColors[type];
 }
 
 Pad::~Pad()
@@ -71,14 +83,13 @@ Pad::~Pad()
 
 Pad::Pad(const Pad& rOther)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	this->operator=(rOther);
-	unlock();
 }
 
 Pad& Pad::operator=(const Pad& rOther)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	if (this!=&rOther)
 	{
 		_midiNotes = rOther._midiNotes;
@@ -91,134 +102,147 @@ Pad& Pad::operator=(const Pad& rOther)
 		_flamTimeWindow2 = rOther._flamTimeWindow2;
 		_flamCancelDuringRoll = rOther._flamCancelDuringRoll;
 	}
-	unlock();
 	return *this;
 }
 
 void Pad::setMidiNotes(const MidiNotes& notes)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_midiNotes = notes;
-	unlock();
 }
 
 Pad::MidiDescription Pad::getMidiDescription() const
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	Pad::MidiDescription result(_type);
 	result.midiNotes = _midiNotes;
-	unlock();
-
 	return result;
 }
 
-bool Pad::isA(int note) const
+Pad::Type Pad::getType() const
 {
-	lock();
-	bool bResult = _midiNotes.find(note)!=_midiNotes.end();
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	return _type;
+}
 
-	return bResult;
+void Pad::setType(Type type)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_type = type;
 }
 
 void Pad::setTypeFlam(Type type)
 {
-	lock();
-    _typeFlam = type;
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	_typeFlam = type;
 }
 
 Pad::Type Pad::getTypeFlam() const
 {
-	lock();
-	Pad::Type result(_typeFlam);
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	return _typeFlam;
+}
 
-    return result;
+std::string Pad::getName() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	typedef std::map<int, std::string> DictNames;
+	DictNames dictElementName;
+	dictElementName[Pad::NOTE_SNARE] = "Snare";
+	dictElementName[Pad::NOTE_HIHAT] = "Hi-Hat";
+	dictElementName[Pad::NOTE_HIHAT_PEDAL] = "HH Ped";
+	dictElementName[Pad::NOTE_TOM1] = "Tom1";
+	dictElementName[Pad::NOTE_TOM2] = "Tom2";
+	dictElementName[Pad::NOTE_TOM3] = "Tom3";
+	dictElementName[Pad::NOTE_CRASH1] = "M.Crash";
+	dictElementName[Pad::NOTE_CRASH2] = "G.Crash";
+	dictElementName[Pad::NOTE_CRASH3] = "Y.Crash";
+	dictElementName[Pad::NOTE_RIDE] = "Ride";
+	dictElementName[Pad::NOTE_BASS_DRUM] = "Bass Dr";
+	std::string szElementName("Unknown");
+	DictNames::iterator it = dictElementName.find(getDefaultOutputNote());
+	if (it!=dictElementName.end())
+	{
+		szElementName = it->second;
+	}
+	return szElementName;
+}
+
+bool Pad::isA(int note) const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _midiNotes.find(note)!=_midiNotes.end();
 }
 
 int Pad::getFlamCancelDuringRoll() const
 {
-	lock();
-	int result(_flamCancelDuringRoll);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_flamCancelDuringRoll);
 }
 
 void Pad::setFlamCancelDuringRoll(int value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_flamCancelDuringRoll = value;
-	unlock();
+}
+
+int Pad::getDefaultOutputNote() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _defaultOutputNote;
 }
 
 int Pad::getGhostVelocityLimit() const
 {
-	lock();
-	int result(_ghostVelocityLimit);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_ghostVelocityLimit);
 }
 
-void Pad::setGhostVelocityLimit(int velocity)
+void Pad::setGhostVelocityLimit(const Parameter::Value& velocity)
 {
-	lock();
-    _ghostVelocityLimit = velocity;
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	_ghostVelocityLimit = velocity;
 } 
 
-double Pad::getFlamVelocityFactor() const
+float Pad::getFlamVelocityFactor() const
 {
-	lock();
-	double result(_flamVelocityFactor);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<float>(_flamVelocityFactor);
 }
 
-void Pad::setFlamVelocityFactor(double value)
+void Pad::setFlamVelocityFactor(float value)
 {
-	lock();
-    _flamVelocityFactor = value;
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	_flamVelocityFactor = value;
 }
 
 int Pad::getFlamTimeWindow1() const
 {
-	lock();
-	int result(_flamTimeWindow1);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_flamTimeWindow1);
 }
 
 void Pad::setFlamTimeWindow1(int value)
 {
-	lock();
-    _flamTimeWindow1 = value;
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	_flamTimeWindow1 = value;
 }
 
 int Pad::getFlamTimeWindow2() const
 {
-	lock();
-	int result(_flamTimeWindow2);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_flamTimeWindow2);
 }
 
 void Pad::setFlamTimeWindow2(int value)
 {
-	lock();
-    _flamTimeWindow2 = value;
-	unlock();
+	Mutex::scoped_lock lock(_mutex);
+	_flamTimeWindow2 = value;
 }
 
 MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext)
 {
+	Mutex::scoped_lock lock(_mutex);
 	MidiMessage::List messageToSend;
 	//bool bLogsFlams = _pConfig->isLogs() && _pConfig->isLog(UserSettings::LOG_FLAMS);
 	//bool bLogsGhost = _pConfig->isLogs() && _pConfig->isLog(UserSettings::LOG_GHOST_NOTES);
@@ -366,31 +390,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	return messageToSend;
 }
 
-std::string Pad::getName() const
-{
-	typedef std::map<int, std::string> DictNames;
-	DictNames dictElementName;
-	dictElementName[Pad::NOTE_SNARE] = "Snare";
-	dictElementName[Pad::NOTE_HIHAT] = "Hi-Hat";
-	dictElementName[Pad::NOTE_HIHAT_PEDAL] = "HH Ped";
-	dictElementName[Pad::NOTE_TOM1] = "Tom1";
-	dictElementName[Pad::NOTE_TOM2] = "Tom2";
-	dictElementName[Pad::NOTE_TOM3] = "Tom3";
-	dictElementName[Pad::NOTE_CRASH1] = "M.Crash";
-	dictElementName[Pad::NOTE_CRASH2] = "G.Crash";
-	dictElementName[Pad::NOTE_CRASH3] = "Y.Crash";
-	dictElementName[Pad::NOTE_RIDE] = "Ride";
-	dictElementName[Pad::NOTE_BASS_DRUM] = "Bass Dr";
-	std::string szElementName("Unknown");
-	DictNames::iterator it = dictElementName.find(getDefaultOutputNote());
-	if (it!=dictElementName.end())
-	{
-		szElementName = it->second;
-	}
-	return szElementName;
-}
-
 bool Pad::isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const
 {
+	Mutex::scoped_lock lock(_mutex);
 	return !beforeFlamHit.isInTimeWindow(flamHit, getFlamCancelDuringRoll());
 }

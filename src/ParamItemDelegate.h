@@ -1,0 +1,156 @@
+// ============================================================
+// 
+// This file is a part of the eProDrums rock band project
+// 
+// Copyright (C) 2012 by Vissale Neang <fromtonrouge at gmail dot com>
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License or (at your option) version 3 or any later version
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// ============================================================ 
+
+#pragma once
+
+#include "Parameter.h"
+#include "ParamItemEditor.h"
+#include "ParamItemModel.h"
+
+#include <QtGui/QStyledItemDelegate>
+#include <QtGui/QPainter>
+
+class ParamItemDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+
+public:
+	ParamItemDelegate(QObject* pParent=NULL):
+		QStyledItemDelegate(pParent)
+   	{
+		_firstColumnWidthOffset = QPainter().fontMetrics().width("- ");
+   	}
+
+	virtual ~ParamItemDelegate() {}
+
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+	{
+		QSize result = QStyledItemDelegate::sizeHint(option, index);
+		if (index.column()==0)
+		{
+			const Parameter* pParameter = index.data().value<Parameter*>();
+			int width = QPainter().fontMetrics().width(pParameter->label.c_str());
+			const int UNKNOW_OFFSET(22); // Hack...
+			result.rwidth() = width + _firstColumnWidthOffset + UNKNOW_OFFSET;
+		}
+		return result;
+	}
+
+	virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+	{
+		if (index.parent().isValid() && index.column()==1)
+		{
+			return;
+		}
+		painter->save();
+
+		painter->setRenderHint(QPainter::Antialiasing);
+		QStyleOptionViewItemV4 opt = option;
+		QStyledItemDelegate::initStyleOption(&opt, index);
+
+		if (!index.parent().isValid())
+		{
+			const Parameter* pParameter = index.data().value<Parameter*>();
+			painter->fillRect(opt.rect, pParameter->getColor());
+			QStyleOptionViewItemV4 optionV4 = opt;
+			optionV4.state = QStyle::State_MouseOver;
+			QStyledItemDelegate::paint(painter, optionV4, index);
+
+			if (index.column()==0)
+			{
+				if (opt.state & QStyle::State_Open)
+				{
+					painter->drawText(opt.rect, Qt::AlignLeft, QString("- ") + pParameter->label.c_str());
+				}
+				else
+				{
+					painter->drawText(opt.rect, Qt::AlignLeft, QString("+ ") + pParameter->label.c_str());
+				}
+			}
+		}
+		else if (index.column()==0)
+		{
+			const QModelIndex& parent = index.parent();
+			Parameter* pParentParameter = parent.data().value<Parameter*>();
+			Parameter* pParameter = index.data().value<Parameter*>();
+			QColor color = pParentParameter->getColor();
+
+			const QRectF& rect = opt.rect;
+			if (pParameter->isEnabled())
+			{
+				const QColor& colorParameter = pParameter->getColor();
+				if (colorParameter.isValid())
+				{
+					color = colorParameter;
+				}
+
+				if (opt.state & QStyle::State_MouseOver)
+				{
+					const QColor& lighterColor = color.lighter(120);
+					painter->fillRect(rect, lighterColor);
+				}
+				else
+				{
+					const QColor& lighterColor = color.lighter(130);
+					painter->fillRect(rect, lighterColor);
+				}
+			}
+			painter->drawText(rect.x()+_firstColumnWidthOffset, rect.y(), rect.width(), rect.height(), Qt::AlignLeft, pParameter->label.c_str());
+		}
+
+		painter->restore();
+	}
+
+	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem &, const QModelIndex&) const
+	{
+		ParamItemEditor* pEditor = new ParamItemEditor(parent);
+		connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
+		return pEditor;
+	}
+
+	virtual void updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const
+	{
+		QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+	}
+
+	virtual void setEditorData(QWidget* p, const QModelIndex& index) const
+	{
+		ParamItemEditor* pEditor = dynamic_cast<ParamItemEditor*>(p);
+		const QVariant& variant = index.data(Qt::EditRole);
+		if (!variant.isNull() && qVariantCanConvert<Parameter*>(variant))
+		{
+			Parameter* pParameter = variant.value<Parameter*>();
+			pEditor->setData(pParameter);
+		}
+	}
+
+	virtual void setModelData(QWidget* p1, QAbstractItemModel* p2, const QModelIndex& index) const
+	{
+		ParamItemEditor* pEditor = dynamic_cast<ParamItemEditor*>(p1);
+		Parameter* pParameter= pEditor->getData();
+		QVariant variant;
+		variant.setValue(pParameter);
+		p2->setData(index, variant);
+	}
+
+private:
+	int		_firstColumnWidthOffset;
+};

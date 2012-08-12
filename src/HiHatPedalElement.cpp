@@ -31,10 +31,6 @@ HiHatPedalElement::HiHatPedalElement():
 	_currentControlAcceleration(0),
 	_posOnCloseBegin(127),
 	_posOnOpenBegin(0),
-    _beforeHitMaskTime(0),
-    _beforeHitMaskVelocity(0),
-	_afterHitMaskTime(0),
-	_afterHitMaskVelocity(0),
 	_bControlPosActivated(false),
 	_bControlSpeedActivated(true),
 	_controlPosThreshold(127),
@@ -42,7 +38,6 @@ HiHatPedalElement::HiHatPedalElement():
 	_speedOpen(0),
 	_speedOff(0),
 	_bFootCancelStrategy1Activated(true),
-	_bFootCancelStrategy2Activated(false),
 	_footCancelAccelLimit(-8000),
 	_footCancelClosingSpeed(0),
 	_footCancelPos(0),
@@ -64,146 +59,121 @@ HiHatPedalElement::~HiHatPedalElement()
 
 bool HiHatPedalElement::isControlPosActivated() const
 {
-	lock();
-	bool result(_bControlPosActivated);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_bControlPosActivated);
 }
 
-void HiHatPedalElement::setControlPosActivation(bool state)
+void HiHatPedalElement::setControlPosActivation(const Parameter::Value& state)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_bControlPosActivated = state;
-	unlock();
 }
 
 bool HiHatPedalElement::isControlSpeedActivated() const
 {
-	lock();
-	bool result(_bControlSpeedActivated);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_bControlSpeedActivated);
 }
 
-void HiHatPedalElement::setControlSpeedActivation(bool state)
+void HiHatPedalElement::setControlSpeedActivation(const Parameter::Value& state)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_bControlSpeedActivated = state;
-	unlock();
 }
 
 int HiHatPedalElement::getOpenAccelMax() const
 {
-	lock();
-	int result(_accelOpenMax);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_accelOpenMax);
 }
 
-void HiHatPedalElement::setOpenAccelMax(int value)
+void HiHatPedalElement::setOpenAccelMax(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_accelOpenMax = value;
-	unlock();
 }
 
 int HiHatPedalElement::getControlSpeedOn() const
 {
-	lock();
-	int result(_speedOpen);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_speedOpen);
 }
 
-void HiHatPedalElement::setControlSpeedOn(int value)
+void HiHatPedalElement::setControlSpeedOn(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_speedOpen = value;
-	unlock();
 }
 
 int HiHatPedalElement::getControlSpeedOff() const
 {
-	lock();
-	int result(_speedOff);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_speedOff);
 }
 
-void HiHatPedalElement::setControlSpeedOff(int value)
+void HiHatPedalElement::setControlSpeedOff(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_speedOff = value;
-	unlock();
+}
+
+bool HiHatPedalElement::isBlue() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _isBlue;
+}
+
+void HiHatPedalElement::setBlue(bool state)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isBlue = state;
 }
 
 int HiHatPedalElement::getControlPosThreshold() const
 {
-	lock();
-	int result(_controlPosThreshold);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+    return boost::get<int>(_controlPosThreshold);
 }
 
-void HiHatPedalElement::setControlPosThreshold(int value)
+void HiHatPedalElement::setControlPosThreshold(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
     _controlPosThreshold = value;
-	unlock();
 }
 
 int HiHatPedalElement::getCurrentControlPos() const
 {
-	lock();
-	int result(_currentControlPos);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+    return _currentControlPos;
 }
 
 void HiHatPedalElement::setCurrentControlPos(int value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
     _currentControlPos = value;
-	unlock();
 }
 
 float HiHatPedalElement::getCurrentControlSpeed() const
 {
-	lock();
-	float result(_currentControlSpeed);
-	unlock();
-
-    return result;
+	Mutex::scoped_lock lock(_mutex);
+    return _currentControlSpeed;
 }
 
 int HiHatPedalElement::getPositionOnCloseBegin() const
 {
-	lock();
-	int result(_posOnCloseBegin);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return _posOnCloseBegin;
 }
 
 int HiHatPedalElement::getPositionOnOpenBegin() const
 {
-	lock();
-	int result(_posOnOpenBegin);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return _posOnOpenBegin;
 }
 
 HiHatPedalElement::MovingState HiHatPedalElement::setCurrentControlSpeed(float value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	MovingState movingState = MS_NO_CHANGE;
     _currentControlSpeed = value;
 	if (_currentControlSpeed <= 0.f)
@@ -224,312 +194,174 @@ HiHatPedalElement::MovingState HiHatPedalElement::setCurrentControlSpeed(float v
 	}
 	_previousControlSpeed = _currentControlSpeed;
 	_previousControlPos = _currentControlPos;
-	unlock();
 
 	return movingState;
 }
 
 float HiHatPedalElement::getCurrentControlAcceleration() const
 {
-	lock();
-	float result(_currentControlAcceleration);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return _currentControlAcceleration;
 }
 
 void HiHatPedalElement::setCurrentControlAcceleration(float value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_currentControlAcceleration = value;
-	unlock();
-}
-
-
-int HiHatPedalElement::getBeforeHitMaskTime() const
-{
-	lock();
-	int result(_beforeHitMaskTime);
-	unlock();
-
-    return result;
-}
-
-void HiHatPedalElement::setBeforeHitMaskTime(int value)
-{
-	lock();
-    _beforeHitMaskTime = value;
-	unlock();
-}
-
-int HiHatPedalElement::getBeforeHitMaskVelocity() const
-{
-	lock();
-	int result(_beforeHitMaskVelocity);
-	unlock();
-
-    return result;
-}
-
-void HiHatPedalElement::setBeforeHitMaskVelocity(int value)
-{
-	lock();
-    _beforeHitMaskVelocity = value;
-	unlock();
-}
-
-int HiHatPedalElement::getAfterHitMaskTime() const
-{
-	lock();
-	int result(_afterHitMaskTime);
-	unlock();
-
-	return result;
-}
-
-void HiHatPedalElement::setAfterHitMaskTime(int value)
-{
-	lock();
-	_afterHitMaskTime = value;
-	unlock();
-}
-
-int HiHatPedalElement::getAfterHitMaskVelocity() const
-{
-	lock();
-	int result(_afterHitMaskVelocity);
-	unlock();
-
-	return result;
-}
-
-void HiHatPedalElement::setAfterHitMaskVelocity(int value)
-{
-	lock();
-	_afterHitMaskVelocity = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelAccelLimit() const
 {
-	lock();
-	int result(_footCancelAccelLimit);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelAccelLimit);
 }
 
-void HiHatPedalElement::setFootCancelAccelLimit(int value)
+void HiHatPedalElement::setFootCancelAccelLimit(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelAccelLimit = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelClosingSpeed() const
 {
-	lock();
-	int result(_footCancelClosingSpeed);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelClosingSpeed);
 }
 
-void HiHatPedalElement::setFootCancelClosingSpeed(int value)
+void HiHatPedalElement::setFootCancelClosingSpeed(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelClosingSpeed = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelPosDiff() const
 {
-	lock();
-	int result(_footCancelPosDiff);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelPosDiff);
 }
 
-void HiHatPedalElement::setFootCancelPosDiff(int value)
+void HiHatPedalElement::setFootCancelPosDiff(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelPosDiff = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelPos() const
 {
-	lock();
-	int result(_footCancelPos);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelPos);
 }
 
-void HiHatPedalElement::setFootCancelPos(int value)
+void HiHatPedalElement::setFootCancelPos(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelPos = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelMaskTime() const
 {
-	lock();
-	int result(_footCancelMaskTime);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelMaskTime);
 }
 
-void HiHatPedalElement::setFootCancelMaskTime(int value)
+void HiHatPedalElement::setFootCancelMaskTime(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelMaskTime = value;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelVelocity() const
 {
-	lock();
-	int result(_footCancelVelocity);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_footCancelVelocity);
 }
 
-void HiHatPedalElement::setFootCancelVelocity(int value)
+void HiHatPedalElement::setFootCancelVelocity(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelVelocity = value;
-	unlock();
 }
 
 bool	HiHatPedalElement::isFootCancelStrategy1Activated() const
 {
-	lock();
-	bool	result(_bFootCancelStrategy1Activated);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_bFootCancelStrategy1Activated);
 }
 
-void	HiHatPedalElement::setFootCancelStrategy1Activation(bool state)
+void	HiHatPedalElement::setFootCancelStrategy1Activation(const Parameter::Value& state)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_bFootCancelStrategy1Activated = state;
-	unlock();
-}
-
-bool	HiHatPedalElement::isFootCancelStrategy2Activated() const
-{
-	lock();
-	bool	result(_bFootCancelStrategy2Activated);
-	unlock();
-
-	return result;
-}
-
-void	HiHatPedalElement::setFootCancelStrategy2Activation(bool state)
-{
-	lock();
-	_bFootCancelStrategy2Activated = state;
-	unlock();
 }
 
 int HiHatPedalElement::getFootCancelTimeLimit() const
 {
-	lock();
-	int result(_footCancelTimeLimit);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return _footCancelTimeLimit;
 }
 
 void HiHatPedalElement::setFootCancelTimeLimit(int value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_footCancelTimeLimit = value;
-	unlock();
 }
 
 int HiHatPedalElement::getCancelOpenHitThreshold() const
 {
-	lock();
-	int result(_cancelOpenHitThreshold);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_cancelOpenHitThreshold);
 }
 
 int HiHatPedalElement::getCancelOpenHitVelocity() const
 {
-	lock();
-	int result(_cancelOpenHitVelocity);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_cancelOpenHitVelocity);
 }
 
-void HiHatPedalElement::setCancelOpenHitThreshold(int value)
+void HiHatPedalElement::setCancelOpenHitThreshold(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_cancelOpenHitThreshold = value;
-	unlock();
 }
 
-void HiHatPedalElement::setCancelOpenHitVelocity(int value)
+void HiHatPedalElement::setCancelOpenHitVelocity(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_cancelOpenHitVelocity = value;
-	unlock();
 }
 
 bool HiHatPedalElement::isCancelOpenHitActivated() const
 {
-	lock();
-	bool result(_bCancelOpenHitActivated);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_bCancelOpenHitActivated);
 }
 
-void HiHatPedalElement::setCancelOpenHit(bool value)
+void HiHatPedalElement::setCancelOpenHit(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_bCancelOpenHitActivated = value;
-	unlock();
 }
 
 int HiHatPedalElement::getClosePositionThresold() const
 {
-	lock();
-	int result(_posThresholdClose);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_posThresholdClose);
 }
 
-void HiHatPedalElement::setClosePositionThresold(int value)
+void HiHatPedalElement::setClosePositionThresold(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_posThresholdClose = value;
-	unlock();
 }
 
 int HiHatPedalElement::getOpenPositionThresold() const
 {
-	lock();
-	int result(_posThresholdOpen);
-	unlock();
-
-	return result;
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_posThresholdOpen);
 }
 
-void HiHatPedalElement::setOpenPositionThresold(int value)
+void HiHatPedalElement::setOpenPositionThresold(const Parameter::Value& value)
 {
-	lock();
+	Mutex::scoped_lock lock(_mutex);
 	_posThresholdOpen = value;
-	unlock();
 }

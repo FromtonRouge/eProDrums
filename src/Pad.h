@@ -22,28 +22,28 @@
 #pragma once
 
 #include "MidiMessage.h"
+#include "Parameter.h"
+
+#include <QtGui/QColor>
 
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/set.hpp>
+#include <boost/serialization/variant.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/format.hpp>
+#include <boost/thread/recursive_mutex.hpp>
 
 /**
- * Note: copyable and assignable
- * but you have to do connections manually
- * \see connectMutex()
- * \see connectLogs()
+ * Note: Thread safe
  */
-class Pad
+class Pad : protected boost::noncopyable
 {
 public:
 	typedef boost::shared_ptr<Pad> Ptr;
 	typedef std::vector<Ptr> List;
 
-	typedef boost::signals2::signal<void ()> SignalLockMutex;
-	typedef boost::signals2::signal<void ()> SignalUnlockMutex;
 	typedef boost::signals2::signal<void (const boost::format&)> SignalLog;
 
 	enum Type
@@ -90,12 +90,15 @@ public:
 
 	private:
 		friend class boost::serialization::access;
-		template<class Archive> void serialize(Archive & ar, const unsigned int fileVersion)
+		template<class Archive> void serialize(Archive & ar, const unsigned int)
 		{
 			ar  & BOOST_SERIALIZATION_NVP(type);
 			ar  & BOOST_SERIALIZATION_NVP(midiNotes);
 		}
 	};
+
+protected:
+	typedef boost::recursive_mutex Mutex;
 
 public:
 	Pad():
@@ -107,46 +110,42 @@ public:
 		_flamCancelDuringRoll(0)
 	{}
 
-	Pad( Type type,
+	Pad(	Type type,
 			int defaultMidiNote,
 			int ghostVelocityLimit = 0,
-			double flamVelocityFactor = 0,
+			float flamVelocityFactor = 0,
 			int flamTimeWindow1 = 0,
 			int flamTimeWindow2 = 0,
-			int flamCancelDuringRoll = 0
-	   );
+			int flamCancelDuringRoll = 0);
 
 	Pad(const Pad& rOther);
 	Pad& operator=(const Pad& rOther);
 
 	virtual ~Pad();
 
-	void connectMutex(const SignalLockMutex::slot_function_type& funcLock, const SignalUnlockMutex::slot_function_type& funcUnlock) {_signalLockMutex.connect(funcLock); _signalUnlockMutex.connect(funcUnlock);}
+public:
 	void connectLogs(const SignalLog::slot_function_type& funcFlams, const SignalLog::slot_function_type& funcGhost) {_signalLogFlams.connect(funcFlams); _signalLogGhost.connect(funcGhost);}
-
-	void setMidiNotes(const MidiNotes& notes);
 	MidiDescription getMidiDescription() const;
-
-	Type getType() const {return _type;}
-	void setType(Type type) {_type = type;}
+	void setMidiNotes(const MidiNotes& notes);
+	Type getType() const;
+	void setType(Type type);
 	void setTypeFlam(Type type);
 	Type getTypeFlam() const;
 	std::string getName() const;
-
 	bool isA(int note) const;
-
-	// Settings
-    int getDefaultOutputNote() const {return _defaultOutputNote;}
-    int getGhostVelocityLimit() const;
-    void setGhostVelocityLimit(int velocity);
-    double getFlamVelocityFactor() const;
-    void setFlamVelocityFactor(double value);
-    int getFlamTimeWindow1() const;
-    void setFlamTimeWindow1(int value);
-    int getFlamTimeWindow2() const;
-    void setFlamTimeWindow2(int value);
+	int getDefaultOutputNote() const;
+	int getGhostVelocityLimit() const;
+	void setGhostVelocityLimit(const Parameter::Value& velocity);
+	float getFlamVelocityFactor() const;
+	void setFlamVelocityFactor(float value);
+	int getFlamTimeWindow1() const;
+	void setFlamTimeWindow1(int value);
+	int getFlamTimeWindow2() const;
+	void setFlamTimeWindow2(int value);
 	int getFlamCancelDuringRoll() const;
 	void setFlamCancelDuringRoll(int value);
+	QColor getColor() const {return QColor(_color.c_str());}
+	void setColor(const QColor& color) {_color = color.name().toStdString();}
 
 	/**
 	 * Compute flams, ghosts on current and next midi message.
@@ -155,39 +154,40 @@ public:
 	MidiMessage::List applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext);
 
 protected:
-	void lock() const {_signalLockMutex();}
-	void unlock() const {_signalUnlockMutex();}
 	void logFlams(const boost::format& fmt) const {_signalLogFlams(fmt);}
 	void logGhost(const boost::format& fmt) const {_signalLogGhost(fmt);}
 
 private:
 	bool isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const;
 
+protected:
+	mutable Mutex		_mutex;
+
 private:
-	SignalLockMutex		_signalLockMutex;
-	SignalUnlockMutex	_signalUnlockMutex;
 	SignalLog			_signalLogFlams;
 	SignalLog			_signalLogGhost;
 
 	MidiNotes			_midiNotes;
 
 	// Archived data
-	Type   _type;
-	Type   _typeFlam;
-    int    _defaultOutputNote;
+	std::string			_color;
+	Type				_type;
+	Type				_typeFlam;
+	int					_defaultOutputNote;
 
 	// Settings
-    int    _ghostVelocityLimit;
-    double _flamVelocityFactor;
-    int    _flamTimeWindow1;
-    int    _flamTimeWindow2;
-	int    _flamCancelDuringRoll;
+	Parameter::Value	_ghostVelocityLimit;
+	Parameter::Value	_flamVelocityFactor;
+	Parameter::Value	_flamTimeWindow1;
+	Parameter::Value	_flamTimeWindow2;
+	Parameter::Value	_flamCancelDuringRoll;
 
 private:
-    friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive & ar, const unsigned int fileVersion)
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		// Basic Pad
+		ar  & BOOST_SERIALIZATION_NVP(_color);
 		ar  & BOOST_SERIALIZATION_NVP(_type);
 		ar  & BOOST_SERIALIZATION_NVP(_typeFlam);
 		ar  & BOOST_SERIALIZATION_NVP(_defaultOutputNote);

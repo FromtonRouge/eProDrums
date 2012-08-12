@@ -90,7 +90,7 @@ public:
 		return false;
 	}
 
-	virtual int rowCount(const QModelIndex& parent=QModelIndex()) const
+	virtual int rowCount(const QModelIndex& = QModelIndex()) const
 	{
 		if (!_pDrumKit)
 		{
@@ -111,7 +111,7 @@ public:
 		return Qt::ItemIsEnabled|Qt::ItemIsSelectable;
 	}
 
-	virtual int columnCount(const QModelIndex& parent=QModelIndex()) const
+	virtual int columnCount(const QModelIndex&) const
 	{
 	   	return 2;
 	}

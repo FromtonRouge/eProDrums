@@ -1,0 +1,191 @@
+// ============================================================
+// 
+// This file is a part of the eProDrums rock band project
+// 
+// Copyright (C) 2012 by Vissale Neang <fromtonrouge at gmail dot com>
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License or (at your option) version 3 or any later version
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// ============================================================ 
+
+#include "ParamItemEditor.h"
+#include "Parameter.h"
+
+#include <QtGui/QStackedWidget>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QCheckBox>
+#include <QtGui/QLineEdit>
+#include <QtGui/QSlider>
+#include <QtGui/QSpinBox>
+#include <QtGui/QDoubleSpinBox>
+
+const float SLIDER_FACTOR(1000);
+
+ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
+	_pData(NULL),
+	_pStackedWidget(NULL),
+	_pCheckBox(NULL),
+	_pSpinBox(NULL),
+	_pDoubleSpinBox(NULL),
+	_pSlider(NULL),
+	_pDoubleSlider(NULL),
+	_pLineEdit(NULL)
+{
+	_pStackedWidget = new QStackedWidget(this);
+
+	// For bool values
+	_pCheckBox = new QCheckBox(this);
+	connect(_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onCheckBoxValueChanged(int)));
+	_pStackedWidget->addWidget(_pCheckBox);
+
+	// For int values
+	{
+		QWidget* pSubWidget = new QWidget(this);
+		QHBoxLayout* pSubLayout = new QHBoxLayout;
+		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
+		_pSlider = new QSlider(Qt::Horizontal, this);
+		connect(_pSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
+		_pSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		pSubLayout->addWidget(_pSlider);
+		_pSpinBox = new QSpinBox(this);
+		connect(_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
+		pSubLayout->addWidget(_pSpinBox);
+		pSubWidget->setLayout(pSubLayout);
+		_pStackedWidget->addWidget(pSubWidget);
+	}
+
+	// For float values
+	{
+		QWidget* pSubWidget = new QWidget(this);
+		QHBoxLayout* pSubLayout = new QHBoxLayout;
+		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
+		_pDoubleSlider = new QSlider(Qt::Horizontal, this);
+		connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
+		_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+		pSubLayout->addWidget(_pDoubleSlider);
+		_pDoubleSpinBox = new QDoubleSpinBox(this);
+		connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onDoubleSpinBoxValueChanged(double)));
+		pSubLayout->addWidget(_pDoubleSpinBox);
+		pSubWidget->setLayout(pSubLayout);
+		_pStackedWidget->addWidget(pSubWidget);
+	}
+
+	// For string values
+	_pLineEdit = new QLineEdit(this);
+	connect(_pLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onLineEditValueChanged(const QString&)));
+	_pStackedWidget->addWidget(_pLineEdit);
+
+	QHBoxLayout* pLayout = new QHBoxLayout;
+	pLayout->setContentsMargins(0,0,0,0);
+	pLayout->addWidget(_pStackedWidget);
+	setLayout(pLayout);
+}
+
+void ParamItemEditor::onCheckBoxValueChanged(int value)
+{
+	bool bChecked = value==Qt::Checked;
+	_pData->setValue(bChecked);
+	emit editFinished(this);
+}
+
+void ParamItemEditor::onSliderValueChanged(int value)
+{
+	_pSpinBox->setValue(value);
+}
+
+void ParamItemEditor::onDoubleSliderValueChanged(int value)
+{
+	_pDoubleSpinBox->setValue(float(value)/SLIDER_FACTOR);
+}
+
+void ParamItemEditor::onSpinBoxValueChanged(int value)
+{
+	_pSlider->blockSignals(true);
+	_pSlider->setValue(value);
+	_pSlider->blockSignals(false);
+
+	_pData->setValue(value);
+	emit editFinished(this);
+}
+
+void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
+{
+	_pDoubleSlider->blockSignals(true);
+	_pDoubleSlider->setValue(value*SLIDER_FACTOR);
+	_pDoubleSlider->blockSignals(false);
+	
+	_pData->setValue(float(value));
+	emit editFinished(this);
+}
+
+void ParamItemEditor::onLineEditValueChanged(const QString& value)
+{
+	_pData->setValue(value.toStdString());
+	emit editFinished(this);
+}
+
+ParamItemEditor::~ParamItemEditor()
+{
+}
+
+void ParamItemEditor::setData(Parameter* pData)
+{
+	_pData = pData;
+
+	if (_pData->isConnected())
+	{
+		setEnabled(_pData->isEnabled());
+	}
+	else
+	{
+		setEnabled(false);
+	}
+
+	const Parameter::Value& value = _pData->getValue();
+
+	if (boost::get<bool>(&value))
+	{
+		_pStackedWidget->setCurrentIndex(0);
+		_pCheckBox->setChecked(boost::get<bool>(value));
+	}
+	else if (boost::get<int>(&value))
+	{
+		_pStackedWidget->setCurrentIndex(1);
+		int minimum = boost::get<int>(_pData->minimum);
+		int maximum = boost::get<int>(_pData->maximum);
+		int v = boost::get<int>(value);
+		_pSlider->setMinimum(minimum);
+		_pSlider->setMaximum(maximum);
+		_pSpinBox->setMinimum(minimum);
+		_pSpinBox->setMaximum(maximum);
+		_pSpinBox->setValue(v);
+	}
+	else if (boost::get<float>(&value))
+	{
+		_pStackedWidget->setCurrentIndex(2);
+		float minimum = boost::get<float>(_pData->minimum);
+		float maximum = boost::get<float>(_pData->maximum);
+		float v = boost::get<float>(value);
+		_pDoubleSlider->setMinimum(minimum*SLIDER_FACTOR);
+		_pDoubleSlider->setMaximum(maximum*SLIDER_FACTOR);
+		_pDoubleSpinBox->setMinimum(minimum);
+		_pDoubleSpinBox->setMaximum(maximum);
+		_pDoubleSpinBox->setValue(v);
+	}
+	else if (boost::get<std::string>(&value))
+	{
+		_pStackedWidget->setCurrentIndex(3);
+		_pLineEdit->setText(boost::get<std::string>(value).c_str());
+	}
+}

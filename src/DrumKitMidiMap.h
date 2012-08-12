@@ -67,7 +67,7 @@ private:
 
 private:
 	friend class boost::serialization::access;
-	template<class Archive> void serialize(Archive & ar, const unsigned int fileVersion)
+	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		ar  & BOOST_SERIALIZATION_NVP(_hiHatControlCC);
 		ar  & BOOST_SERIALIZATION_NVP(_description);

@@ -40,8 +40,6 @@
 
 #include <list>
 
-class ValueControl;
-
 class EProPlot;
 class EProPlotCurve;
 class HiHatPositionCurve;
@@ -62,7 +60,7 @@ public:
 
 public:
 	MidiMessage::Clock _clock;
-	boost::shared_ptr<boost::recursive_mutex> _pMutex;
+	mutable Mutex _mutex;
 
 public:
     MainWindow();
@@ -82,15 +80,7 @@ signals:
 	void sLog(const QString&);
 
 private slots:
-	void onFootCancelStrategy1Started(int timestamp, int maskLength, int velocity);
-	void onHiHatBlueState(bool state);
-	void onHiHatStartMoving(int movingState, int pos, int timestamp);
-	void onRedrawCurves();
-	void onRectSelection(bool);
-	void onLeftMouseClicked(const QPoint&);
-
 	void on_pushButtonClearLogs_clicked(bool checked=false);
-
 	void on_groupBoxLogs_toggled(bool checked);
 	void on_checkBoxLogsRawData_toggled(bool checked);
 	void on_checkBoxLogsFilteredData_toggled(bool checked);
@@ -124,51 +114,18 @@ private slots:
 	void on_listWidgetSlots_itemChanged(QListWidgetItem* pItem);
 
     void on_menuEdit_aboutToShow();
-
-    void on_checkBoxMutableWithCrash_toggled(bool checked);
-    void on_checkBoxMutableWithRide_toggled(bool checked);
-    void on_checkBoxMutableWithSnare_toggled(bool checked);
-    void on_checkBoxMutableWithTom2_toggled(bool checked);
-    void on_checkBoxMutableWithTom3_toggled(bool checked);
-
-	void on_groupBoxHiHatControlPos_toggled(bool checked);
-	void on_groupBoxHiHatControlSpeed_toggled(bool checked);
-	void on_groupBoxCancelOpenHit_toggled(bool checked);
-
-	void onSimHitValueChanged(int);
-	void onBeforeHitMaskTime(int);
-	void onBeforeHitMaskVelocity(int);
-	void onAfterHitMaskTime(int);
-	void onAfterHitMaskVelocity(int);
-    void onUpdatePlot(int, int, int, int, int, float, float);
-	void onOpenCancelHitThreshold(int);
-	void onOpenCancelHitVelocity(int);
-
-    void onHiHatPedalBlueNoteThreshold(int threshold);
-	void onHiHatBlueOpenAccelMax(int);
-	void onHiHatBlueOnSpeedThreshold(int);
-	void onHiHatBlueOffSpeedThreshold(int);
-	void onHiHatCloseThreshold(int);
-	void onHiHatOpenThreshold(int);
-
-	void onFootCancelAccelLimit(int);
-	void onFootCancelClosingSpeed(int);
-	void onFootCancelPos(int);
-	void onFootCancelPosDiff(int);
-	void onFootCancelMaskTime(int);
-	void onFootCancelVelocity(int);
-
-	void on_groupBoxFootCancel1_toggled(bool checked);
-	void on_groupBoxFootCancel2_toggled(bool checked);
-
 	void on_tabWidget_currentChanged(int index);
-
 	void on_spinBoxPlotWindowSize_valueChanged(int value);
 
-private:
-	void lock() {_pMutex->lock();}
-	void unlock() {_pMutex->unlock();}
+	void onFootCancelStrategy1Started(int timestamp, int maskLength, int velocity);
+	void onHiHatBlueState(bool state);
+	void onHiHatStartMoving(int movingState, int pos, int timestamp);
+	void onRedrawCurves();
+	void onRectSelection(bool);
+	void onLeftMouseClicked(const QPoint&);
+    void onUpdatePlot(int, int, int, int, int, float, float);
 
+private:
 	virtual void showEvent(QShowEvent* pEvent);
 	virtual void hideEvent(QHideEvent* pEvent);
 
@@ -193,6 +150,7 @@ private:
 
 	Slot::Ptr getCurrentSlot() const
 	{
+		Mutex::scoped_lock lock(_mutex);
 		if (_currentSlot!=_userSettings.configSlots.end())
 		{
 			return *_currentSlot;
@@ -204,6 +162,7 @@ private:
 	}
 
 	void toLog(const std::string&);
+
 private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;
 
@@ -222,11 +181,8 @@ private:
 	// Thread etc...
     boost::condition _condition;
     boost::shared_ptr<boost::thread> _midiThread;
-    bool _midiThreadExit;
 
 	int _calibrationOffset;
-
-    ValueControl* _pHiHatBlueThreshold;
 
     EProPlot* _pPlot;
     HiHatPositionCurve* _curveHiHatPosition;

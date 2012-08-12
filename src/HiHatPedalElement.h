@@ -38,77 +38,55 @@ public:
 	HiHatPedalElement();
 	virtual ~HiHatPedalElement();
 
+public:
     int getCurrentControlPos() const;
     void setCurrentControlPos(int value);
     float getCurrentControlSpeed() const;
     MovingState setCurrentControlSpeed(float value);
     float getCurrentControlAcceleration() const;
     void setCurrentControlAcceleration(float value);
-
-	int getBeforeHitMaskTime() const;
-	void setBeforeHitMaskTime(int value);
-	int getBeforeHitMaskVelocity() const;
-	void setBeforeHitMaskVelocity(int value);
-	int getAfterHitMaskTime() const;
-	void setAfterHitMaskTime(int value);
-	int getAfterHitMaskVelocity() const;
-	void setAfterHitMaskVelocity(int value);
-
 	bool isControlPosActivated() const;
-	void setControlPosActivation(bool state);
+	void setControlPosActivation(const Parameter::Value& state);
 	bool isControlSpeedActivated() const;
-	void setControlSpeedActivation(bool state);
-
+	void setControlSpeedActivation(const Parameter::Value& state);
     int getControlPosThreshold() const;
-    void setControlPosThreshold(int value);
-
+    void setControlPosThreshold(const Parameter::Value& value);
     int getOpenAccelMax() const;
-    void setOpenAccelMax(int value);
+    void setOpenAccelMax(const Parameter::Value& value);
     int getControlSpeedOn() const;
-    void setControlSpeedOn(int value);
+    void setControlSpeedOn(const Parameter::Value& value);
     int getControlSpeedOff() const;
-    void setControlSpeedOff(int value);
-
-	bool isBlue() const {return _isBlue;}
-	void setBlue(bool state) {_isBlue = state;}
-
+    void setControlSpeedOff(const Parameter::Value& value);
+	bool isBlue() const;
+	void setBlue(bool state);
 	bool isFootCancelStrategy1Activated() const;
-	void setFootCancelStrategy1Activation(bool state);
-	bool isFootCancelStrategy2Activated() const;
-	void setFootCancelStrategy2Activation(bool state);
-
+	void setFootCancelStrategy1Activation(const Parameter::Value& state);
 	int getFootCancelAccelLimit() const;
-	void setFootCancelAccelLimit(int value);
+	void setFootCancelAccelLimit(const Parameter::Value& value);
 	int getFootCancelClosingSpeed() const;
-	void setFootCancelClosingSpeed(int value);
+	void setFootCancelClosingSpeed(const Parameter::Value& value);
 	int getFootCancelPos() const;
-	void setFootCancelPos(int value);
+	void setFootCancelPos(const Parameter::Value& value);
 	int getFootCancelPosDiff() const;
-	void setFootCancelPosDiff(int value);
+	void setFootCancelPosDiff(const Parameter::Value& value);
 	int getFootCancelMaskTime() const;
-	void setFootCancelMaskTime(int value);
+	void setFootCancelMaskTime(const Parameter::Value& value);
 	int getFootCancelVelocity() const;
-	void setFootCancelVelocity(int value);
-
+	void setFootCancelVelocity(const Parameter::Value& value);
 	int getFootCancelTimeLimit() const;
 	void setFootCancelTimeLimit(int value);
-
 	int getPositionOnCloseBegin() const;
 	int getPositionOnOpenBegin() const;
-
-	void setCancelOpenHitThreshold(int value);
-	void setCancelOpenHitVelocity(int value);
+	void setCancelOpenHitThreshold(const Parameter::Value& value);
+	void setCancelOpenHitVelocity(const Parameter::Value& value);
 	int getCancelOpenHitThreshold() const;
 	int getCancelOpenHitVelocity() const;
-
 	bool isCancelOpenHitActivated() const;
-	void setCancelOpenHit(bool value);
-
+	void setCancelOpenHit(const Parameter::Value& value);
 	int getClosePositionThresold() const;
-	void setClosePositionThresold(int value);
-
+	void setClosePositionThresold(const Parameter::Value& value);
 	int getOpenPositionThresold() const;
-	void setOpenPositionThresold(int value);
+	void setOpenPositionThresold(const Parameter::Value& value);
 
 private:
 	bool	_isBlue;
@@ -126,41 +104,34 @@ private:
 	int		_posOnOpenBegin; 
 
 	// Archived data
-    int		_beforeHitMaskTime;
-    int		_beforeHitMaskVelocity;
-	int		_afterHitMaskTime;
-	int		_afterHitMaskVelocity;
-	bool	_bControlPosActivated;
-	bool	_bControlSpeedActivated;
-    int		_controlPosThreshold;
-    int		_accelOpenMax;
-    int		_speedOpen;
-    int		_speedOff;
-	bool	_bFootCancelStrategy1Activated;
-	bool	_bFootCancelStrategy2Activated;
-	int		_footCancelAccelLimit;
-	int		_footCancelClosingSpeed;
-	int		_footCancelPos;
-	int		_footCancelPosDiff;
-	int		_footCancelMaskTime;
-	int		_footCancelVelocity;
-	bool	_bCancelOpenHitActivated;
-	int		_cancelOpenHitThreshold;
-	int		_cancelOpenHitVelocity;
-    int		_posThresholdClose;
-    int		_posThresholdOpen;
+	Parameter::Value	_afterHitMaskVelocity;
+	Parameter::Value	_bControlPosActivated;
+	Parameter::Value	_bControlSpeedActivated;
+	Parameter::Value	_controlPosThreshold;
+	Parameter::Value	_accelOpenMax;
+	Parameter::Value	_speedOpen;
+	Parameter::Value	_speedOff;
+	Parameter::Value	_bFootCancelStrategy1Activated;
+	Parameter::Value	_footCancelAccelLimit;
+	Parameter::Value	_footCancelClosingSpeed;
+	Parameter::Value	_footCancelPos;
+	Parameter::Value	_footCancelPosDiff;
+	Parameter::Value	_footCancelMaskTime;
+	Parameter::Value	_footCancelVelocity;
+	Parameter::Value	_bCancelOpenHitActivated;
+	Parameter::Value	_cancelOpenHitThreshold;
+	Parameter::Value	_cancelOpenHitVelocity;
+	Parameter::Value	_posThresholdClose;
+	Parameter::Value	_posThresholdOpen;
 
 private:
     friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive & ar, const unsigned int fileVersion)
+    template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		// Base class serialization
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Pad);
 
 		// Hi Hat control and pedal
-		ar  & BOOST_SERIALIZATION_NVP(_beforeHitMaskTime);
-		ar  & BOOST_SERIALIZATION_NVP(_beforeHitMaskVelocity);
-		ar  & BOOST_SERIALIZATION_NVP(_afterHitMaskTime);
 		ar  & BOOST_SERIALIZATION_NVP(_afterHitMaskVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_bControlPosActivated);
 		ar  & BOOST_SERIALIZATION_NVP(_bControlSpeedActivated);
@@ -169,27 +140,18 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_speedOpen);
 		ar  & BOOST_SERIALIZATION_NVP(_speedOff);
 		ar  & BOOST_SERIALIZATION_NVP(_bFootCancelStrategy1Activated);
-		ar  & BOOST_SERIALIZATION_NVP(_bFootCancelStrategy2Activated);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelAccelLimit);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelMaskTime);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelVelocity);
-
-		if (fileVersion>=1)
-		{
-			ar  & BOOST_SERIALIZATION_NVP(_bCancelOpenHitActivated);
-			ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
-			ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
-		}
-
-		if (fileVersion>=2)
-		{
-			ar  & BOOST_SERIALIZATION_NVP(_posThresholdClose);
-			ar  & BOOST_SERIALIZATION_NVP(_posThresholdOpen);
-		}
+		ar  & BOOST_SERIALIZATION_NVP(_bCancelOpenHitActivated);
+		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
+		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
+		ar  & BOOST_SERIALIZATION_NVP(_posThresholdClose);
+		ar  & BOOST_SERIALIZATION_NVP(_posThresholdOpen);
 	}
 };
 
-BOOST_CLASS_VERSION(HiHatPedalElement, 2)
+BOOST_CLASS_VERSION(HiHatPedalElement, 0)

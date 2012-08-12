@@ -44,7 +44,7 @@ public:
 	DrumKitItemDelegate(QObject* pParent=NULL):QStyledItemDelegate(pParent) { }
 	virtual ~DrumKitItemDelegate() {}
 
-	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem & option, const QModelIndex& index ) const
+	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem &, const QModelIndex&) const
 	{
 		PadNotesWidget* pEditor = new PadNotesWidget(parent);
 		connect(this, SIGNAL(midiNoteOn(int, int)), pEditor, SIGNAL(midiNoteOn(int, int)));
