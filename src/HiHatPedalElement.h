@@ -87,6 +87,8 @@ public:
 	void setClosePositionThresold(const Parameter::Value& value);
 	int getOpenPositionThresold() const;
 	void setOpenPositionThresold(const Parameter::Value& value);
+	int getSecurityPosition() const;
+	void setSecurityPosition(const Parameter::Value& value);
 
 private:
 	bool	_isBlue;
@@ -123,6 +125,7 @@ private:
 	Parameter::Value	_cancelOpenHitVelocity;
 	Parameter::Value	_posThresholdClose;
 	Parameter::Value	_posThresholdOpen;
+	Parameter::Value	_securityPosition;
 
 private:
     friend class boost::serialization::access;
@@ -151,6 +154,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_posThresholdClose);
 		ar  & BOOST_SERIALIZATION_NVP(_posThresholdOpen);
+		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
 	}
 };
 

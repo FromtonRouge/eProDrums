@@ -216,7 +216,11 @@ MainWindow::MainWindow():
 					pElHihatPedal->isControlSpeedActivated(),
 					boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Open acceleration", 0, 200000,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Security position", 0, 127,
+							pElHihatPedal->getSecurityPosition(),
+							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1))));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Open acceleration", 0, 2500000,
 							pElHihatPedal->getOpenAccelMax(),
 							boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1))));
 
@@ -1207,19 +1211,22 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					pGroup2->update(	pElHihatPedal->isControlSpeedActivated(),
 							boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1));
 					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getOpenAccelMax(),
+						pGroup2->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
+								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
+
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->getOpenAccelMax(),
 								boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getControlSpeedOn(),
+						pGroup2->getChildAt(2)->update(	pElHihatPedal->getControlSpeedOn(),
 								boost::bind(&HiHatPedalElement::setControlSpeedOn, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(2)->update(	pElHihatPedal->getOpenPositionThresold(),
+						pGroup2->getChildAt(3)->update(	pElHihatPedal->getOpenPositionThresold(),
 								boost::bind(&HiHatPedalElement::setOpenPositionThresold, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(3)->update(	pElHihatPedal->getControlSpeedOff(),
+						pGroup2->getChildAt(4)->update(	pElHihatPedal->getControlSpeedOff(),
 								boost::bind(&HiHatPedalElement::setControlSpeedOff, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(4)->update(	pElHihatPedal->getClosePositionThresold(),
+						pGroup2->getChildAt(5)->update(	pElHihatPedal->getClosePositionThresold(),
 								boost::bind(&HiHatPedalElement::setClosePositionThresold, pElHihatPedal, _1));
 					}
 
@@ -1626,6 +1633,62 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 	{
 		int currentControlPos = pElHihatPedal->getCurrentControlPos();
+		float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
+
+		// Blue state by pedal speed
+		if (pElHihatPedal->isControlSpeedActivated())
+		{
+			if (pElHihatPedal->getCurrentControlPos()<=pElHihatPedal->getSecurityPosition())
+			{
+				pElHihatPedal->setBlue(false);
+			}
+			else
+			{
+				if (pElHihatPedal->getCurrentControlSpeed() > 0)
+				{
+					// Hi-Hat opening
+					if (
+							pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getControlSpeedOn() &&
+							currentAccel <= pElHihatPedal->getOpenAccelMax()
+					   )
+					{
+						pElHihatPedal->setBlue(true);
+					}
+				}
+				else if (pElHihatPedal->getCurrentControlSpeed() < 0)
+				{
+					// Hi-Hat closing
+					if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getControlSpeedOff())
+					{
+						// Hi Hat closing and the close speed is reached
+						pElHihatPedal->setBlue(false);
+					}
+					else if (pElHihatPedal->isControlPosActivated() && currentControlPos <= pElHihatPedal->getControlPosThreshold())
+					{
+						// Closing speed not reached but the position off threshold is reach
+						pElHihatPedal->setBlue(false);
+					}
+				}
+				else
+				{
+					// current speed == 0 => nothing we keep the last blue state (on or off)
+				}
+
+				// Forcing open/close state
+				if (currentControlPos < pElHihatPedal->getClosePositionThresold())
+				{
+					// Force close state from position info
+					pElHihatPedal->setBlue(false);
+				}
+				else if (currentControlPos > pElHihatPedal->getOpenPositionThresold())
+				{
+					// Force open state from position info
+					pElHihatPedal->setBlue(true);
+				}
+			}
+		}
+
+		// Blue state by pedal position
 		if (pElHihatPedal->isControlPosActivated())
 		{
 			if (currentControlPos > pElHihatPedal->getControlPosThreshold())
@@ -1638,52 +1701,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			}
 		}
 
-		float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
-		if (pElHihatPedal->isControlSpeedActivated())
-		{
-			if (pElHihatPedal->getCurrentControlSpeed() > 0)
-			{
-				// Hi-Hat opening
-				if (
-						pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getControlSpeedOn() &&
-						currentAccel <= pElHihatPedal->getOpenAccelMax()
-				   )
-				{
-					pElHihatPedal->setBlue(true);
-				}
-			}
-			else if (pElHihatPedal->getCurrentControlSpeed() < 0)
-			{
-				// Hi-Hat closing
-				if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getControlSpeedOff())
-				{
-					// Hi Hat closing and the close speed is reached
-					pElHihatPedal->setBlue(false);
-				}
-				else if (pElHihatPedal->isControlPosActivated() && currentControlPos <= pElHihatPedal->getControlPosThreshold())
-				{
-					// Closing speed not reached but the position off threshold is reach
-					pElHihatPedal->setBlue(false);
-				}
-			}
-			else
-			{
-				// current speed == 0 => nothing we keep the last blue state (on or off)
-			}
-
-			// Forcing open/close state
-			if (currentControlPos < pElHihatPedal->getClosePositionThresold())
-			{
-				// Force close state from position info
-				pElHihatPedal->setBlue(false);
-			}
-			else if (currentControlPos > pElHihatPedal->getOpenPositionThresold())
-			{
-				// Force open state from position info
-				pElHihatPedal->setBlue(true);
-			}
-		}
-
+		// Send the final blue state to the GUI
 		emit hiHatBlueState(pElHihatPedal->isBlue());
 
 		if (pElHihatPedal->isFootCancelStrategy1Activated())

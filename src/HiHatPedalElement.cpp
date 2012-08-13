@@ -49,7 +49,8 @@ HiHatPedalElement::HiHatPedalElement():
 	_cancelOpenHitThreshold(0),
 	_cancelOpenHitVelocity(0),
 	_posThresholdClose(0),
-	_posThresholdOpen(127)
+	_posThresholdOpen(127),
+	_securityPosition(127)
 {
 }
 
@@ -364,4 +365,15 @@ void HiHatPedalElement::setOpenPositionThresold(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_posThresholdOpen = value;
+}
+
+int HiHatPedalElement::getSecurityPosition() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_securityPosition);
+}
+void HiHatPedalElement::setSecurityPosition(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_securityPosition = value;
 }
