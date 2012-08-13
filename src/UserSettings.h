@@ -94,7 +94,7 @@ struct UserSettings
 	bool operator!=(const UserSettings& rObj) const {return !((*this)==rObj);}
 
 	bool isCurveVisible(const CurveVisibility& bit) const {return (curveVisibility & bit) == bit; }
-	void setCurveVisibility(const CurveVisibility& bit, bool state) { curveVisibility = state?curveVisibility|bit:curveVisibility^bit; }
+	void setCurveVisibility(const CurveVisibility& bit, bool state) { curveVisibility = state?curveVisibility|bit:(curveVisibility|bit)^bit; }
 
 	bool isLogs() const {return isLog(LOG_ACTIVATED);}
 	bool isLog(const LogActivation& bit) const {return (logActivation & bit) == bit; }

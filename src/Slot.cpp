@@ -23,11 +23,11 @@
 #include "HiHatPedalElement.h"
 #include "DrumKitMidiMap.h"
 
-Slot::MutableCrashSettings Slot::CRASH_CRASH	= 1<<0;
-Slot::MutableCrashSettings Slot::CRASH_RIDE		= 1<<1;
-Slot::MutableCrashSettings Slot::CRASH_SNARE	= 1<<2;
-Slot::MutableCrashSettings Slot::CRASH_TOM2		= 1<<3;
-Slot::MutableCrashSettings Slot::CRASH_TOM3		= 1<<4;
+Slot::AutoConvertCrashSettings Slot::CRASH_CRASH	= 1<<0;
+Slot::AutoConvertCrashSettings Slot::CRASH_RIDE		= 1<<1;
+Slot::AutoConvertCrashSettings Slot::CRASH_SNARE	= 1<<2;
+Slot::AutoConvertCrashSettings Slot::CRASH_TOM2		= 1<<3;
+Slot::AutoConvertCrashSettings Slot::CRASH_TOM3		= 1<<4;
 
 Slot::Slot(const Slot& rOther)
 {
@@ -60,7 +60,7 @@ Slot& Slot::operator=(const Slot& rOther)
 		}
 
 		_cymbalSimHitWindow = rOther._cymbalSimHitWindow;
-		_mutableCrashSettings = rOther._mutableCrashSettings;
+		_autoConvertCrashSettings = rOther._autoConvertCrashSettings;
 	}
 	return *this;
 }
@@ -105,16 +105,16 @@ Pad::List& Slot::getPads()
 	return _pads;
 }
 
-bool Slot::isMutableCrash(const MutableCrashSettings& bit) const
+bool Slot::isAutoConvertCrash(const AutoConvertCrashSettings& bit) const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return (_mutableCrashSettings & bit) == bit; 
+	return (_autoConvertCrashSettings & bit) == bit; 
 }
 
-void Slot::setMutableCrash(const MutableCrashSettings& bit, const Parameter::Value& state)
+void Slot::setAutoConvertCrash(const AutoConvertCrashSettings& bit, const Parameter::Value& state)
 {
 	Mutex::scoped_lock lock(_mutex);
-   	_mutableCrashSettings = boost::get<bool>(state)?_mutableCrashSettings|bit:(_mutableCrashSettings|bit)^bit;
+   	_autoConvertCrashSettings = boost::get<bool>(state)?_autoConvertCrashSettings|bit:(_autoConvertCrashSettings|bit)^bit;
 }
 
 int Slot::getCymbalSimHitWindow() const

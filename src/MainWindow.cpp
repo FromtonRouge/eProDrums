@@ -34,7 +34,6 @@
 #include "EProPlotZoomer.h"
 #include "EProPlotCurve.h"
 #include "HiHatPositionCurve.h"
-#include "HiHatPedalCurve.h"
 
 #include "qwt_symbol.h"
 #include "qwt_scale_div.h"
@@ -61,7 +60,7 @@ namespace fs = boost::filesystem;
 BOOST_CLASS_EXPORT(HiHatPedalElement); 
 
 std::string MainWindow::APPLICATION_NAME("eProDrums");
-std::string MainWindow::APPLICATION_VERSION("0.8.0");
+std::string MainWindow::APPLICATION_VERSION("dev");
 
 Q_DECLARE_METATYPE(Slot::Ptr)
 
@@ -110,7 +109,8 @@ MainWindow::MainWindow():
 	_curveHiHatAcceleration->setStyle(EProPlotCurve::Lines);
 	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatAccel, qHiHatAccel, QSize(2,2)));
 	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
-	_curveHiHatPedal = new HiHatPedalCurve(_pPlot);
+	_curveHiHatPedal = new EProPlotCurve("Hi Hat Pedal", QColor(Qt::white), 2, _pPlot);
+	_curveHiHatPedal->setStyle(EProPlotCurve::Sticks);
 	_curveHiHat = new EProPlotCurve("Hi Hat", QColor(255, 255, 0), 2, _pPlot);
 	_curveHiHat->setStyle(EProPlotCurve::Sticks);
 	_curveTom1 = new EProPlotCurve("Tom 1", QColor(255, 255, 0), 2, _pPlot);
@@ -216,29 +216,25 @@ MainWindow::MainWindow():
 					pElHihatPedal->isControlSpeedActivated(),
 					boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Security position", 0, 127,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Security yellow position", 0, 127,
 							pElHihatPedal->getSecurityPosition(),
 							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1))));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Open acceleration", 0, 2500000,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Security open position", 0, 127,
+							pElHihatPedal->getSecurityOpenPosition(),
+							boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1))));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Maximum allowed acceleration", 0, HiHatPedalElement::MAX_ALLOWED_ACCELERATION,
 							pElHihatPedal->getOpenAccelMax(),
 							boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1))));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed", 0, 5000,
-						   	pElHihatPedal->getControlSpeedOn(),
-							boost::bind(&HiHatPedalElement::setControlSpeedOn, pElHihatPedal, _1))));
-
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Open position", 0, 127,
-						   	pElHihatPedal->getOpenPositionThresold(),
-							boost::bind(&HiHatPedalElement::setOpenPositionThresold, pElHihatPedal, _1))));
+						   	pElHihatPedal->getOpenSpeed(),
+							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1))));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Close speed", -5000, 0,
-						   	pElHihatPedal->getControlSpeedOff(),
-							boost::bind(&HiHatPedalElement::setControlSpeedOff, pElHihatPedal, _1))));
-
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Close pos", 0, 127,
-						   	pElHihatPedal->getClosePositionThresold(),
-							boost::bind(&HiHatPedalElement::setClosePositionThresold, pElHihatPedal, _1))));
+						   	pElHihatPedal->getCloseSpeed(),
+							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1))));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", QColor(250, 150, 150),
@@ -253,24 +249,24 @@ MainWindow::MainWindow():
 		Parameter::Ptr pGroup4(new Parameter("Auto conversion cymbal", QColor(250, 250, 150)));
 		{
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Green Crash",
-						   	pCurrentSlot->isMutableCrash(Slot::CRASH_CRASH),
-							boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_CRASH, _1))));
+						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1))));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Ride",
-						   	pCurrentSlot->isMutableCrash(Slot::CRASH_RIDE),
-							boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_RIDE, _1))));
+						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1))));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Snare",
-						   	pCurrentSlot->isMutableCrash(Slot::CRASH_SNARE),
-							boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_SNARE, _1))));
+						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1))));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 2",
-						   	pCurrentSlot->isMutableCrash(Slot::CRASH_TOM2),
-							boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_TOM2, _1))));
+						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1))));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 3",
-						   	pCurrentSlot->isMutableCrash(Slot::CRASH_TOM3),
-							boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_TOM3, _1))));
+						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1))));
 		}
 
 		pRoot->addChild(pGroup1);
@@ -286,14 +282,11 @@ MainWindow::MainWindow():
 		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel", QColor(130, 130, 250),
 					pElHihatPedal->isFootCancelStrategy1Activated(),
 					boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1)));
-		//TODO
-		//_curveHiHatPosition->showFootCancelStrategy1Info(checked);
 		{
-			const int MIN_ACCEL_FOOT_CANCEL(-20000000);
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Minimum close acceleration", MIN_ACCEL_FOOT_CANCEL, 0,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Minimum close acceleration", HiHatPedalElement::MIN_ACCEL_FOOT_CANCEL, 0,
 							pElHihatPedal->getFootCancelAccelLimit(),
 							boost::bind(&HiHatPedalElement::setFootCancelAccelLimit, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum close speed", -8000, 0,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum close speed", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
 							boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1))));
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum hi-hat position", 0, 127,
@@ -302,17 +295,15 @@ MainWindow::MainWindow():
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Position delta", 0, 127,
 							pElHihatPedal->getFootCancelPosDiff(),
 							boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Mask Time", 0, 100,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Mask Time", 0, 200,
 							pElHihatPedal->getFootCancelMaskTime(),
 							boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1))));
-			//TODO
-			//_curveHiHatPosition->changeFootCancelStrategy1MaskLength(value);
+			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
 
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Velocity to ignore", 0, 127,
 							pElHihatPedal->getFootCancelVelocity(),
 							boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1))));
-			//TODO
-			//_curveHiHatPosition->changeFootCancelStrategy1MaskVelocity(value);
+			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Cancel while open", QColor(250, 150, 150),
@@ -1214,20 +1205,17 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
 								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getOpenAccelMax(),
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->getSecurityOpenPosition(),
+								boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1));
+
+						pGroup2->getChildAt(2)->update(	pElHihatPedal->getOpenAccelMax(),
 								boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(2)->update(	pElHihatPedal->getControlSpeedOn(),
-								boost::bind(&HiHatPedalElement::setControlSpeedOn, pElHihatPedal, _1));
+						pGroup2->getChildAt(3)->update(	pElHihatPedal->getOpenSpeed(),
+								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(3)->update(	pElHihatPedal->getOpenPositionThresold(),
-								boost::bind(&HiHatPedalElement::setOpenPositionThresold, pElHihatPedal, _1));
-
-						pGroup2->getChildAt(4)->update(	pElHihatPedal->getControlSpeedOff(),
-								boost::bind(&HiHatPedalElement::setControlSpeedOff, pElHihatPedal, _1));
-
-						pGroup2->getChildAt(5)->update(	pElHihatPedal->getClosePositionThresold(),
-								boost::bind(&HiHatPedalElement::setClosePositionThresold, pElHihatPedal, _1));
+						pGroup2->getChildAt(4)->update(	pElHihatPedal->getCloseSpeed(),
+								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1240,20 +1228,20 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 
 					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
 					{
-						pGroup4->getChildAt(0)->update(	pCurrentSlot->isMutableCrash(Slot::CRASH_CRASH),
-								boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
+						pGroup4->getChildAt(0)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
 
-						pGroup4->getChildAt(1)->update(	pCurrentSlot->isMutableCrash(Slot::CRASH_RIDE),
-								boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
+						pGroup4->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
 
-						pGroup4->getChildAt(2)->update(	pCurrentSlot->isMutableCrash(Slot::CRASH_SNARE),
-								boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
+						pGroup4->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
 
-						pGroup4->getChildAt(3)->update(	pCurrentSlot->isMutableCrash(Slot::CRASH_TOM2),
-								boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
+						pGroup4->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
 
-						pGroup4->getChildAt(4)->update(	pCurrentSlot->isMutableCrash(Slot::CRASH_TOM3),
-								boost::bind(&Slot::setMutableCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
+						pGroup4->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
 					}
 
 					// Update view
@@ -1271,8 +1259,6 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 
 					pGroup1->update(	pElHihatPedal->isFootCancelStrategy1Activated(),
 										boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1));
-					//TODO
-					//_curveHiHatPosition->showFootCancelStrategy1Info(checked);
 					{
 						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelAccelLimit(),
 														boost::bind(&HiHatPedalElement::setFootCancelAccelLimit, pElHihatPedal, _1));
@@ -1284,13 +1270,11 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 														boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
 						pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelMaskTime(),
 														boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
-						//TODO
-						//_curveHiHatPosition->changeFootCancelStrategy1MaskLength(value);
+						pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
 
 						pGroup1->getChildAt(5)->update(	pElHihatPedal->getFootCancelVelocity(),
 														boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
-						//TODO
-						//_curveHiHatPosition->changeFootCancelStrategy1MaskVelocity(value);
+						pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
@@ -1417,7 +1401,7 @@ void MainWindow::on_listWidgetSlots_itemChanged(QListWidgetItem* pItem)
 
 void MainWindow::on_actionAbout_triggered()
 {
-	boost::format fmtMsg("%s (beta) v%s");
+	boost::format fmtMsg("%s (beta) %s");
 	fmtMsg%APPLICATION_NAME%APPLICATION_VERSION;
 	DialogAbout dlgAbout(this, fmtMsg.str(), "FromtonRouge");
 	dlgAbout.exec();
@@ -1451,7 +1435,7 @@ void MainWindow::onUpdatePlot(int msgType, int, int msgNote, int msgVelocity, in
 		int hiHatLevel(127-msgVelocity);
 		boost::any userData(std::make_pair(hiHatControlSpeed, hiHatAcceleration));
 		_curveHiHatPosition->add(QPointF(timestamp, hiHatLevel), userData);
-		_curveHiHatAcceleration->add(QPointF(timestamp, hiHatAcceleration));
+		_curveHiHatAcceleration->add(QPointF(timestamp, hiHatAcceleration*(127.f/HiHatPedalElement::MAX_ALLOWED_ACCELERATION)));
 		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_HIHAT_CONTROL))
 		{
 			std::cout << (boost::format("%d (unit), %.3f (unit/s), %.3f (unit/ss)")%hiHatLevel%hiHatControlSpeed%hiHatAcceleration) << std::endl;
@@ -1495,15 +1479,7 @@ void MainWindow::onUpdatePlot(int msgType, int, int msgNote, int msgVelocity, in
 
 		case Pad::NOTE_HIHAT_PEDAL:
             {
-				/*
-				 * TODO
-				ValueControl* pMt2 = dynamic_cast<ValueControl*>(gridLayoutFootCancel2->itemAt(0)->widget());
-				ValueControl* pVel2 = dynamic_cast<ValueControl*>(gridLayoutFootCancel2->itemAt(1)->widget());
-				ValueControl* pMt3 = dynamic_cast<ValueControl*>(gridLayoutFootCancel2->itemAt(2)->widget());
-				ValueControl* pVel3 = dynamic_cast<ValueControl*>(gridLayoutFootCancel2->itemAt(3)->widget());
-				*/
-
-				_curveHiHatPedal->add(point, 0, 0, 0, 0);
+				_curveHiHatPedal->add(point);
                 break;
             }
 
@@ -1622,11 +1598,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	const Pad::Ptr& pElBassDrum =	getCurrentSlot()->getPads()[Pad::BASS_DRUM];
 
 	int cymbalsSimHitWindow = getCurrentSlot()->getCymbalSimHitWindow();
-	bool mutableCrashWithCrash = getCurrentSlot()->isMutableCrash(Slot::CRASH_CRASH);
-	bool mutableCrashWithRide = getCurrentSlot()->isMutableCrash(Slot::CRASH_RIDE);
-	bool mutableCrashWithSnare = getCurrentSlot()->isMutableCrash(Slot::CRASH_SNARE);
-	bool mutableCrashWithTom2 = getCurrentSlot()->isMutableCrash(Slot::CRASH_TOM2);
-	bool mutableCrashWithTom3 = getCurrentSlot()->isMutableCrash(Slot::CRASH_TOM3);
+	bool mutableCrashWithCrash = getCurrentSlot()->isAutoConvertCrash(Slot::CRASH_CRASH);
+	bool mutableCrashWithRide = getCurrentSlot()->isAutoConvertCrash(Slot::CRASH_RIDE);
+	bool mutableCrashWithSnare = getCurrentSlot()->isAutoConvertCrash(Slot::CRASH_SNARE);
+	bool mutableCrashWithTom2 = getCurrentSlot()->isAutoConvertCrash(Slot::CRASH_TOM2);
+	bool mutableCrashWithTom3 = getCurrentSlot()->isAutoConvertCrash(Slot::CRASH_TOM3);
 	bool bHasNextMidiMessage = !_midiMessages.empty();
 
 	const int DEFAULT_NOTE_MSG_CTRL(4);
@@ -1638,52 +1614,44 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		// Blue state by pedal speed
 		if (pElHihatPedal->isControlSpeedActivated())
 		{
-			if (pElHihatPedal->getCurrentControlPos()<=pElHihatPedal->getSecurityPosition())
+			if (currentControlPos<=pElHihatPedal->getSecurityPosition())
 			{
 				pElHihatPedal->setBlue(false);
 			}
 			else
 			{
+				// Are we opening the Hi-Hat
 				if (pElHihatPedal->getCurrentControlSpeed() > 0)
 				{
-					// Hi-Hat opening
-					if (
-							pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getControlSpeedOn() &&
-							currentAccel <= pElHihatPedal->getOpenAccelMax()
-					   )
+					if (currentControlPos>pElHihatPedal->getSecurityOpenPosition())
 					{
-						pElHihatPedal->setBlue(true);
+						// The current position is in the open security zone
+						// In this zone: no blue state modification
+						// Note: the blue state can true or false
+					}
+					else
+					{
+						if (
+								pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed() &&
+								currentAccel <= pElHihatPedal->getOpenAccelMax()
+						   )
+						{
+							pElHihatPedal->setBlue(true);
+						}
 					}
 				}
 				else if (pElHihatPedal->getCurrentControlSpeed() < 0)
 				{
 					// Hi-Hat closing
-					if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getControlSpeedOff())
+					if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getCloseSpeed())
 					{
 						// Hi Hat closing and the close speed is reached
-						pElHihatPedal->setBlue(false);
-					}
-					else if (pElHihatPedal->isControlPosActivated() && currentControlPos <= pElHihatPedal->getControlPosThreshold())
-					{
-						// Closing speed not reached but the position off threshold is reach
 						pElHihatPedal->setBlue(false);
 					}
 				}
 				else
 				{
 					// current speed == 0 => nothing we keep the last blue state (on or off)
-				}
-
-				// Forcing open/close state
-				if (currentControlPos < pElHihatPedal->getClosePositionThresold())
-				{
-					// Force close state from position info
-					pElHihatPedal->setBlue(false);
-				}
-				else if (currentControlPos > pElHihatPedal->getOpenPositionThresold())
-				{
-					// Force open state from position info
-					pElHihatPedal->setBlue(true);
 				}
 			}
 		}
@@ -1842,13 +1810,13 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		case Pad::NOTE_CRASH2:
 			{
-				MidiMessage* pPreviousMutableCrash = NULL;
+				MidiMessage* pPreviousAutoConvertCrash = NULL;
 				if (!lastMsgSent[Pad::CRASH1].empty())
 				{
-					pPreviousMutableCrash = getCurrentSlot()->getPads()[Pad::CRASH1]->isA(lastMsgSent[Pad::CRASH1].front().getOriginalNote())?&(lastMsgSent[Pad::CRASH1].front()):NULL;
+					pPreviousAutoConvertCrash = getCurrentSlot()->getPads()[Pad::CRASH1]->isA(lastMsgSent[Pad::CRASH1].front().getOriginalNote())?&(lastMsgSent[Pad::CRASH1].front()):NULL;
 				}
 
-				if (mutableCrashWithCrash && pPreviousMutableCrash && !pPreviousMutableCrash->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousMutableCrash, cymbalsSimHitWindow))
+				if (mutableCrashWithCrash && pPreviousAutoConvertCrash && !pPreviousAutoConvertCrash->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Previous was a mutable crash, if the mutable was not changed we have to change the CRASH2 to yellow
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
@@ -1863,11 +1831,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		case Pad::NOTE_RIDE:
 			{
-				MidiMessage* pNextMutableCrash = getNextMessage(pElCrash1);
-				if (mutableCrashWithRide && pNextMutableCrash && currentMsg.isInTimeWindow(*pNextMutableCrash, cymbalsSimHitWindow))
+				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
+				if (mutableCrashWithRide && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow Crash
-					pNextMutableCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
 				}
 				else
 				{
@@ -1879,11 +1847,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		case Pad::NOTE_SNARE:
 			{
-				MidiMessage* pNextMutableCrash = getNextMessage(pElCrash1);
-				if (mutableCrashWithSnare && pNextMutableCrash && currentMsg.isInTimeWindow(*pNextMutableCrash, cymbalsSimHitWindow))
+				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
+				if (mutableCrashWithSnare && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow Crash
-					pNextMutableCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
 				}
 				else
 				{
@@ -1902,11 +1870,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		case Pad::NOTE_TOM2:
 			{
-				MidiMessage* pNextMutableCrash = getNextMessage(pElCrash1);
-				if (mutableCrashWithTom2 && pNextMutableCrash && currentMsg.isInTimeWindow(*pNextMutableCrash, cymbalsSimHitWindow))
+				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
+				if (mutableCrashWithTom2 && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow crash
-					pNextMutableCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
 				}
 				else
 				{
@@ -1918,11 +1886,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		case Pad::NOTE_TOM3:
 			{
-				MidiMessage* pNextMutableCrash = getNextMessage(pElCrash1);
-				if (mutableCrashWithTom3 && pNextMutableCrash && currentMsg.isInTimeWindow(*pNextMutableCrash, cymbalsSimHitWindow))
+				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
+				if (mutableCrashWithTom3 && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow crash
-					pNextMutableCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
 				}
 				else
 				{
@@ -1962,8 +1930,8 @@ void MainWindow::onLeftMouseClicked(const QPoint& pos)
 	index = _curveHiHatAcceleration->updateMarkers(pos);
 	if (index>=0)
 	{
-		float accel = _curveHiHatAcceleration->y(index);
-
+		float accel = _curveHiHatAcceleration->y(index)*float(HiHatPedalElement::MAX_ALLOWED_ACCELERATION)/127;
+		
 		boost::format fmtAccel("%.3f (unit/s²)");
 		_curveHiHatAcceleration->setMarkerInformationLabel((fmtAccel%accel).str());
 	}
@@ -2024,29 +1992,16 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 		{
 			_curveHiHatPosition->showBlueState(true);
 			_curveHiHatPosition->showFootCancelStrategy1Info(false);
-			_curveHiHatPedal->showFootCancelStrategy2Info(false);
 			break;
 		}
 	case 1:
 		{
 			_curveHiHatPosition->showBlueState(false);
-			/* TODO
-			if (groupBoxFootCancel1->isChecked())
-			{
-				_curveHiHatPosition->showFootCancelStrategy1Info(true);
-			}
-			if (groupBoxFootCancel2->isChecked())
-			{
-				_curveHiHatPedal->showFootCancelStrategy2Info(true);
-			}
-			*/
+			_curveHiHatPosition->showFootCancelStrategy1Info(true);
 			break;
 		}
 	default:
 		{
-			_curveHiHatPosition->showBlueState(false);
-			_curveHiHatPosition->showFootCancelStrategy1Info(false);
-			_curveHiHatPedal->showFootCancelStrategy2Info(false);
 			break;
 		}
 	}

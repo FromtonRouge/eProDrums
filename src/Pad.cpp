@@ -93,6 +93,7 @@ Pad& Pad::operator=(const Pad& rOther)
 	if (this!=&rOther)
 	{
 		_midiNotes = rOther._midiNotes;
+		_color = rOther._color;
 		_type = rOther._type;
 		_typeFlam = rOther._typeFlam;
 		_defaultOutputNote = rOther._defaultOutputNote;

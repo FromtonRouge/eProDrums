@@ -43,7 +43,6 @@
 class EProPlot;
 class EProPlotCurve;
 class HiHatPositionCurve;
-class HiHatPedalCurve;
 class EProPlotZoomer;
 class QwtPlotItem;
 class QTimer;
@@ -187,7 +186,7 @@ private:
     EProPlot* _pPlot;
     HiHatPositionCurve* _curveHiHatPosition;
     EProPlotCurve* _curveHiHatAcceleration;
-    HiHatPedalCurve* _curveHiHatPedal;
+    EProPlotCurve* _curveHiHatPedal;
     EProPlotCurve* _curveHiHat;
     EProPlotCurve* _curveCrash;
     EProPlotCurve* _curveYellowCrash;

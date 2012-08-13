@@ -50,19 +50,19 @@ public:
 	typedef boost::shared_ptr<Slot> Ptr;
 	typedef std::vector<Ptr> List;
 
-	typedef std::bitset<5> MutableCrashSettings;
-	static MutableCrashSettings CRASH_CRASH;
-	static MutableCrashSettings CRASH_RIDE;
-	static MutableCrashSettings CRASH_SNARE;
-	static MutableCrashSettings CRASH_TOM2;
-	static MutableCrashSettings CRASH_TOM3;
+	typedef std::bitset<5> AutoConvertCrashSettings;
+	static AutoConvertCrashSettings CRASH_CRASH;
+	static AutoConvertCrashSettings CRASH_RIDE;
+	static AutoConvertCrashSettings CRASH_SNARE;
+	static AutoConvertCrashSettings CRASH_TOM2;
+	static AutoConvertCrashSettings CRASH_TOM3;
 
 private:
 	typedef boost::recursive_mutex Mutex;
 
 public:
 
-	Slot(): _cymbalSimHitWindow(0) {}
+	Slot(): _cymbalSimHitWindow(35), _autoConvertCrashSettings(CRASH_CRASH|CRASH_RIDE|CRASH_TOM2|CRASH_TOM3) {}
 	Slot(const Slot& rOther);
 	Slot& operator=(const Slot& rOther);
 
@@ -73,17 +73,16 @@ public:
 	const Pad::List& getPads() const;
 	Pad::List& getPads();
 	void onDrumKitLoaded(DrumKitMidiMap*, const boost::filesystem::path&);
-	bool isMutableCrash(const MutableCrashSettings& bit) const;
-	void setMutableCrash(const MutableCrashSettings& bit, const Parameter::Value& state);
+	bool isAutoConvertCrash(const AutoConvertCrashSettings& bit) const;
+	void setAutoConvertCrash(const AutoConvertCrashSettings& bit, const Parameter::Value& state);
 	int getCymbalSimHitWindow() const;
 	void setCymbalSimHitWindow(const Parameter::Value& simHit);
 
 private:
-	mutable Mutex	_mutex;
-	std::string  	_szSlotName;
+	mutable Mutex		_mutex;
+	std::string  		_szSlotName;
 	Pad::List    		_pads;
-
-	Parameter::Value   	_cymbalSimHitWindow;
+	Parameter::Value	_cymbalSimHitWindow;
 
 	/**
 	 * 0 = crash-crash
@@ -92,7 +91,7 @@ private:
 	 * 3 = crash-tom2
 	 * 4 = crash-tom3
 	 */
-	MutableCrashSettings _mutableCrashSettings;
+	AutoConvertCrashSettings _autoConvertCrashSettings;
 
 private:
     friend class boost::serialization::access;
@@ -101,7 +100,7 @@ private:
 		ar & BOOST_SERIALIZATION_NVP(_szSlotName);
 		ar & BOOST_SERIALIZATION_NVP(_pads);
 		ar & BOOST_SERIALIZATION_NVP(_cymbalSimHitWindow);
-		ar & BOOST_SERIALIZATION_NVP(_mutableCrashSettings);
+		ar & BOOST_SERIALIZATION_NVP(_autoConvertCrashSettings);
 	}
 };
 

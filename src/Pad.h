@@ -38,7 +38,7 @@
 /**
  * Note: Thread safe
  */
-class Pad : protected boost::noncopyable
+class Pad
 {
 public:
 	typedef boost::shared_ptr<Pad> Ptr;

@@ -31,7 +31,6 @@ HEADERS += AddMidiNote.h \
            EProPlotZoomer.h \
            FlamControl.h \
            FlamKitControl.h \
-           HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
            MainWindow.h \
@@ -68,7 +67,6 @@ SOURCES += AddMidiNote.cpp \
            EProPlotZoomer.cpp \
            FlamControl.cpp \
            FlamKitControl.cpp \
-           HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \
            main.cpp \
