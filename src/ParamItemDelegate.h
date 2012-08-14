@@ -71,6 +71,9 @@ public:
 			optionV4.state = QStyle::State_MouseOver;
 			QStyledItemDelegate::paint(painter, optionV4, index);
 
+			QFont font = painter->font();
+			font.setBold(true);
+			painter->setFont(font);
 			if (index.column()==0)
 			{
 				if (opt.state & QStyle::State_Open)
