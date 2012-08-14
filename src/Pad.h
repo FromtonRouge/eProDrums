@@ -61,6 +61,7 @@ public:
 		BASS_DRUM,
 		TYPE_COUNT
 	};
+	static Parameter::DictEnums DICT_TYPES;
 
 	enum DefaultOutputNote
 	{
@@ -129,7 +130,7 @@ public:
 	void setMidiNotes(const MidiNotes& notes);
 	Type getType() const;
 	void setType(Type type);
-	void setTypeFlam(Type type);
+	void setTypeFlam(const Parameter::Value& value);
 	Type getTypeFlam() const;
 	std::string getName() const;
 	bool isA(int note) const;
@@ -137,13 +138,13 @@ public:
 	int getGhostVelocityLimit() const;
 	void setGhostVelocityLimit(const Parameter::Value& velocity);
 	float getFlamVelocityFactor() const;
-	void setFlamVelocityFactor(float value);
+	void setFlamVelocityFactor(const Parameter::Value& value);
 	int getFlamTimeWindow1() const;
-	void setFlamTimeWindow1(int value);
+	void setFlamTimeWindow1(const Parameter::Value& value);
 	int getFlamTimeWindow2() const;
-	void setFlamTimeWindow2(int value);
+	void setFlamTimeWindow2(const Parameter::Value& value);
 	int getFlamCancelDuringRoll() const;
-	void setFlamCancelDuringRoll(int value);
+	void setFlamCancelDuringRoll(const Parameter::Value& value);
 	QColor getColor() const {return QColor(_color.c_str());}
 	void setColor(const QColor& color) {_color = color.name().toStdString();}
 
@@ -172,7 +173,7 @@ private:
 	// Archived data
 	std::string			_color;
 	Type				_type;
-	Type				_typeFlam;
+	Parameter::Value	_typeFlam;
 	int					_defaultOutputNote;
 
 	// Settings

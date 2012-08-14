@@ -39,6 +39,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 {
 	typedef boost::shared_ptr<Parameter> Ptr;
 	typedef std::vector<Ptr> List;
+	typedef std::map<int, std::string> DictEnums;
 	typedef boost::variant<bool, int, float, std::string> Value;
 	typedef boost::signals2::signal<void (const Value&)> OnValueChanged;
 
@@ -58,12 +59,14 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		   		int minimum,
 		   		int maximum,
 		   		int value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type()):
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const DictEnums& dictEnums = DictEnums()):
 		label(szLabel),
 		_bEnabled(true),
 		minimum(minimum),
 		maximum(maximum),
-		_value(value)
+		_value(value),
+		_dictEnums(dictEnums)
    	{
 		connect(slot);
    	}
@@ -144,6 +147,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	const QColor& getColor() const {return _color;}
 	void setColor(const QColor& color) {_color=color;}
 	const Value& getValue() const {return _value;}
+	Value& getValue() {return _value;}
 	void setValue(const Value& value) {_value = value; if (!_onValueChanged.empty())_onValueChanged(_value);}
 	bool isConnected() const {return !_onValueChanged.empty();}
 	void update(const Value& value, const OnValueChanged::slot_function_type& slot) {connect(slot); setValue(value);}
@@ -151,6 +155,9 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	bool isEnabled() const {return _bEnabled;}
 	void setDescription(const std::string& sz)  {_description = sz;}
 	const std::string& getDescription() const {return _description;}
+	void setEnums(const DictEnums& dictEnums) {_dictEnums = dictEnums;}
+	const DictEnums& getEnums() const {return _dictEnums;}
+	bool hasEnums() const {return !_dictEnums.empty();}
 
 public:
 	std::string label;
@@ -165,6 +172,7 @@ private:
 	Parameter::List				_children;
 	QColor						_color;
 	Value						_value;
+	DictEnums					_dictEnums;
 	OnValueChanged				_onValueChanged;
 };
 

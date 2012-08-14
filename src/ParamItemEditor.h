@@ -30,6 +30,7 @@ class QSlider;
 class QSpinBox;
 class QDoubleSpinBox;
 class QLineEdit;
+class QComboBox;
 
 /**
  * Parameter Editor used in ParamItemDelegate.
@@ -54,6 +55,7 @@ private slots:
 	void onDoubleSliderValueChanged(int);
 	void onDoubleSpinBoxValueChanged(double);
 	void onLineEditValueChanged(const QString&);
+	void onComboBoxIndexChanged(int);
 
 private:
 	Parameter*			_pData;
@@ -64,4 +66,5 @@ private:
 	QSlider*			_pSlider;
 	QSlider*			_pDoubleSlider;
 	QLineEdit*			_pLineEdit;
+	QComboBox*			_pComboBox;
 };

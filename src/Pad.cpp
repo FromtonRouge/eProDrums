@@ -22,23 +22,13 @@
 #include "Pad.h"
 #include <map>
 
+Parameter::DictEnums Pad::DICT_TYPES;
+
 std::string Pad::MidiDescription::getTypeLabel() const
 {
-	std::map<int, std::string> dictElementName;
-	dictElementName[Pad::SNARE] = "Snare";
-	dictElementName[Pad::HIHAT] = "Hi-hat";
-	dictElementName[Pad::HIHAT_PEDAL] = "Hi-hat pedal";
-	dictElementName[Pad::TOM1] = "Tom 1";
-	dictElementName[Pad::TOM2] = "Tom 2";
-	dictElementName[Pad::TOM3] = "Tom 3";
-	dictElementName[Pad::CRASH1] = "Green to Yellow Crash";
-	dictElementName[Pad::CRASH2] = "Green Crash";
-	dictElementName[Pad::CRASH3] = "Yellow Crash";
-	dictElementName[Pad::RIDE] = "Ride";
-	dictElementName[Pad::BASS_DRUM] = "Bass Drum";
 	std::string szLabel("Unknown");
-	std::map<int, std::string>::iterator it = dictElementName.find(type);
-	if (it!=dictElementName.end())
+	std::map<int, std::string>::iterator it = Pad::DICT_TYPES.find(type);
+	if (it!=Pad::DICT_TYPES.end())
 	{
 		szLabel = it->second;
 	}
@@ -75,6 +65,18 @@ Pad::Pad(	Type type,
 	dictColors[RIDE] = "#70A5FF";
 	dictColors[BASS_DRUM] = "#FFD970";
 	_color = dictColors[type];
+
+	DICT_TYPES[Pad::SNARE] = "Snare";
+	DICT_TYPES[Pad::HIHAT] = "Hi-hat";
+	DICT_TYPES[Pad::HIHAT_PEDAL] = "Hi-hat pedal";
+	DICT_TYPES[Pad::TOM1] = "Tom 1";
+	DICT_TYPES[Pad::TOM2] = "Tom 2";
+	DICT_TYPES[Pad::TOM3] = "Tom 3";
+	DICT_TYPES[Pad::CRASH1] = "Green to Yellow Crash";
+	DICT_TYPES[Pad::CRASH2] = "Green Crash";
+	DICT_TYPES[Pad::CRASH3] = "Yellow Crash";
+	DICT_TYPES[Pad::RIDE] = "Ride";
+	DICT_TYPES[Pad::BASS_DRUM] = "Bass Drum";
 }
 
 Pad::~Pad()
@@ -132,16 +134,16 @@ void Pad::setType(Type type)
 	_type = type;
 }
 
-void Pad::setTypeFlam(Type type)
+void Pad::setTypeFlam(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_typeFlam = type;
+	_typeFlam = value;
 }
 
 Pad::Type Pad::getTypeFlam() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return _typeFlam;
+	return static_cast<Type>(boost::get<int>(_typeFlam));
 }
 
 std::string Pad::getName() const
@@ -181,7 +183,7 @@ int Pad::getFlamCancelDuringRoll() const
 	return boost::get<int>(_flamCancelDuringRoll);
 }
 
-void Pad::setFlamCancelDuringRoll(int value)
+void Pad::setFlamCancelDuringRoll(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_flamCancelDuringRoll = value;
@@ -211,7 +213,7 @@ float Pad::getFlamVelocityFactor() const
 	return boost::get<float>(_flamVelocityFactor);
 }
 
-void Pad::setFlamVelocityFactor(float value)
+void Pad::setFlamVelocityFactor(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_flamVelocityFactor = value;
@@ -223,7 +225,7 @@ int Pad::getFlamTimeWindow1() const
 	return boost::get<int>(_flamTimeWindow1);
 }
 
-void Pad::setFlamTimeWindow1(int value)
+void Pad::setFlamTimeWindow1(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_flamTimeWindow1 = value;
@@ -235,7 +237,7 @@ int Pad::getFlamTimeWindow2() const
 	return boost::get<int>(_flamTimeWindow2);
 }
 
-void Pad::setFlamTimeWindow2(int value)
+void Pad::setFlamTimeWindow2(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_flamTimeWindow2 = value;
@@ -257,7 +259,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	// Hits history for this element
 	const MidiMessage::History& history = lastMsgSent[_type];
 
-	const boost::shared_ptr<Pad>& pFlamElement = drumKit[_typeFlam];
+	const boost::shared_ptr<Pad>& pFlamElement = drumKit[getTypeFlam()];
 
 	// In buffer case, pNext != NULL, NULL otherwise
 	if (pCurrent->getValue() <= getGhostVelocityLimit())

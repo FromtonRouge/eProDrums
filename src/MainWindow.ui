@@ -306,11 +306,14 @@
             <bool>false</bool>
            </property>
            <widget class="QListWidget" name="listWidgetSlots">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>150</width>
+              <height>16777215</height>
+             </size>
             </property>
             <property name="resizeMode">
              <enum>QListView::Adjust</enum>
@@ -344,6 +347,11 @@
              <attribute name="title">
               <string>Flams</string>
              </attribute>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="0" column="0">
+               <layout class="QGridLayout" name="gridLayoutFlams"/>
+              </item>
+             </layout>
             </widget>
             <widget class="QWidget" name="tab_2">
              <attribute name="title">

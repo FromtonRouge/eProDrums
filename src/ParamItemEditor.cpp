@@ -29,6 +29,7 @@
 #include <QtGui/QSlider>
 #include <QtGui/QSpinBox>
 #include <QtGui/QDoubleSpinBox>
+#include <QtGui/QComboBox>
 
 const float SLIDER_FACTOR(1000);
 
@@ -40,7 +41,8 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	_pDoubleSpinBox(NULL),
 	_pSlider(NULL),
 	_pDoubleSlider(NULL),
-	_pLineEdit(NULL)
+	_pLineEdit(NULL),
+	_pComboBox(NULL)
 {
 	_pStackedWidget = new QStackedWidget(this);
 
@@ -85,6 +87,11 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	_pLineEdit = new QLineEdit(this);
 	connect(_pLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onLineEditValueChanged(const QString&)));
 	_pStackedWidget->addWidget(_pLineEdit);
+
+	// For enums
+	_pComboBox = new QComboBox(this);
+	connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
+	_pStackedWidget->addWidget(_pComboBox);
 
 	QHBoxLayout* pLayout = new QHBoxLayout;
 	pLayout->setContentsMargins(0,0,0,0);
@@ -135,6 +142,16 @@ void ParamItemEditor::onLineEditValueChanged(const QString& value)
 	emit editFinished(this);
 }
 
+void ParamItemEditor::onComboBoxIndexChanged(int index)
+{
+	const QVariant& variant = _pComboBox->itemData(index);
+	if (!variant.isNull())
+	{
+		_pData->setValue(variant.toInt());
+	}
+	emit editFinished(this);
+}
+
 ParamItemEditor::~ParamItemEditor()
 {
 }
@@ -161,15 +178,43 @@ void ParamItemEditor::setData(Parameter* pData)
 	}
 	else if (boost::get<int>(&value))
 	{
-		_pStackedWidget->setCurrentIndex(1);
-		int minimum = boost::get<int>(_pData->minimum);
-		int maximum = boost::get<int>(_pData->maximum);
-		int v = boost::get<int>(value);
-		_pSlider->setMinimum(minimum);
-		_pSlider->setMaximum(maximum);
-		_pSpinBox->setMinimum(minimum);
-		_pSpinBox->setMaximum(maximum);
-		_pSpinBox->setValue(v);
+		if (_pData->hasEnums())
+		{
+			_pStackedWidget->setCurrentIndex(4);
+
+			// Fill the combo box if empty
+			_pComboBox->blockSignals(true);
+			if (_pComboBox->count()==0)
+			{
+				const Parameter::DictEnums& dictEnums = _pData->getEnums();
+				Parameter::DictEnums::const_iterator it = dictEnums.begin();
+				while (it!=dictEnums.end())
+				{
+					const Parameter::DictEnums::value_type& v = *(it++);
+					_pComboBox->addItem(v.second.c_str(), v.first);
+				}
+			}
+
+			// Select the item that match the value
+			int index = _pComboBox->findData(boost::get<int>(value));
+			if (index>=0)
+			{
+				_pComboBox->setCurrentIndex(index);
+			}
+			_pComboBox->blockSignals(false);
+		}
+		else
+		{
+			_pStackedWidget->setCurrentIndex(1);
+			int minimum = boost::get<int>(_pData->minimum);
+			int maximum = boost::get<int>(_pData->maximum);
+			int v = boost::get<int>(value);
+			_pSlider->setMinimum(minimum);
+			_pSlider->setMaximum(maximum);
+			_pSpinBox->setMinimum(minimum);
+			_pSpinBox->setMaximum(maximum);
+			_pSpinBox->setValue(v);
+		}
 	}
 	else if (boost::get<float>(&value))
 	{

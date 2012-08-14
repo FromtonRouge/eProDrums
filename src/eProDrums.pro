@@ -14,6 +14,9 @@ DEFINES += QWT_DLL
 
 win32 {
 DEFINES += _SCL_SECURE_NO_WARNINGS
+# disable warning on too long decoration names
+QMAKE_CXXFLAGS += /wd4503
+QMAKE_CXXFLAGS_DEBUG += /Od
 }
 
 # Input
@@ -29,8 +32,6 @@ HEADERS += AddMidiNote.h \
            EProPlotIntervalData.h \
            EProPlotMarker.h \
            EProPlotZoomer.h \
-           FlamControl.h \
-           FlamKitControl.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
            MainWindow.h \
@@ -50,8 +51,6 @@ HEADERS += AddMidiNote.h \
 FORMS += AddMidiNote.ui \
          DialogAbout.ui \
          DoubleValueControl.ui \
-         FlamControl.ui \
-         FlamKitControl.ui \
          MainWindow.ui \
          PadNotesWidget.ui \
          SettingsDlg.ui \
@@ -65,8 +64,6 @@ SOURCES += AddMidiNote.cpp \
            EProPlotIntervalData.cpp \
            EProPlotMarker.cpp \
            EProPlotZoomer.cpp \
-           FlamControl.cpp \
-           FlamKitControl.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \
            main.cpp \

@@ -20,7 +20,6 @@
 // ============================================================ 
 
 #include "MainWindow.h"
-#include "FlamKitControl.h"
 #include "ValueControl.h"
 #include "DialogAbout.h"
 #include "Settings.h"
@@ -180,24 +179,6 @@ MainWindow::MainWindow():
         }
     }
 
-    // Building Flam tab 
-    QWidget* pWidgetFlams = tabWidget->widget(2);
-    if (pWidgetFlams)
-    {
-        QGridLayout* pLayoutControls = dynamic_cast<QGridLayout*>(pWidgetFlams->layout());
-        if (!pLayoutControls)
-        {
-            pLayoutControls = new QGridLayout();
-            pLayoutControls->setMargin(3);
-        }
-
-        // FlamKitControl
-        FlamKitControl* pControl = new FlamKitControl(getCurrentSlot()->getPads());
-
-        pLayoutControls->addWidget(pControl, 0,0);
-        pWidgetFlams->setLayout(pLayoutControls);
-    }
-
 	const Slot::Ptr& pCurrentSlot = getCurrentSlot();
 	const Pad::List& pads = pCurrentSlot->getPads();
 	const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
@@ -325,6 +306,49 @@ MainWindow::MainWindow():
 		pRoot->addChild(pGroup2);
 		gridLayoutFootSplashCancel->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
+
+	// Flams
+    {
+		Parameter::Ptr pRoot(new Parameter());
+		{
+			Pad::List::const_iterator it = pads.begin();
+			while (it!=pads.end())
+			{
+				const Pad::Ptr& pPad = *(it++);
+				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), pPad->getColor()));
+
+				Parameter::Ptr pParam1(new Parameter("Pad Type of the second hit", 0, Pad::TYPE_COUNT,
+							pPad->getTypeFlam(),
+							boost::bind(&Pad::setTypeFlam, pPad, _1),
+							Pad::DICT_TYPES));
+				pGroup1->addChild(pParam1);
+
+				Parameter::Ptr pParam2(new Parameter("Time window 1 (velocity ignored)", 0, 150,
+							pPad->getFlamTimeWindow1(),
+							boost::bind(&Pad::setFlamTimeWindow1, pPad, _1)));
+				pGroup1->addChild(pParam2);
+
+				Parameter::Ptr pParam3(new Parameter("Time window 2 (with velocity)", 0, 150,
+							pPad->getFlamTimeWindow2(),
+							boost::bind(&Pad::setFlamTimeWindow2, pPad, _1)));
+				pGroup1->addChild(pParam3);
+
+				Parameter::Ptr pParam4(new Parameter("2nd hit velocity factor", 1.0f, 2.0f,
+							pPad->getFlamVelocityFactor(),
+							boost::bind(&Pad::setFlamVelocityFactor, pPad, _1)));
+				pGroup1->addChild(pParam4);
+
+				Parameter::Ptr pParam5(new Parameter("Flam cancel", 0, 250,
+							pPad->getFlamCancelDuringRoll(),
+							boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1)));
+				pGroup1->addChild(pParam5);
+
+				pRoot->addChild(pGroup1);
+			}
+		}
+		gridLayoutFlams->addWidget(new TreeViewParameters(this, pRoot), 0,0);
+    }
+
 
 	// Ghost notes
 	{
@@ -1298,17 +1322,37 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 				}
 			}
 
-            QWidget* pTabFlams = tabWidget->widget(2);
-            if (pTabFlams)
-            {
-                QGridLayout* pLayoutControls = dynamic_cast<QGridLayout*>(pTabFlams->layout());
-				if (pLayoutControls)
+			{
+				QLayoutItem* pLayoutItem = gridLayoutFlams->itemAtPosition(0,0);
+				if (pLayoutItem)
 				{
-					QLayoutItem* p = pLayoutControls->itemAt(0);
-					FlamKitControl* pControl = dynamic_cast<FlamKitControl*>(p->widget());
-					pControl->setDrumKit(pCurrentSlot->getPads());
+					TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
+					const Parameter::Ptr& pRoot = pTreeView->getRoot();
+					size_t count = pRoot->getChildrenCount();
+					for (size_t i=0; i<count; ++i)
+					{
+						Parameter::Ptr pGroup1 = pRoot->getChildAt(i);
+						const Pad::Ptr& pPad = pads[i];
+
+						pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
+								boost::bind(&Pad::setTypeFlam, pPad, _1));
+
+						pGroup1->getChildAt(1)->update(	pPad->getFlamTimeWindow1(),
+								boost::bind(&Pad::setFlamTimeWindow1, pPad, _1));
+
+						pGroup1->getChildAt(2)->update(	pPad->getFlamTimeWindow2(),
+								boost::bind(&Pad::setFlamTimeWindow2, pPad, _1));
+
+						pGroup1->getChildAt(3)->update(	pPad->getFlamVelocityFactor(),
+								boost::bind(&Pad::setFlamVelocityFactor, pPad, _1));
+
+						pGroup1->getChildAt(4)->update(	pPad->getFlamCancelDuringRoll(),
+								boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
+					}
+
+					pTreeView->update();
 				}
-            }
+			}
 
 			{
 				QLayoutItem* pLayoutItem = gridLayoutGhostNotes->itemAtPosition(0,0);
