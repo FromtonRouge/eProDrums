@@ -187,6 +187,10 @@ public:
 		Parameter* p = static_cast<Parameter*>(index.internalPointer());
 		switch (role)
 		{
+		case Qt::ToolTipRole:
+			{
+				return QString(p->getDescription().c_str());
+			}
 		case Qt::DisplayRole:
 			{
 				QVariant variant;

@@ -188,70 +188,80 @@ MainWindow::MainWindow():
 		Parameter::Ptr pRoot(new Parameter());
 		Parameter::Ptr pGroup1(new Parameter("Simultaneous hits"));
 		{
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Time window", 0, 100,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
 							pCurrentSlot->getCymbalSimHitWindow(),
-							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1))));
+							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1),
+							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by speed", QColor(150, 250, 150),
 					pElHihatPedal->isControlSpeedActivated(),
 					boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Security yellow position", 0, 127,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Security yellow position (unit)", 0, 127,
 							pElHihatPedal->getSecurityPosition(),
-							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
+							tr("Under this position the hi-hat is always yellow regardless [Open speed]").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Security open position", 0, 127,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Security open position (unit)", 0, 127,
 							pElHihatPedal->getSecurityOpenPosition(),
-							boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1),
+							tr("Above this position the hi-hat color state (blue or yellow) won't change anymore during the open movement").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed", 0, 5000,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
 						   	pElHihatPedal->getOpenSpeed(),
-							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
+							tr("Above this speed the hi-hat is converted to blue").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Close speed", -5000, 0,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
-							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1),
+							tr("Under this speed the hi-hat is converted to yellow").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open maximum position", 0, 127,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 						   	pElHihatPedal->getHalfOpenMaximumPosition(),
-							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
+							tr("Half open detection algorithm starts between [Security position] and this position").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open time detection", 0, 5000,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open time detection (ms)", 0, 5000,
 						   	pElHihatPedal->getHalfOpenActivationTime(),
-							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
+							tr("Afters the specified time (ms), if the hi-hat is still yellow, it goes in half open mode. It will leave this mode if the control position go back under [Security yellow position]").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", QColor(250, 150, 150),
 					pElHihatPedal->isControlPosActivated(),
 					boost::bind(&HiHatPedalElement::setControlPosActivation, pElHihatPedal, _1)));
 		{
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Position", 0, 127,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 						   	pElHihatPedal->getControlPosThreshold(),
-							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
+							tr("Above this position the hi-hat is converted to blue").toStdString())));
 		}
 
 		Parameter::Ptr pGroup4(new Parameter("Green to Yellow Crash conversion", QColor(250, 250, 150)));
 		{
+			const std::string& szDescription = tr("A [Green to Yellow Crash] is converted from green to yellow if one of these pads is hit at the same time").toStdString();
+			pGroup4->setDescription(szDescription);
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Green Crash",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
-							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1))));
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1), szDescription)));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Ride",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
-							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1))));
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1), szDescription)));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Snare",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
-							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1))));
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1), szDescription)));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 2",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
-							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1))));
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1), szDescription)));
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 3",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
-							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1))));
+							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1), szDescription)));
 		}
 
 		pRoot->addChild(pGroup1);
@@ -268,26 +278,28 @@ MainWindow::MainWindow():
 					pElHihatPedal->isFootCancelStrategy1Activated(),
 					boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1)));
 		{
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Minimum close acceleration", HiHatPedalElement::MIN_ACCEL_FOOT_CANCEL, 0,
-							pElHihatPedal->getFootCancelAccelLimit(),
-							boost::bind(&HiHatPedalElement::setFootCancelAccelLimit, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum close speed", HiHatPedalElement::MIN_FOOT_SPEED, 0,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
-							boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum hi-hat position", 0, 127,
+							boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1),
+							tr("Under this speed the mask window can start if other conditions are met").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Maximum hi-hat position (unit)", 0, 127,
 							pElHihatPedal->getFootCancelPos(),
-							boost::bind(&HiHatPedalElement::setFootCancelPos, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Position delta", 0, 127,
+							boost::bind(&HiHatPedalElement::setFootCancelPos, pElHihatPedal, _1),
+							tr("Under this position the mask window can start if other conditions are met").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Control Position delta (unit)", 0, 127,
 							pElHihatPedal->getFootCancelPosDiff(),
-							boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1))));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Mask Time", 0, 200,
+							boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1),
+							tr("The delta must be greater than the entered value to activate the mask window.\nThe delta position is between the beginning of the close movement (the green point on the curve) and the current position.").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Mask Time (ms)", 0, 200,
 							pElHihatPedal->getFootCancelMaskTime(),
-							boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1),
+							tr("Time length of the mask window (ms)").toStdString())));
 			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
 
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Velocity to ignore", 0, 127,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
 							pElHihatPedal->getFootCancelVelocity(),
-							boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1),
+							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
 			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
 		}
 
@@ -295,12 +307,14 @@ MainWindow::MainWindow():
 					pElHihatPedal->isCancelOpenHitActivated(),
 					boost::bind(&HiHatPedalElement::setCancelOpenHit, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Threshold", 0, 127,
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 							pElHihatPedal->getCancelOpenHitThreshold(),
-							boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1))));
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity to ignore", 0, 127,
+							boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1),
+							tr("If the current control pos is >= [Position] and hi-hat hit is < [Velocity] the hi-hat hit is ignored").toStdString())));
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity (unit)", 0, 127,
 							pElHihatPedal->getCancelOpenHitVelocity(),
-							boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1))));
+							boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1),
+							tr("If the current control pos is >= [Position] and hi-hat hit is < [Velocity] the hi-hat hit is ignored").toStdString())));
 		}
 		pRoot->addChild(pGroup1);
 		pRoot->addChild(pGroup2);
@@ -315,32 +329,40 @@ MainWindow::MainWindow():
 			while (it!=pads.end())
 			{
 				const Pad::Ptr& pPad = *(it++);
+				if (pPad->getType()==Pad::HIHAT_PEDAL)
+				{
+					continue;
+				}
 				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), pPad->getColor()));
 
-				Parameter::Ptr pParam1(new Parameter("Pad Type of the second hit", 0, Pad::TYPE_COUNT,
+				Parameter::Ptr pParam1(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
 							pPad->getTypeFlam(),
 							boost::bind(&Pad::setTypeFlam, pPad, _1),
+							tr("Specify the Pad type of the second hit of the flam").toStdString(),
 							Pad::DICT_TYPES));
 				pGroup1->addChild(pParam1);
 
-				Parameter::Ptr pParam2(new Parameter("Time window 1 (velocity ignored)", 0, 150,
+				Parameter::Ptr pParam2(new Parameter("Time window 1 (velocity ignored) (ms)", 0, 150,
 							pPad->getFlamTimeWindow1(),
-							boost::bind(&Pad::setFlamTimeWindow1, pPad, _1)));
+							boost::bind(&Pad::setFlamTimeWindow1, pPad, _1),
+							tr("In this time window, if 2 hits are detected on the same pad, the second hit is converted to [Pad Type] regardless the velocity of the second hit").toStdString()));
 				pGroup1->addChild(pParam2);
 
-				Parameter::Ptr pParam3(new Parameter("Time window 2 (with velocity)", 0, 150,
+				Parameter::Ptr pParam3(new Parameter("Time window 2 (with velocity) (ms)", 0, 150,
 							pPad->getFlamTimeWindow2(),
-							boost::bind(&Pad::setFlamTimeWindow2, pPad, _1)));
+							boost::bind(&Pad::setFlamTimeWindow2, pPad, _1),
+							tr("In this time window, if 2 hits are detected on the same pad, the second hit is converted to [Pad Type] only if the 2nd hit is [Factor] times greater than the 1st").toStdString()));
 				pGroup1->addChild(pParam3);
 
-				Parameter::Ptr pParam4(new Parameter("2nd hit velocity factor", 1.0f, 2.0f,
+				Parameter::Ptr pParam4(new Parameter("[Factor] 2nd hit velocity factor", 1.0f, 2.0f,
 							pPad->getFlamVelocityFactor(),
 							boost::bind(&Pad::setFlamVelocityFactor, pPad, _1)));
 				pGroup1->addChild(pParam4);
 
-				Parameter::Ptr pParam5(new Parameter("Flam cancel", 0, 250,
+				Parameter::Ptr pParam5(new Parameter("Flam cancel detection (ms)", 0, 250,
 							pPad->getFlamCancelDuringRoll(),
-							boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1)));
+							boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1),
+							tr("If the previous hit before the flam is under this value the flam is cancelled").toStdString()));
 				pGroup1->addChild(pParam5);
 
 				pRoot->addChild(pGroup1);
@@ -361,7 +383,8 @@ MainWindow::MainWindow():
 				const Pad::Ptr& pPad = *(it++);
 				Parameter::Ptr pParameter(new Parameter(pPad->getName(), 0, 127,
 							pPad->getGhostVelocityLimit(),
-							boost::bind(&Pad::setGhostVelocityLimit, pPad, _1)));
+							boost::bind(&Pad::setGhostVelocityLimit, pPad, _1),
+							tr("Under this velocity the not is ignored").toStdString()));
 				pParameter->setColor(pPad->getColor());
 				pGroup1->addChild(pParameter);
 			}
@@ -1027,12 +1050,6 @@ void MainWindow::on_spinBoxBuffer_valueChanged(int value)
     lineEditCalibrationOffset->setText((boost::format("%d")%_calibrationOffset).str().c_str());
 }
 
-void MainWindow::on_spinBoxCC_valueChanged(int value)
-{
-    Mutex::scoped_lock lock(_mutex);
-	_pSettings->getDrumKitMidiMap()->setHiHatControlCC(value);
-}
-
 void MainWindow::on_listWidgetSlots_customContextMenuRequested(const QPoint& point)
 {
     QListWidgetItem* p = listWidgetSlots->itemAt(point);
@@ -1291,19 +1308,17 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					pGroup1->update(	pElHihatPedal->isFootCancelStrategy1Activated(),
 										boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1));
 					{
-						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelAccelLimit(),
-														boost::bind(&HiHatPedalElement::setFootCancelAccelLimit, pElHihatPedal, _1));
-						pGroup1->getChildAt(1)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
+						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
 														boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
-						pGroup1->getChildAt(2)->update(	pElHihatPedal->getFootCancelPos(),
+						pGroup1->getChildAt(1)->update(	pElHihatPedal->getFootCancelPos(),
 														boost::bind(&HiHatPedalElement::setFootCancelPos, pElHihatPedal, _1));
-						pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelPosDiff(),
+						pGroup1->getChildAt(2)->update(	pElHihatPedal->getFootCancelPosDiff(),
 														boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
-						pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelMaskTime(),
+						pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelMaskTime(),
 														boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
 						pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
 
-						pGroup1->getChildAt(5)->update(	pElHihatPedal->getFootCancelVelocity(),
+						pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelVelocity(),
 														boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
 						pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
 					}
@@ -1332,7 +1347,11 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					for (size_t i=0; i<count; ++i)
 					{
 						Parameter::Ptr pGroup1 = pRoot->getChildAt(i);
-						const Pad::Ptr& pPad = pads[i];
+						Pad::Ptr pPad = pads[i];
+						if (pPad->getType()==Pad::HIHAT_PEDAL)
+						{
+							pPad = pads[++i];
+						}
 
 						pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
 								boost::bind(&Pad::setTypeFlam, pPad, _1));
@@ -1775,7 +1794,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 			if ( 
 					currentTime > pElHihatPedal->getFootCancelTimeLimit() && 
-					currentAccel >= pElHihatPedal->getFootCancelAccelLimit() &&
 					speed <= pElHihatPedal->getFootCancelClosingSpeed() &&
 					currentControlPos <= pElHihatPedal->getFootCancelPos() &&
 					posDiff >= pElHihatPedal->getFootCancelPosDiff()
@@ -2114,14 +2132,6 @@ void MainWindow::hideEvent(QHideEvent* pEvent)
 {
 	_bRedrawState = false;
 	QMainWindow::hideEvent(pEvent);
-}
-
-void MainWindow::on_spinBoxPlotWindowSize_valueChanged(int value)
-{
-	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	int timeWindowInMs = value*1000;
-	int maxValue = pScaleDiv->interval().maxValue();
-	_pPlotZoomer->moveWindow(maxValue-timeWindowInMs,timeWindowInMs, true, false);
 }
 
 void MainWindow::on_actionSettings_triggered()

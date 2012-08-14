@@ -38,7 +38,6 @@ HiHatPedalElement::HiHatPedalElement():
 	_openSpeed(330),
 	_closeSpeed(-10),
 	_bFootCancelStrategy1Activated(true),
-	_footCancelAccelLimit(MIN_ACCEL_FOOT_CANCEL),
 	_footCancelClosingSpeed(-2000),
 	_footCancelPos(90),
 	_footCancelPosDiff(5),
@@ -88,7 +87,6 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_openSpeed = rOther._openSpeed;
 		_closeSpeed = rOther._closeSpeed;
 		_bFootCancelStrategy1Activated = rOther._bFootCancelStrategy1Activated;
-		_footCancelAccelLimit = rOther._footCancelAccelLimit;
 		_footCancelClosingSpeed = rOther._footCancelClosingSpeed;
 		_footCancelPos = rOther._footCancelPos;
 		_footCancelPosDiff = rOther._footCancelPosDiff;
@@ -260,18 +258,6 @@ void HiHatPedalElement::setCurrentControlAcceleration(float value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_currentControlAcceleration = value;
-}
-
-int HiHatPedalElement::getFootCancelAccelLimit() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelAccelLimit);
-}
-
-void HiHatPedalElement::setFootCancelAccelLimit(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelAccelLimit = value;
 }
 
 int HiHatPedalElement::getFootCancelClosingSpeed() const

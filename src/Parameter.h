@@ -46,11 +46,13 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	Parameter(	const std::string& szLabel = std::string(),
 		   		const QColor& color = QColor(150, 150, 250),
 				bool bEnabled = true,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type()):
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string()):
 		label(szLabel),
 		_bEnabled(bEnabled),
 		_value(_bEnabled),
-		_color(color)
+		_color(color),
+		_description(szDescription)
    	{
 		connect(slot);
 	}
@@ -60,13 +62,15 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		   		int maximum,
 		   		int value,
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string(),
 				const DictEnums& dictEnums = DictEnums()):
 		label(szLabel),
 		_bEnabled(true),
 		minimum(minimum),
 		maximum(maximum),
 		_value(value),
-		_dictEnums(dictEnums)
+		_dictEnums(dictEnums),
+		_description(szDescription)
    	{
 		connect(slot);
    	}
@@ -75,32 +79,38 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		   		float minimum,
 		   		float maximum,
 		   		float value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type()):
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string()):
 		label(szLabel),
 		_bEnabled(true),
 		minimum(minimum),
 		maximum(maximum),
-		_value(value)
+		_value(value),
+		_description(szDescription)
    	{
 		connect(slot);
    	}
 
 	Parameter(	const std::string& szLabel,
 		   		bool value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type()):
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string()):
 		label(szLabel),
 		_bEnabled(true),
-		_value(value)
+		_value(value),
+		_description(szDescription)
    	{
 		connect(slot);
    	}
 
 	Parameter(	const std::string& szLabel,
 		   		const std::string& value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type()):
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string()):
 		label(szLabel),
 		_bEnabled(true),
-		_value(value)
+		_value(value),
+		_description(szDescription)
    	{
 		connect(slot);
 	}

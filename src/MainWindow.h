@@ -106,7 +106,6 @@ private slots:
 
 	void on_sliderBuffer_valueChanged(int);
 	void on_spinBoxBuffer_valueChanged(int);
-	void on_spinBoxCC_valueChanged(int);
 
 	void on_listWidgetSlots_customContextMenuRequested(const QPoint&);
 	void on_listWidgetSlots_itemSelectionChanged();
@@ -114,7 +113,6 @@ private slots:
 
     void on_menuEdit_aboutToShow();
 	void on_tabWidget_currentChanged(int index);
-	void on_spinBoxPlotWindowSize_valueChanged(int value);
 
 	void onFootCancelStrategy1Started(int timestamp, int maskLength, int velocity);
 	void onHiHatState(int state);

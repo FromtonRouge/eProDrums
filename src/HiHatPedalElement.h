@@ -28,7 +28,6 @@ class HiHatPedalElement : public Pad
 {
 public:
 	static const int MAX_ALLOWED_ACCELERATION = 2500000;
-	static const int MIN_ACCEL_FOOT_CANCEL = -20000000;
 	static const int MIN_FOOT_SPEED = -8000;
 
 	typedef boost::signals2::signal<void (int)> OnFootCancelMaskTimeChanged;
@@ -70,8 +69,6 @@ public:
 	void setHalfOpen(bool state);
 	bool isFootCancelStrategy1Activated() const;
 	void setFootCancelStrategy1Activation(const Parameter::Value& state);
-	int getFootCancelAccelLimit() const;
-	void setFootCancelAccelLimit(const Parameter::Value& value);
 	int getFootCancelClosingSpeed() const;
 	void setFootCancelClosingSpeed(const Parameter::Value& value);
 	int getFootCancelPos() const;
@@ -133,7 +130,6 @@ private:
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
 	Parameter::Value	_bFootCancelStrategy1Activated;
-	Parameter::Value	_footCancelAccelLimit;
 	Parameter::Value	_footCancelClosingSpeed;
 	Parameter::Value	_footCancelPos;
 	Parameter::Value	_footCancelPosDiff;
@@ -165,7 +161,6 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_bFootCancelStrategy1Activated);
-		ar  & BOOST_SERIALIZATION_NVP(_footCancelAccelLimit);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);

@@ -27,18 +27,14 @@
 
 #include <QtGui/QStyledItemDelegate>
 #include <QtGui/QPainter>
+#include <QtGui/QFontMetrics>
 
 class ParamItemDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
 
 public:
-	ParamItemDelegate(QObject* pParent=NULL):
-		QStyledItemDelegate(pParent)
-   	{
-		_firstColumnWidthOffset = QPainter().fontMetrics().width("- ");
-   	}
-
+	ParamItemDelegate(QObject* pParent=NULL): QStyledItemDelegate(pParent) { }
 	virtual ~ParamItemDelegate() {}
 
 	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
@@ -46,10 +42,11 @@ public:
 		QSize result = QStyledItemDelegate::sizeHint(option, index);
 		if (index.column()==0)
 		{
-			const Parameter* pParameter = index.data().value<Parameter*>();
-			int width = QPainter().fontMetrics().width(pParameter->label.c_str());
-			const int UNKNOW_OFFSET(22); // Hack...
-			result.rwidth() = width + _firstColumnWidthOffset + UNKNOW_OFFSET;
+			QFont font;
+			QFontMetrics fontMetrics(font);
+			int width = fontMetrics.width(index.data().value<Parameter*>()->label.c_str());
+			const int UNKNOW_OFFSET(25); // Hack...
+			result.rwidth() += width + UNKNOW_OFFSET;
 		}
 		return result;
 	}
@@ -113,7 +110,7 @@ public:
 					painter->fillRect(rect, lighterColor);
 				}
 			}
-			painter->drawText(rect.x()+_firstColumnWidthOffset, rect.y(), rect.width(), rect.height(), Qt::AlignLeft, pParameter->label.c_str());
+			painter->drawText(rect.x(), rect.y(), rect.width(), rect.height(), Qt::AlignLeft, pParameter->label.c_str());
 		}
 
 		painter->restore();
@@ -150,7 +147,4 @@ public:
 		variant.setValue(pParameter);
 		p2->setData(index, variant);
 	}
-
-private:
-	int		_firstColumnWidthOffset;
 };
