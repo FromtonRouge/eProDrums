@@ -36,7 +36,7 @@
          <x>0</x>
          <y>0</y>
          <width>840</width>
-         <height>273</height>
+         <height>255</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
@@ -272,111 +272,110 @@
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3">
-    <layout class="QGridLayout" name="gridLayout_9">
-     <property name="margin">
-      <number>0</number>
-     </property>
+    <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="0">
-      <widget class="QScrollArea" name="scrollArea">
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+      <widget class="QSplitter" name="splitter">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-       <property name="widgetResizable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents_2">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>818</width>
-          <height>239</height>
-         </rect>
+       <widget class="QListWidget" name="listWidgetSlots">
+        <property name="enabled">
+         <bool>true</bool>
         </property>
-        <layout class="QGridLayout" name="gridLayout_10">
-         <property name="margin">
-          <number>0</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QSplitter" name="splitter">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="childrenCollapsible">
-            <bool>false</bool>
-           </property>
-           <widget class="QListWidget" name="listWidgetSlots">
-            <property name="enabled">
+        <property name="maximumSize">
+         <size>
+          <width>150</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="resizeMode">
+         <enum>QListView::Adjust</enum>
+        </property>
+       </widget>
+       <widget class="QTabWidget" name="tabWidget">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="tab_5">
+         <attribute name="title">
+          <string>Cymbals / Hi-Hat</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayoutHiHat"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_6">
+         <attribute name="title">
+          <string>Foot Splash Cancel</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_6">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayoutFootSplashCancel"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_4">
+         <attribute name="title">
+          <string>Flams</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_4">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayoutFlams"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_2">
+         <attribute name="title">
+          <string>Ghost Notes</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <layout class="QGridLayout" name="gridLayoutGhostNotes"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="tab_3">
+         <attribute name="title">
+          <string>Logs</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="0" column="0">
+           <widget class="QScrollArea" name="scrollArea">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+            <property name="widgetResizable">
              <bool>true</bool>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>150</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="resizeMode">
-             <enum>QListView::Adjust</enum>
-            </property>
-           </widget>
-           <widget class="QTabWidget" name="tabWidget">
-            <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <widget class="QWidget" name="tab_5">
-             <attribute name="title">
-              <string>Cymbals / Hi-Hat</string>
-             </attribute>
-             <layout class="QGridLayout" name="gridLayout_2">
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayoutHiHat"/>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_6">
-             <attribute name="title">
-              <string>Foot Splash Cancel</string>
-             </attribute>
-             <layout class="QGridLayout" name="gridLayout_6">
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayoutFootSplashCancel"/>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_4">
-             <attribute name="title">
-              <string>Flams</string>
-             </attribute>
-             <layout class="QGridLayout" name="gridLayout_4">
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayoutFlams"/>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_2">
-             <attribute name="title">
-              <string>Ghost Notes</string>
-             </attribute>
-             <layout class="QGridLayout" name="gridLayout_3">
-              <item row="0" column="0">
-               <layout class="QGridLayout" name="gridLayoutGhostNotes"/>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_3">
-             <attribute name="title">
-              <string>Logs</string>
-             </attribute>
-             <layout class="QGridLayout">
-              <item row="0" column="1">
-               <widget class="QTextEdit" name="textEditLog">
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>123</width>
+               <height>195</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <property name="margin">
+               <number>0</number>
+              </property>
               <item row="0" column="0">
                <widget class="QGroupBox" name="groupBoxLogs">
+                <property name="minimumSize">
+                 <size>
+                  <width>105</width>
+                  <height>194</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>Logs</string>
                 </property>
@@ -439,15 +438,35 @@
                    </property>
                   </widget>
                  </item>
+                 <item row="7" column="2">
+                  <spacer name="verticalSpacer">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
                 </layout>
                </widget>
               </item>
              </layout>
             </widget>
            </widget>
-          </widget>
-         </item>
-        </layout>
+          </item>
+          <item row="0" column="1">
+           <widget class="QTextEdit" name="textEditLog">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
       </widget>
      </item>
