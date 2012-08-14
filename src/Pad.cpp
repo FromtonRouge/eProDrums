@@ -31,7 +31,7 @@ std::string Pad::MidiDescription::getTypeLabel() const
 	dictElementName[Pad::TOM1] = "Tom 1";
 	dictElementName[Pad::TOM2] = "Tom 2";
 	dictElementName[Pad::TOM3] = "Tom 3";
-	dictElementName[Pad::CRASH1] = "Mutable crash";
+	dictElementName[Pad::CRASH1] = "Green to Yellow Crash";
 	dictElementName[Pad::CRASH2] = "Green Crash";
 	dictElementName[Pad::CRASH3] = "Yellow Crash";
 	dictElementName[Pad::RIDE] = "Ride";

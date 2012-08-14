@@ -60,14 +60,14 @@ public:
 	void setControlSpeedActivation(const Parameter::Value& state);
     int getControlPosThreshold() const;
     void setControlPosThreshold(const Parameter::Value& value);
-    int getOpenAccelMax() const;
-    void setOpenAccelMax(const Parameter::Value& value);
     int getOpenSpeed() const;
     void setOpenSpeed(const Parameter::Value& value);
     int getCloseSpeed() const;
     void setCloseSpeed(const Parameter::Value& value);
 	bool isBlue() const;
 	void setBlue(bool state);
+	bool isHalfOpen() const;
+	void setHalfOpen(bool state);
 	bool isFootCancelStrategy1Activated() const;
 	void setFootCancelStrategy1Activation(const Parameter::Value& state);
 	int getFootCancelAccelLimit() const;
@@ -89,6 +89,8 @@ public:
 
 	int getFootCancelTimeLimit() const;
 	void setFootCancelTimeLimit(int value);
+	int getHalfOpenEnteringTime() const;
+	void setHalfOpenEnteringTime(int value);
 	int getPositionOnCloseBegin() const;
 	int getPositionOnOpenBegin() const;
 	void setCancelOpenHitThreshold(const Parameter::Value& value);
@@ -101,10 +103,16 @@ public:
 	void setSecurityPosition(const Parameter::Value& value);
 	int getSecurityOpenPosition() const;
 	void setSecurityOpenPosition(const Parameter::Value& value);
+	int getHalfOpenMaximumPosition() const;
+	void setHalfOpenMaximumPosition(const Parameter::Value& value);
+	int getHalfOpenActivationTime() const;
+	void setHalfOpenActivationTime(const Parameter::Value& value);
 
 private:
 	bool	_isBlue;
+	bool	_isHalfOpen;
 	int		_footCancelTimeLimit;
+	int		_halfOpenEnteringTime;
     int		_previousControlPos;
     int		_currentControlPos;
 	float	_currentControlSpeed;			// in unit/s
@@ -122,7 +130,6 @@ private:
 	Parameter::Value	_bControlPosActivated;
 	Parameter::Value	_bControlSpeedActivated;
 	Parameter::Value	_controlPosThreshold;
-	Parameter::Value	_accelOpenMax;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
 	Parameter::Value	_bFootCancelStrategy1Activated;
@@ -137,6 +144,8 @@ private:
 	Parameter::Value	_cancelOpenHitVelocity;
 	Parameter::Value	_securityPosition;
 	Parameter::Value	_securityOpenPosition;
+	Parameter::Value	_halfOpenMaximumPosition;
+	Parameter::Value	_halfOpenActivationTime;
 
 	OnFootCancelMaskTimeChanged	_onFootCancelMaskTimeChanged;
 	OnFootCancelVelocityChanged _onFootCancelVelocityChanged;
@@ -153,7 +162,6 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_bControlPosActivated);
 		ar  & BOOST_SERIALIZATION_NVP(_bControlSpeedActivated);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
-		ar  & BOOST_SERIALIZATION_NVP(_accelOpenMax);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_bFootCancelStrategy1Activated);
@@ -168,6 +176,8 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_securityOpenPosition);
+		ar  & BOOST_SERIALIZATION_NVP(_halfOpenMaximumPosition);
+		ar  & BOOST_SERIALIZATION_NVP(_halfOpenActivationTime);
 	}
 };
 

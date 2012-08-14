@@ -136,7 +136,7 @@ MainWindow::MainWindow():
 	setCurveVisibility(_curveHiHatAcceleration, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
 
     connect(this, SIGNAL(hiHatStartMoving(int, int, int)), this, SLOT(onHiHatStartMoving(int, int, int)));
-    connect(this, SIGNAL(hiHatBlueState(bool)), this, SLOT(onHiHatBlueState(bool)));
+    connect(this, SIGNAL(hiHatState(int)), this, SLOT(onHiHatState(int)));
     connect(this, SIGNAL(footCancelStrategy1Started(int, int, int)), this, SLOT(onFootCancelStrategy1Started(int, int, int)));
     connect(this, SIGNAL(updatePlot(int, int, int, int, int, float, float)), this, SLOT(onUpdatePlot(int, int, int, int, int, float, float)));
 
@@ -224,10 +224,6 @@ MainWindow::MainWindow():
 							pElHihatPedal->getSecurityOpenPosition(),
 							boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1))));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Maximum allowed acceleration", 0, HiHatPedalElement::MAX_ALLOWED_ACCELERATION,
-							pElHihatPedal->getOpenAccelMax(),
-							boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1))));
-
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed", 0, 5000,
 						   	pElHihatPedal->getOpenSpeed(),
 							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1))));
@@ -235,6 +231,14 @@ MainWindow::MainWindow():
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Close speed", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
 							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1))));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open maximum position", 0, 127,
+						   	pElHihatPedal->getHalfOpenMaximumPosition(),
+							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1))));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open time detection", 0, 5000,
+						   	pElHihatPedal->getHalfOpenActivationTime(),
+							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1))));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", QColor(250, 150, 150),
@@ -246,7 +250,7 @@ MainWindow::MainWindow():
 							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1))));
 		}
 
-		Parameter::Ptr pGroup4(new Parameter("Auto conversion cymbal", QColor(250, 250, 150)));
+		Parameter::Ptr pGroup4(new Parameter("Green to Yellow Crash conversion", QColor(250, 250, 150)));
 		{
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Green Crash",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
@@ -1208,14 +1212,17 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 						pGroup2->getChildAt(1)->update(	pElHihatPedal->getSecurityOpenPosition(),
 								boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(2)->update(	pElHihatPedal->getOpenAccelMax(),
-								boost::bind(&HiHatPedalElement::setOpenAccelMax, pElHihatPedal, _1));
-
-						pGroup2->getChildAt(3)->update(	pElHihatPedal->getOpenSpeed(),
+						pGroup2->getChildAt(2)->update(	pElHihatPedal->getOpenSpeed(),
 								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(4)->update(	pElHihatPedal->getCloseSpeed(),
+						pGroup2->getChildAt(3)->update(	pElHihatPedal->getCloseSpeed(),
 								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
+
+						pGroup2->getChildAt(4)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
+
+						pGroup2->getChildAt(5)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1606,19 +1613,50 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	bool bHasNextMidiMessage = !_midiMessages.empty();
 
 	const int DEFAULT_NOTE_MSG_CTRL(4);
+	int currentTime = currentMsg.getTimestamp();
 	if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 	{
 		int currentControlPos = pElHihatPedal->getCurrentControlPos();
 		float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
+		bool bSecured = false;
 
 		// Blue state by pedal speed
 		if (pElHihatPedal->isControlSpeedActivated())
 		{
+			bool bComputeBlueState = true;
 			if (currentControlPos<=pElHihatPedal->getSecurityPosition())
 			{
+				pElHihatPedal->setHalfOpenEnteringTime(0);
+				pElHihatPedal->setHalfOpen(false);
 				pElHihatPedal->setBlue(false);
+				bComputeBlueState = false;
+				bSecured = true;
+			}
+			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()==0)
+			{
+				pElHihatPedal->setHalfOpenEnteringTime(currentTime);
+			}
+			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()>0)
+			{
+				int enteringTime = pElHihatPedal->getHalfOpenEnteringTime();
+				int activationTime = pElHihatPedal->getHalfOpenActivationTime();
+				if (currentTime-enteringTime > activationTime && !pElHihatPedal->isBlue())
+				{
+					// Still yellow after activationTime, we can switch to half-open mode
+					pElHihatPedal->setHalfOpen(true);
+				}
 			}
 			else
+			{
+				pElHihatPedal->setHalfOpenEnteringTime(0);
+			}
+
+			if (pElHihatPedal->isHalfOpen())
+			{
+				bComputeBlueState = false;
+			}
+
+			if (bComputeBlueState)
 			{
 				// Are we opening the Hi-Hat
 				if (pElHihatPedal->getCurrentControlSpeed() > 0)
@@ -1631,10 +1669,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					}
 					else
 					{
-						if (
-								pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed() &&
-								currentAccel <= pElHihatPedal->getOpenAccelMax()
-						   )
+						if (pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed())
 						{
 							pElHihatPedal->setBlue(true);
 						}
@@ -1669,12 +1704,28 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			}
 		}
 
-		// Send the final blue state to the GUI
-		emit hiHatBlueState(pElHihatPedal->isBlue());
+		// Send the hi-hat open state to the GUI
+		HiHatPositionCurve::HiHatState state = HiHatPositionCurve::HHS_CLOSED;
+		if (pElHihatPedal->isBlue())
+		{
+			state = HiHatPositionCurve::HHS_OPEN;
+		}
+		else if (pElHihatPedal->isHalfOpen())
+		{
+			state = HiHatPositionCurve::HHS_HALF_OPEN;
+		}
+		else if (bSecured)
+		{
+			state = HiHatPositionCurve::HHS_SECURED;
+		}
+		else
+		{
+			state = HiHatPositionCurve::HHS_CLOSED;
+		}
+		emit hiHatState(state);
 
 		if (pElHihatPedal->isFootCancelStrategy1Activated())
 		{
-			int currentTime = currentMsg.getTimestamp();
 			int posDiff = pElHihatPedal->getPositionOnCloseBegin()-currentControlPos;
 			float speed = pElHihatPedal->getCurrentControlSpeed();
 
@@ -1974,9 +2025,10 @@ void MainWindow::onHiHatStartMoving(int movingState, int pos, int timestamp)
 	}
 }
 
-void MainWindow::onHiHatBlueState(bool state)
+void MainWindow::onHiHatState(int state)
 {
-	_curveHiHatPosition->setBlueState(state);
+	HiHatPositionCurve::HiHatState hhState= static_cast<HiHatPositionCurve::HiHatState>(state);
+	_curveHiHatPosition->setHiHatState(hhState);
 }
 
 void MainWindow::onFootCancelStrategy1Started(int startTime, int maskLength, int velocity)
@@ -1990,13 +2042,13 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 	{
 	case 0:
 		{
-			_curveHiHatPosition->showBlueState(true);
+			_curveHiHatPosition->showHiHatStates(true);
 			_curveHiHatPosition->showFootCancelStrategy1Info(false);
 			break;
 		}
 	case 1:
 		{
-			_curveHiHatPosition->showBlueState(false);
+			_curveHiHatPosition->showHiHatStates(false);
 			_curveHiHatPosition->showFootCancelStrategy1Info(true);
 			break;
 		}

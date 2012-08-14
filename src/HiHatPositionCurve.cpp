@@ -27,10 +27,10 @@
 
 HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	EProPlotCurve("Hi Hat Position", QColor(245, 255, 166), 1, pPlot),
-	_blueState(false),
-	_previousBlueState(false),
+	_hiHatState(HHS_CLOSED),
+	_previousHiHatState(HHS_CLOSED),
 	_bShowFootCancelStragegy1Info(true),
-	_bShowBlueState(true)
+	_bShowHiHatStates(true)
 {
 	setMarkerInformationOutlineColor(QColor(Qt::red));
 	setStyle(EProPlotCurve::Lines);
@@ -47,24 +47,42 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	_pLayerFootCancelMaskTime1->setItemAttribute(Legend, false);
 	_pLayerFootCancelMaskTime1->attach(pPlot);
 
-	_pLayerBlueOnInfo = new QwtPlotIntervalCurve("Hi Hat Blue On");
-    QColor blue(100, 150, 255);
-	blue.setAlpha(150);
-	_pLayerBlueOnInfo->setBrush(blue);
-    _pLayerBlueOnInfo->setStyle(QwtPlotIntervalCurve::Tube);
-	_pLayerBlueOnInfo->setData(new EProPlotIntervalData());
-	_pLayerBlueOnInfo->setItemAttribute(Legend, false);
-	_pLayerBlueOnInfo->attach(pPlot);
+	_pLayerStateSecured = new QwtPlotIntervalCurve("Hi Hat secured");
+	QColor secured(255, 255, 150);
+	secured.setAlpha(170);
+	_pLayerStateSecured->setBrush(secured);
+    _pLayerStateSecured->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateSecured->setData(new EProPlotIntervalData());
+	_pLayerStateSecured->setItemAttribute(Legend, false);
+	_pLayerStateSecured->attach(pPlot);
 
-	_pLayerBlueOffInfo = new QwtPlotIntervalCurve("Hi Hat Blue Off");
+	_pLayerStateClosed = new QwtPlotIntervalCurve("Hi Hat closed");
 	QColor yellow(255, 255, 150);
 	yellow.setAlpha(150);
-	_pLayerBlueOffInfo->setBrush(yellow);
-    _pLayerBlueOffInfo->setStyle(QwtPlotIntervalCurve::Tube);
-	_pLayerBlueOffInfo->setData(new EProPlotIntervalData());
-	_pLayerBlueOffInfo->setItemAttribute(Legend, false);
-	_pLayerBlueOffInfo->attach(pPlot);
+	_pLayerStateClosed->setBrush(yellow);
+    _pLayerStateClosed->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateClosed->setData(new EProPlotIntervalData());
+	_pLayerStateClosed->setItemAttribute(Legend, false);
+	_pLayerStateClosed->attach(pPlot);
 	
+	_pLayerStateHalfOpen = new QwtPlotIntervalCurve("Hi Hat half open");
+	QColor green(150, 255, 150);
+	green.setAlpha(150);
+	_pLayerStateHalfOpen->setBrush(green);
+    _pLayerStateHalfOpen->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateHalfOpen->setData(new EProPlotIntervalData());
+	_pLayerStateHalfOpen->setItemAttribute(Legend, false);
+	_pLayerStateHalfOpen->attach(pPlot);
+	
+	_pLayerStateOpen = new QwtPlotIntervalCurve("Hi Hat open");
+    QColor blue(100, 150, 255);
+	blue.setAlpha(150);
+	_pLayerStateOpen->setBrush(blue);
+    _pLayerStateOpen->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateOpen->setData(new EProPlotIntervalData());
+	_pLayerStateOpen->setItemAttribute(Legend, false);
+	_pLayerStateOpen->attach(pPlot);
+
 	_pLayerOpenInfo = new EProPlotCurve("Hi Hat Open Start", QColor(Qt::white), 1, pPlot);
 	_pLayerOpenInfo->setStyle(EProPlotCurve::NoCurve);
 	_pLayerOpenInfo->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, QColor(Qt::green), QColor(Qt::white), QSize(5,5)));
@@ -91,8 +109,10 @@ void HiHatPositionCurve::addCloseInfo(const QPointF& point)
 
 void HiHatPositionCurve::setVisible(bool state)
 {
-	_pLayerBlueOnInfo->setVisible(state&&_bShowBlueState);
-	_pLayerBlueOffInfo->setVisible(state&&_bShowBlueState);
+	_pLayerStateSecured ->setVisible(state&&_bShowHiHatStates);
+	_pLayerStateClosed->setVisible(state&&_bShowHiHatStates);
+	_pLayerStateHalfOpen->setVisible(state&&_bShowHiHatStates);
+	_pLayerStateOpen->setVisible(state&&_bShowHiHatStates);
 
 	_pLayerOpenInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
 	_pLayerCloseInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
@@ -104,8 +124,10 @@ void HiHatPositionCurve::setVisible(bool state)
 void HiHatPositionCurve::clear()
 {
 	static_cast<EProPlotIntervalData*>(_pLayerFootCancelMaskTime1->data())->clear();
-	static_cast<EProPlotIntervalData*>(_pLayerBlueOnInfo->data())->clear();
-	static_cast<EProPlotIntervalData*>(_pLayerBlueOffInfo->data())->clear();
+	static_cast<EProPlotIntervalData*>(_pLayerStateSecured ->data())->clear();
+	static_cast<EProPlotIntervalData*>(_pLayerStateClosed->data())->clear();
+	static_cast<EProPlotIntervalData*>(_pLayerStateHalfOpen->data())->clear();
+	static_cast<EProPlotIntervalData*>(_pLayerStateOpen->data())->clear();
 
 	_pLayerOpenInfo->clear();
 	_pLayerCloseInfo->clear();
@@ -114,33 +136,44 @@ void HiHatPositionCurve::clear()
 
 void HiHatPositionCurve::add(const QPointF& point, const boost::any& userData)
 {
-	EProPlotIntervalData* pDataBlueOn = static_cast<EProPlotIntervalData*>(_pLayerBlueOnInfo->data());
-	EProPlotIntervalData* pDataBlueOff = static_cast<EProPlotIntervalData*>(_pLayerBlueOffInfo->data());
+	EProPlotIntervalData* pDataSecured = static_cast<EProPlotIntervalData*>(_pLayerStateSecured ->data());
+	EProPlotIntervalData* pDataClosed = static_cast<EProPlotIntervalData*>(_pLayerStateClosed->data());
+	EProPlotIntervalData* pDataHalfOpen = static_cast<EProPlotIntervalData*>(_pLayerStateHalfOpen->data());
+	EProPlotIntervalData* pDataOpen = static_cast<EProPlotIntervalData*>(_pLayerStateOpen->data());
 
-	if (_blueState)
+	EProPlotIntervalData* pDataPrevious = NULL;
+	EProPlotIntervalData* pDataCurrent = NULL;
+	switch (_previousHiHatState)
 	{
-		// Previous state was yellow
-		if (!_previousBlueState)
-		{
-			pDataBlueOff->add(QwtIntervalSample(point.x(), 0, point.y()));
-			pDataBlueOn->add(QwtIntervalSample(point.x(), 0, 0));
-		}
-		pDataBlueOn->add(QwtIntervalSample(point.x(), 0, point.y()));
-		pDataBlueOff->add(QwtIntervalSample(point.x(), 0, 0));
-	}
-	else
-	{
-		// Previous state was blue
-		if (_previousBlueState)
-		{
-			pDataBlueOff->add(QwtIntervalSample(point.x(), 0, 0));
-			pDataBlueOn->add(QwtIntervalSample(point.x(), 0, point.y()));
-		}
-		pDataBlueOff->add(QwtIntervalSample(point.x(), 0, point.y()));
-		pDataBlueOn->add(QwtIntervalSample(point.x(), 0, 0));
+	case HHS_SECURED: pDataPrevious = pDataSecured; break;
+	case HHS_CLOSED: pDataPrevious = pDataClosed; break;
+	case HHS_HALF_OPEN: pDataPrevious = pDataHalfOpen; break;
+	case HHS_OPEN: pDataPrevious = pDataOpen; break;
 	}
 
-	_previousBlueState = _blueState;
+	switch (_hiHatState)
+	{
+	case HHS_SECURED: pDataCurrent = pDataSecured; break;
+	case HHS_CLOSED: pDataCurrent = pDataClosed; break;
+	case HHS_HALF_OPEN: pDataCurrent = pDataHalfOpen; break;
+	case HHS_OPEN: pDataCurrent = pDataOpen; break;
+	}
+
+	if (pDataCurrent != pDataPrevious)
+	{
+		pDataPrevious->add(QwtIntervalSample(point.x(), 0, point.y()));
+		pDataPrevious->add(QwtIntervalSample(point.x(), 0, 0));
+		pDataCurrent->add(QwtIntervalSample(point.x(), 0, 0));
+	}
+
+	pDataCurrent->add(QwtIntervalSample(point.x(), 0, point.y()));
+
+	if (pDataCurrent != pDataPrevious)
+	{
+		pDataPrevious->add(QwtIntervalSample(point.x(), 0, 0));
+	}
+
+	_previousHiHatState = _hiHatState;
 
 	EProPlotCurve::add(point, userData);
 }
@@ -165,11 +198,13 @@ void HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity(int velocity)
 	plot()->replot();
 }
 
-void HiHatPositionCurve::showBlueState(bool state)
+void HiHatPositionCurve::showHiHatStates(bool state)
 {
-	_bShowBlueState = state;
-	_pLayerBlueOnInfo->setVisible(state&&isVisible());
-	_pLayerBlueOffInfo->setVisible(state&&isVisible());
+	_bShowHiHatStates = state;
+	_pLayerStateSecured ->setVisible(state&&isVisible());
+	_pLayerStateClosed->setVisible(state&&isVisible());
+	_pLayerStateHalfOpen->setVisible(state&&isVisible());
+	_pLayerStateOpen->setVisible(state&&isVisible());
 	plot()->replot();
 }
 

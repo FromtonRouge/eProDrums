@@ -70,7 +70,7 @@ public:
 	const UserSettings& getConfig() const {return _userSettings;}
 
 signals:
-	void hiHatBlueState(bool state);
+	void hiHatState(int state);
     void hiHatPedalControl(int value);
 	void hiHatStartMoving(int movingState, int pos, int timestamp);
 	void footCancelStrategy1Started(int timestamp, int maskLength, int velocity);
@@ -117,7 +117,7 @@ private slots:
 	void on_spinBoxPlotWindowSize_valueChanged(int value);
 
 	void onFootCancelStrategy1Started(int timestamp, int maskLength, int velocity);
-	void onHiHatBlueState(bool state);
+	void onHiHatState(int state);
 	void onHiHatStartMoving(int movingState, int pos, int timestamp);
 	void onRedrawCurves();
 	void onRectSelection(bool);

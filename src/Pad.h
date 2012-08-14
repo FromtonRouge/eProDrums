@@ -104,19 +104,19 @@ public:
 	Pad():
 		_defaultOutputNote(0),
 		_ghostVelocityLimit(0),
-		_flamVelocityFactor(0),
+		_flamVelocityFactor(1.05f),
 		_flamTimeWindow1(0),
 		_flamTimeWindow2(0),
-		_flamCancelDuringRoll(0)
+		_flamCancelDuringRoll(100)
 	{}
 
 	Pad(	Type type,
 			int defaultMidiNote,
 			int ghostVelocityLimit = 0,
-			float flamVelocityFactor = 0,
+			float flamVelocityFactor = 1.05f,
 			int flamTimeWindow1 = 0,
 			int flamTimeWindow2 = 0,
-			int flamCancelDuringRoll = 0);
+			int flamCancelDuringRoll = 100);
 
 	Pad(const Pad& rOther);
 	Pad& operator=(const Pad& rOther);

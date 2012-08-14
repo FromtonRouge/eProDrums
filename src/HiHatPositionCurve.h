@@ -29,6 +29,15 @@ class QwtPlotHistogram;
 class HiHatPositionCurve : public EProPlotCurve
 {
 public:
+	enum HiHatState
+	{
+		HHS_SECURED,
+		HHS_CLOSED,
+		HHS_HALF_OPEN,
+		HHS_OPEN
+	};
+
+public:
     HiHatPositionCurve(QwtPlot* pPlot);
     virtual ~HiHatPositionCurve();
 
@@ -39,9 +48,9 @@ public:
 	virtual void clear();
 	virtual void add(const QPointF& point, const boost::any& userData = boost::any());
 
-	void setBlueState(bool state) {_blueState = state;}
+	void setHiHatState(HiHatState state) {_hiHatState = state;}
 
-	void showBlueState(bool state);
+	void showHiHatStates(bool state);
 	void showFootCancelStrategy1Info(bool state);
 
 	void addFootCancelStrategy1Info(int startTime, int maskLength, int velocity);
@@ -53,11 +62,13 @@ private:
 	EProPlotCurve* _pLayerCloseInfo;
 	QwtPlotHistogram* _pLayerFootCancelMaskTime1;
 	bool _bShowFootCancelStragegy1Info;
-	bool _bShowBlueState;
+	bool _bShowHiHatStates;
 
-	QwtPlotIntervalCurve* _pLayerBlueOnInfo;
-	QwtPlotIntervalCurve* _pLayerBlueOffInfo;
-	bool _blueState;
-	bool _previousBlueState;
+	QwtPlotIntervalCurve* _pLayerStateSecured;
+	QwtPlotIntervalCurve* _pLayerStateClosed;
+	QwtPlotIntervalCurve* _pLayerStateHalfOpen;
+	QwtPlotIntervalCurve* _pLayerStateOpen;
+	HiHatState _hiHatState;
+	HiHatState _previousHiHatState;
 
 };
