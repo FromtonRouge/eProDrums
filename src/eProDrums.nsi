@@ -10,8 +10,10 @@
 ; The name of the installer
 Name "eProDrums"
 
+!define /date TIMESTAMP "%Y-%m-%d"
+
 ; The file to write
-OutFile "eProDrums.exe"
+OutFile "${TIMESTAMP}-unstable-eProDrums.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\eProDrums
