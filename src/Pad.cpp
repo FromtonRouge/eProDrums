@@ -60,6 +60,7 @@ Pad::Pad(	Type type,
 	_typeFlam(type),
 	_defaultOutputNote(defaultMidiNote),
 	_ghostVelocityLimit(ghostVelocityLimit),
+	_isFlamActivated(false),
 	_flamVelocityFactor(flamVelocityFactor),
 	_flamTimeWindow1(flamTimeWindow1),
 	_flamTimeWindow2(flamTimeWindow2),
@@ -97,6 +98,7 @@ Pad& Pad::operator=(const Pad& rOther)
 		_typeFlam = rOther._typeFlam;
 		_defaultOutputNote = rOther._defaultOutputNote;
 		_ghostVelocityLimit = rOther._ghostVelocityLimit;
+		_isFlamActivated = rOther._isFlamActivated;
 		_flamVelocityFactor = rOther._flamVelocityFactor;
 		_flamTimeWindow1 = rOther._flamTimeWindow1;
 		_flamTimeWindow2 = rOther._flamTimeWindow2;
@@ -191,6 +193,18 @@ void Pad::setGhostVelocityLimit(const Parameter::Value& velocity)
 	_ghostVelocityLimit = velocity;
 } 
 
+bool Pad::isFlamActivated() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_isFlamActivated);
+}
+
+void Pad::setFlamActivated(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isFlamActivated = value;
+}
+
 float Pad::getFlamVelocityFactor() const
 {
 	Mutex::scoped_lock lock(_mutex);
@@ -231,8 +245,6 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 {
 	Mutex::scoped_lock lock(_mutex);
 	MidiMessage::List messageToSend;
-	//bool bLogsFlams = _pConfig->isLogs() && _pConfig->isLog(UserSettings::LOG_FLAMS);
-	//bool bLogsGhost = _pConfig->isLogs() && _pConfig->isLog(UserSettings::LOG_GHOST_NOTES);
 
 	boost::format fmtFlamTw1("Flam in [FTW1] : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW1]=%d");
 	boost::format fmtFlamTw2("Flam in [FTW2] : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW2]=%d, vel1stHit=%d, vel2ndHit=%d");
@@ -245,12 +257,68 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 
 	const boost::shared_ptr<Pad>& pFlamElement = drumKit[getTypeFlam()];
 
-	// In buffer case, pNext != NULL, NULL otherwise
+	// Note: In buffer case, pNext != NULL, NULL otherwise
 	if (pCurrent->getValue() <= getGhostVelocityLimit())
 	{
-		// Here we have a ghost note
-		// TODO: Cancel ghost note if another tom is hit at the same time
-		// TODO: Roll detection to cancel flam
+		bool bDoGhostNoteTest = false;
+		if (isFlamActivated())
+		{
+			// Here we have a ghost note
+			// TODO: Cancel ghost note if another tom is hit at the same time
+			// TODO: Roll detection to cancel flam
+			if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow1()))
+			{
+				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
+				{
+					{
+						int t1stHit = pCurrent->getTimestamp();
+						int t2ndHit = pNext->getTimestamp();
+						int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
+						int vel1stHit = pCurrent->getValue();
+						logFlams(fmtFlamTw1Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1() % vel1stHit % getGhostVelocityLimit());
+					}
+
+					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+				}
+			}
+			else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
+					pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
+			{
+				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
+				{
+					{
+						int t1stHit = pCurrent->getTimestamp();
+						int t2ndHit = pNext->getTimestamp();
+						int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
+						int vel1stHit = pCurrent->getValue();
+						int vel2ndHit = pNext->getValue();
+						logFlams(fmtFlamTw2Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
+					}
+
+					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+				}
+			}
+			else
+			{
+				bDoGhostNoteTest = true;
+			}
+		}
+		else
+		{
+			bDoGhostNoteTest = true;
+		}
+		
+		if (bDoGhostNoteTest)
+		{
+			{
+				logGhost(fmtGhostNote % pCurrent->getValue() % getGhostVelocityLimit());
+			}
+
+			pCurrent->ignore(MidiMessage::IGNORED_BECAUSE_GHOST);
+		}
+	}
+	else if (isFlamActivated())
+	{
 		if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow1()))
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
@@ -259,8 +327,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int t1stHit = pCurrent->getTimestamp();
 					int t2ndHit = pNext->getTimestamp();
 					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-					int vel1stHit = pCurrent->getValue();
-					logFlams(fmtFlamTw1Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1() % vel1stHit % getGhostVelocityLimit());
+					logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
 				}
 
 				pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
@@ -277,98 +344,59 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
 					int vel1stHit = pCurrent->getValue();
 					int vel2ndHit = pNext->getValue();
-					logFlams(fmtFlamTw2Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
+					logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
 				}
 
 				pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 			}
 		}
-		else
+		else if (!history.empty())
 		{
-			{
-				logGhost(fmtGhostNote % pCurrent->getValue() % getGhostVelocityLimit());
-			}
+			// No buffer code
+			// Get the last hit
+			const MidiMessage& rLast = history.front();
 
-			pCurrent->ignore(MidiMessage::IGNORED_BECAUSE_GHOST);
-		}
-	}
-	else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow1()))
-	{
-		if (history.empty() || isFlamAllowed(history[0], *pCurrent))
-		{
+			if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow1()))
 			{
-				int t1stHit = pCurrent->getTimestamp();
-				int t2ndHit = pNext->getTimestamp();
-				int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-				logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
-			}
-
-			pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-		}
-	}
-	else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
-			pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
-	{
-		if (history.empty() || isFlamAllowed(history[0], *pCurrent))
-		{
-			{
-				int t1stHit = pCurrent->getTimestamp();
-				int t2ndHit = pNext->getTimestamp();
-				int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-				int vel1stHit = pCurrent->getValue();
-				int vel2ndHit = pNext->getValue();
-				logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
-			}
-
-			pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-		}
-	}
-	else if (!history.empty())
-	{
-		// No buffer code
-		// Get the last hit
-		const MidiMessage& rLast = history.front();
-
-		if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow1()))
-		{
-			if (history.size()<2 || isFlamAllowed(history[1], history[0]))
-			{
+				if (history.size()<2 || isFlamAllowed(history[1], history[0]))
 				{
-					int t1stHit = rLast.getTimestamp();
-					int t2ndHit = pCurrent->getTimestamp();
-					int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
-					logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
-				}
+					{
+						int t1stHit = rLast.getTimestamp();
+						int t2ndHit = pCurrent->getTimestamp();
+						int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
+						logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
+					}
 
-				pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
+					pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
 
-				if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
-				{
-					// If the previous hit was a ghost note, we send it for the flam here
-					messageToSend.push_back(rLast);
+					if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
+					{
+						// If the previous hit was a ghost note, we send it for the flam here
+						messageToSend.push_back(rLast);
+					}
 				}
 			}
-		}
-		else if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow2()) &&
-				pCurrent->getValue() >= int(rLast.getValue()*getFlamVelocityFactor()))
-		{
-			if (history.size()<2 || isFlamAllowed(history[1], history[0]))
+			else if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow2()) &&
+					pCurrent->getValue() >= int(rLast.getValue()*getFlamVelocityFactor()))
 			{
+				if (history.size()<2 || isFlamAllowed(history[1], history[0]))
 				{
-					int t1stHit = rLast.getTimestamp();
-					int t2ndHit = pCurrent->getTimestamp();
-					int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
-					int vel1stHit = rLast.getValue();
-					int vel2ndHit = pCurrent->getValue();
-					logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
-				}
+					{
+						int t1stHit = rLast.getTimestamp();
+						int t2ndHit = pCurrent->getTimestamp();
+						int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
+						int vel1stHit = rLast.getValue();
+						int vel2ndHit = pCurrent->getValue();
+						logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
+					}
 
-				pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
+					pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
 
-				if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
-				{
-					// If the previous hit was a ghost note, we send it for the flam here
-					messageToSend.push_back(rLast);
+					if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
+					{
+						// If the previous hit was a ghost note, we send it for the flam here
+						messageToSend.push_back(rLast);
+					}
 				}
 			}
 		}

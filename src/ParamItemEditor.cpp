@@ -77,6 +77,7 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 		_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		pSubLayout->addWidget(_pDoubleSlider);
 		_pDoubleSpinBox = new QDoubleSpinBox(this);
+		_pDoubleSpinBox->setSingleStep(0.01);
 		connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onDoubleSpinBoxValueChanged(double)));
 		pSubLayout->addWidget(_pDoubleSpinBox);
 		pSubWidget->setLayout(pSubLayout);

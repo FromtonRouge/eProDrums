@@ -222,7 +222,7 @@ MainWindow::MainWindow():
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 						   	pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
-							tr("Half open detection algorithm starts between [Security position] and this position").toStdString())));
+							tr("Half open detection algorithm starts between [Security yellow position] and this position").toStdString())));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open time detection (ms)", 0, 5000,
 						   	pElHihatPedal->getHalfOpenActivationTime(),
@@ -334,7 +334,9 @@ MainWindow::MainWindow():
 				{
 					continue;
 				}
-				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), QColor(pPad->getColor().c_str())));
+				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), QColor(pPad->getColor().c_str()),
+							pPad->isFlamActivated(),
+							boost::bind(&Pad::setFlamActivated, pPad, _1)));
 
 				Parameter::Ptr pParam1(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
 							pPad->getTypeFlam(),
