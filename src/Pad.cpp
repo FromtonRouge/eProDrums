@@ -39,7 +39,7 @@ Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
 std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(SNARE, "#FF7070")
 	(HIHAT, "#FFFD70")
-	(HIHAT_PEDAL, "#FFFD70")
+	(HIHAT_PEDAL, "#FFFFFF")
 	(TOM1, "#FFFD70")
 	(TOM2, "#70A5FF")
 	(TOM3, "#86FF70")
