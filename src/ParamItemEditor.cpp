@@ -26,7 +26,6 @@
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QCheckBox>
 #include <QtGui/QLineEdit>
-#include <QtGui/QSlider>
 #include <QtGui/QSpinBox>
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QComboBox>
@@ -56,7 +55,7 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 		QWidget* pSubWidget = new QWidget(this);
 		QHBoxLayout* pSubLayout = new QHBoxLayout;
 		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
-		_pSlider = new QSlider(Qt::Horizontal, this);
+		_pSlider = new Slider(Qt::Horizontal, this);
 		connect(_pSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
 		_pSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		pSubLayout->addWidget(_pSlider);
@@ -72,7 +71,7 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 		QWidget* pSubWidget = new QWidget(this);
 		QHBoxLayout* pSubLayout = new QHBoxLayout;
 		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
-		_pDoubleSlider = new QSlider(Qt::Horizontal, this);
+		_pDoubleSlider = new Slider(Qt::Horizontal, this);
 		connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
 		_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		pSubLayout->addWidget(_pDoubleSlider);
