@@ -36,7 +36,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_bControlSpeedActivated(true),
 	_controlPosThreshold(127),
 	_openSpeed(330),
-	_closeSpeed(-10),
+	_closeSpeed(-200),
 	_bFootCancelStrategy1Activated(true),
 	_footCancelClosingSpeed(-1500),
 	_footCancelPos(90),
