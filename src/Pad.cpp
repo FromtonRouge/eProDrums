@@ -47,7 +47,7 @@ std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(CRASH2, "#86FF70")
 	(CRASH3, "#FFFD70")
 	(RIDE, "#70A5FF")
-	(BASS_DRUM, "#FFD970");
+	(BASS_DRUM, "#FCCB42");
 
 Pad::Pad(	Type type,
 			int defaultMidiNote,
