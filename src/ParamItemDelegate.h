@@ -42,11 +42,10 @@ public:
 		QSize result = QStyledItemDelegate::sizeHint(option, index);
 		if (index.column()==0)
 		{
-			QFont font;
-			QFontMetrics fontMetrics(font);
-			int width = fontMetrics.width(index.data().value<Parameter*>()->label.c_str());
-			const int UNKNOW_OFFSET(25); // Hack...
-			result.rwidth() += width + UNKNOW_OFFSET;
+			Parameter* pParameter = index.data().value<Parameter*>();
+			int width = option.fontMetrics.width(pParameter->label.c_str());
+			const int INDENT(option.fontMetrics.width("- "));
+			result.rwidth() += width + INDENT;
 		}
 		return result;
 	}
@@ -62,11 +61,12 @@ public:
 		painter->setRenderHint(QPainter::Antialiasing);
 		QStyleOptionViewItemV4 opt = option;
 		QStyledItemDelegate::initStyleOption(&opt, index);
+		QRectF rect = opt.rect;
 
 		if (!index.parent().isValid())
 		{
 			const Parameter* pParameter = index.data().value<Parameter*>();
-			painter->fillRect(opt.rect, pParameter->getColor());
+			painter->fillRect(rect, pParameter->getColor());
 			QStyleOptionViewItemV4 optionV4 = opt;
 			optionV4.state = QStyle::State_MouseOver;
 			QStyledItemDelegate::paint(painter, optionV4, index);
@@ -76,13 +76,19 @@ public:
 			painter->setFont(font);
 			if (index.column()==0)
 			{
+				// Centering vertically
+				QSize sizeData = sizeHint(opt, index);
+				int offset((rect.height()-sizeData.height())/2);
+				QPointF point = rect.bottomLeft();
+				rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
+
 				if (opt.state & QStyle::State_Open)
 				{
-					painter->drawText(opt.rect, Qt::AlignLeft, QString("- ") + pParameter->label.c_str());
+					painter->drawText(rect, Qt::AlignLeft, QString("- ") + pParameter->label.c_str());
 				}
 				else
 				{
-					painter->drawText(opt.rect, Qt::AlignLeft, QString("+ ") + pParameter->label.c_str());
+					painter->drawText(rect, Qt::AlignLeft, QString("+ ") + pParameter->label.c_str());
 				}
 			}
 		}
@@ -93,7 +99,6 @@ public:
 			Parameter* pParameter = index.data().value<Parameter*>();
 			QColor color = pParentParameter->getColor();
 
-			const QRectF& rect = opt.rect;
 			if (pParameter->isEnabled())
 			{
 				const QColor& colorParameter = pParameter->getColor();
@@ -113,7 +118,19 @@ public:
 					painter->fillRect(rect, lighterColor);
 				}
 			}
-			painter->drawText(rect.x(), rect.y(), rect.width(), rect.height(), Qt::AlignLeft, pParameter->label.c_str());
+
+			// Centering vertically
+			QSize sizeData = sizeHint(opt, index);
+			int offset((rect.height()-sizeData.height())/2);
+			QPointF point = rect.bottomLeft();
+			rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
+
+			// Horizontal indent
+			const int INDENT(painter->fontMetrics().width("- "));
+			rect.moveLeft(point.x()+INDENT);	// Relative to up-left corner of the treeview
+			rect.setWidth(rect.width()-INDENT);
+
+			painter->drawText(rect, Qt::AlignLeft, pParameter->label.c_str());
 		}
 
 		painter->restore();

@@ -25,6 +25,7 @@
 #include "PadNotesWidget.h"
 #include "DrumKitItemModel.h"
 #include <QtGui/QStyledItemDelegate>
+#include <QtGui/QPainter>
 
 #ifndef Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
 #define Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
@@ -43,6 +44,48 @@ signals:
 public:
 	DrumKitItemDelegate(QObject* pParent=NULL):QStyledItemDelegate(pParent) { }
 	virtual ~DrumKitItemDelegate() {}
+
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
+	{
+		QSize result = QStyledItemDelegate::sizeHint(option, index);
+		if (index.column()==0)
+		{
+			int width = option.fontMetrics.width(Pad::getName(index.data().value<Pad::MidiDescription>().type).c_str());
+			result.rwidth() += width + INDENT;
+		}
+		return result;
+	}
+
+	virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+	{
+		if (index.column()==0)
+		{
+			const Pad::MidiDescription& description = index.data().value<Pad::MidiDescription>();
+
+			painter->save();
+			QRectF rect = option.rect;
+			QColor color(Pad::getColor(description.type).c_str());
+			const QColor& lighterColor = color.lighter(130);
+			painter->fillRect(rect, lighterColor);
+
+			// Centering vertically
+			QSize sizeData = sizeHint(option, index);
+			int offset((rect.height()-sizeData.height())/2);
+			QPointF point = rect.bottomLeft();
+			rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
+
+			// Horizontal indent
+			rect.moveLeft(point.x()+INDENT);			// Relative to up-left corner of the treeview
+			rect.setWidth(rect.width()-INDENT);
+
+			painter->drawText(rect, Qt::AlignLeft, Pad::getName(description.type).c_str());
+			painter->restore();
+		}
+		else
+		{
+			QStyledItemDelegate::paint(painter, option, index);
+		}
+	}
 
 	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem &, const QModelIndex&) const
 	{
@@ -77,4 +120,7 @@ public:
 		variant.setValue(padDescription);
 		pModel->setData(index, variant);
 	}
+
+private:
+	static const int INDENT = 8;
 };

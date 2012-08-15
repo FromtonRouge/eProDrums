@@ -130,7 +130,9 @@ public:
 			{
 				if (index.column()==0)
 				{
-					return QString(description[index.row()].getTypeLabel().c_str());
+					QVariant variant;
+					variant.setValue(description[index.row()]);
+					return variant;
 				}
 				break;
 			}

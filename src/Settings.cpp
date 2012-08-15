@@ -108,7 +108,7 @@ void Settings::saveDrumKitMidiMap(const boost::filesystem::path& pathConfig)
 		boost::archive::xml_oarchive oa(ofs);
 		oa << BOOST_SERIALIZATION_NVP(_drumKitMidiMap);
 		setDrumKitConfigFile(pathConfig.generic_string());
-		_signalKitDefined(&_drumKitMidiMap, pathConfig);
+		_onKitDefined(&_drumKitMidiMap, pathConfig);
 	}
 	catch (const std::exception& e)
 	{
@@ -131,7 +131,7 @@ void Settings::loadDrumKitMidiMap(const boost::filesystem::path& pathConfig)
 	{
 		// Default drum kit map
 		setDrumKitConfigFile("");
-		_signalKitDefined(&_drumKitMidiMap, fs::path());
+		_onKitDefined(&_drumKitMidiMap, fs::path());
 	}
 	else if (fs::exists(pathConfig))
 	{
@@ -143,7 +143,7 @@ void Settings::loadDrumKitMidiMap(const boost::filesystem::path& pathConfig)
 			{
 				ia >> BOOST_SERIALIZATION_NVP(_drumKitMidiMap);
 				setDrumKitConfigFile(pathConfig.generic_string());
-				_signalKitDefined(&_drumKitMidiMap, pathConfig);
+				_onKitDefined(&_drumKitMidiMap, pathConfig);
 			}
 			catch (const std::exception& e)
 			{
@@ -154,14 +154,14 @@ void Settings::loadDrumKitMidiMap(const boost::filesystem::path& pathConfig)
 				// Default drum kit map
 				setDrumKitConfigFile("");
 				_drumKitMidiMap = DrumKitMidiMap();
-				_signalKitDefined(&_drumKitMidiMap, fs::path());
+				_onKitDefined(&_drumKitMidiMap, fs::path());
 			}
 		}
 		else
 		{
 			// Default drum kit map
 			setDrumKitConfigFile("");
-			_signalKitDefined(&_drumKitMidiMap, fs::path());
+			_onKitDefined(&_drumKitMidiMap, fs::path());
 		}
 	}
 	else
@@ -172,6 +172,28 @@ void Settings::loadDrumKitMidiMap(const boost::filesystem::path& pathConfig)
 
 		// Default drum kit map
 		setDrumKitConfigFile("");
-		_signalKitDefined(&_drumKitMidiMap, fs::path());
+		_onKitDefined(&_drumKitMidiMap, fs::path());
 	}
+}
+
+int Settings::getRedrawPeriod() const
+{
+	return _qSettings.value("RedrawPeriod", 25).toInt();
+}
+
+void Settings::setRedrawPeriod(int periodInMs)
+{
+	_qSettings.setValue("RedrawPeriod", periodInMs);
+	_onRedrawPeriodChanged(periodInMs);
+}
+
+int Settings::getCurveWindowLength() const
+{
+	return _qSettings.value("CurveWindowLenthInSeconds", 5).toInt();
+}
+
+void Settings::setCurveWindowLength(int value)
+{
+	_qSettings.setValue("CurveWindowLenthInSeconds", value);
+	_onCurveWindowLengthChanged(value);
 }

@@ -69,6 +69,9 @@ public:
     void addIncomingMidiMessage(const MidiMessage& midiMessage);
 	const UserSettings& getConfig() const {return _userSettings;}
 
+	void onRedrawPeriodChanged(int value);
+	void onCurveWindowLengthChanged(int value);
+
 signals:
 	void hiHatState(int state);
     void hiHatPedalControl(int value);
@@ -196,7 +199,8 @@ private:
     EProPlotCurve* _curveBassPedal;
 
     // Plot pickers
-    EProPlotZoomer* _pPlotZoomer;
-	QTimer* _pRedrawTimer;
-	bool _bRedrawState;
+    EProPlotZoomer*	_pPlotZoomer;
+	QTimer*			_pRedrawTimer;
+	bool			_bRedrawState;
+	int				_redrawPeriod;
 };

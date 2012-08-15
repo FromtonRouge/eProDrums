@@ -36,7 +36,9 @@
 class Settings
 {
 public:
-	typedef boost::signals2::signal<void (DrumKitMidiMap*, const boost::filesystem::path&)> SignalKitDefined;
+	typedef boost::signals2::signal<void (DrumKitMidiMap*, const boost::filesystem::path&)> OnKitDefined;
+	typedef boost::signals2::signal<void (int)> OnRedrawPeriodChanged;
+	typedef boost::signals2::signal<void (int)> OnCurveWindowLengthChanged;
 
 public:
 	Settings();
@@ -62,16 +64,25 @@ public:
 	DrumKitMidiMap* getDrumKitMidiMap() {return &_drumKitMidiMap;}
 	void setDrumKitMidiMap(const DrumKitMidiMap& drumKitMidiMap) {_drumKitMidiMap = drumKitMidiMap;}
 
+	int getRedrawPeriod() const;
+	void setRedrawPeriod(int periodInMs);
+
+	int getCurveWindowLength() const;
+	void setCurveWindowLength(int value);
+
 public:
-	boost::signals2::connection connectDrumKitMidiMapLoaded(const SignalKitDefined::slot_function_type& func) {return _signalKitDefined.connect(func);}
+	boost::signals2::connection connectDrumKitMidiMapLoaded(const OnKitDefined::slot_function_type& func) {return _onKitDefined.connect(func);}
+	boost::signals2::connection connectRedrawPeriodChanged(const OnRedrawPeriodChanged::slot_function_type& func) {return _onRedrawPeriodChanged.connect(func);}
+	boost::signals2::connection connectCurveWindowLengthChanged(const OnCurveWindowLengthChanged::slot_function_type& func) {return _onCurveWindowLengthChanged.connect(func);}
 
 	void saveDrumKitMidiMap(const boost::filesystem::path& pathConfig);
 	void loadDrumKitMidiMap(const boost::filesystem::path& pathConfig);
 	void reloadDrumKitMidiMap();
 
 private:
-	SignalKitDefined _signalKitDefined;
-
-	QSettings                  _qSettings;				///< Core settings.
-	DrumKitMidiMap             _drumKitMidiMap;			///< DrumKitMidiMap midi settings.
+	OnKitDefined				_onKitDefined;
+	OnRedrawPeriodChanged		_onRedrawPeriodChanged;
+	OnCurveWindowLengthChanged	_onCurveWindowLengthChanged;
+	QSettings					_qSettings;				///< Core settings.
+	DrumKitMidiMap				_drumKitMidiMap;			///< DrumKitMidiMap midi settings.
 };

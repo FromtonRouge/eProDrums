@@ -20,20 +20,34 @@
 // ============================================================ 
 
 #include "Pad.h"
+#include <boost/assign.hpp>
 #include <map>
 
-Parameter::DictEnums Pad::DICT_TYPES;
+Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
+	(Pad::SNARE, "Snare")
+	(Pad::HIHAT, "Hi-hat")
+	(Pad::HIHAT_PEDAL, "Hi-hat pedal")
+	(Pad::TOM1, "Tom 1")
+	(Pad::TOM2, "Tom 2")
+	(Pad::TOM3, "Tom 3")
+	(Pad::CRASH1, "Green to Yellow Crash")
+	(Pad::CRASH2, "Green Crash")
+	(Pad::CRASH3, "Yellow Crash")
+	(Pad::RIDE, "Ride")
+	(Pad::BASS_DRUM, "Bass Drum");
 
-std::string Pad::MidiDescription::getTypeLabel() const
-{
-	std::string szLabel("Unknown");
-	std::map<int, std::string>::iterator it = Pad::DICT_TYPES.find(type);
-	if (it!=Pad::DICT_TYPES.end())
-	{
-		szLabel = it->second;
-	}
-	return szLabel;
-}
+std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
+	(SNARE, "#FF7070")
+	(HIHAT, "#FFFD70")
+	(HIHAT_PEDAL, "#FFFD70")
+	(TOM1, "#FFFD70")
+	(TOM2, "#70A5FF")
+	(TOM3, "#86FF70")
+	(CRASH1, "#86FF70")
+	(CRASH2, "#86FF70")
+	(CRASH3, "#FFFD70")
+	(RIDE, "#70A5FF")
+	(BASS_DRUM, "#FFD970");
 
 Pad::Pad(	Type type,
 			int defaultMidiNote,
@@ -51,32 +65,16 @@ Pad::Pad(	Type type,
 	_flamTimeWindow2(flamTimeWindow2),
 	_flamCancelDuringRoll(flamCancelDuringRoll)
 {
-	typedef std::map<int, std::string> DictColors;
-	DictColors dictColors;
-	dictColors[SNARE] = "#FF7070";
-	dictColors[HIHAT] = "#FFFD70";
-	dictColors[HIHAT_PEDAL] = "#FFFD70";
-	dictColors[TOM1] = "#FFFD70";
-	dictColors[TOM2] = "#70A5FF";
-	dictColors[TOM3] = "#86FF70";
-	dictColors[CRASH1] = "#86FF70";
-	dictColors[CRASH2] = "#86FF70";
-	dictColors[CRASH3] = "#FFFD70";
-	dictColors[RIDE] = "#70A5FF";
-	dictColors[BASS_DRUM] = "#FFD970";
-	_color = dictColors[type];
+}
 
-	DICT_TYPES[Pad::SNARE] = "Snare";
-	DICT_TYPES[Pad::HIHAT] = "Hi-hat";
-	DICT_TYPES[Pad::HIHAT_PEDAL] = "Hi-hat pedal";
-	DICT_TYPES[Pad::TOM1] = "Tom 1";
-	DICT_TYPES[Pad::TOM2] = "Tom 2";
-	DICT_TYPES[Pad::TOM3] = "Tom 3";
-	DICT_TYPES[Pad::CRASH1] = "Green to Yellow Crash";
-	DICT_TYPES[Pad::CRASH2] = "Green Crash";
-	DICT_TYPES[Pad::CRASH3] = "Yellow Crash";
-	DICT_TYPES[Pad::RIDE] = "Ride";
-	DICT_TYPES[Pad::BASS_DRUM] = "Bass Drum";
+std::string Pad::getName(Type type)
+{
+	return DICT_NAMES[type];
+}
+
+std::string Pad::getColor(Type type)
+{
+	return DICT_COLORS[type];
 }
 
 Pad::~Pad()
@@ -95,7 +93,6 @@ Pad& Pad::operator=(const Pad& rOther)
 	if (this!=&rOther)
 	{
 		_midiNotes = rOther._midiNotes;
-		_color = rOther._color;
 		_type = rOther._type;
 		_typeFlam = rOther._typeFlam;
 		_defaultOutputNote = rOther._defaultOutputNote;
@@ -106,6 +103,18 @@ Pad& Pad::operator=(const Pad& rOther)
 		_flamCancelDuringRoll = rOther._flamCancelDuringRoll;
 	}
 	return *this;
+}
+
+std::string Pad::getName() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return DICT_NAMES[_type];
+}
+
+std::string Pad::getColor() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return DICT_COLORS[_type];
 }
 
 void Pad::setMidiNotes(const MidiNotes& notes)
@@ -144,31 +153,6 @@ Pad::Type Pad::getTypeFlam() const
 {
 	Mutex::scoped_lock lock(_mutex);
 	return static_cast<Type>(boost::get<int>(_typeFlam));
-}
-
-std::string Pad::getName() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	typedef std::map<int, std::string> DictNames;
-	DictNames dictElementName;
-	dictElementName[Pad::NOTE_SNARE] = "Snare";
-	dictElementName[Pad::NOTE_HIHAT] = "Hi-Hat";
-	dictElementName[Pad::NOTE_HIHAT_PEDAL] = "HH Ped";
-	dictElementName[Pad::NOTE_TOM1] = "Tom1";
-	dictElementName[Pad::NOTE_TOM2] = "Tom2";
-	dictElementName[Pad::NOTE_TOM3] = "Tom3";
-	dictElementName[Pad::NOTE_CRASH1] = "M.Crash";
-	dictElementName[Pad::NOTE_CRASH2] = "G.Crash";
-	dictElementName[Pad::NOTE_CRASH3] = "Y.Crash";
-	dictElementName[Pad::NOTE_RIDE] = "Ride";
-	dictElementName[Pad::NOTE_BASS_DRUM] = "Bass Dr";
-	std::string szElementName("Unknown");
-	DictNames::iterator it = dictElementName.find(getDefaultOutputNote());
-	if (it!=dictElementName.end())
-	{
-		szElementName = it->second;
-	}
-	return szElementName;
 }
 
 bool Pad::isA(int note) const

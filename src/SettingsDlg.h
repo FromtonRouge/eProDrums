@@ -63,11 +63,11 @@ private slots:
 	void on_treeWidget_itemSelectionChanged();
 	void on_stackedWidget_currentChanged(int);
 	void on_pushButtonSetupDrumKit_clicked(bool checked=false);
-
 	void on_pushButtonOpen_clicked(bool checked=false);
 	void on_pushButtonSave_clicked(bool checked=false);
-
 	void on_spinBoxCC_valueChanged(int value);
+	void on_spinBoxRefreshPeriod_valueChanged(int value);
+	void on_spinBoxCurveWindowLength_valueChanged(int value);
 
 private:
 

@@ -24,8 +24,6 @@
 #include "MidiMessage.h"
 #include "Parameter.h"
 
-#include <QtGui/QColor>
-
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/set.hpp>
@@ -61,7 +59,8 @@ public:
 		BASS_DRUM,
 		TYPE_COUNT
 	};
-	static Parameter::DictEnums DICT_TYPES;
+	static Parameter::DictEnums DICT_NAMES;
+	static std::map<int, std::string> DICT_COLORS;
 
 	enum DefaultOutputNote
 	{
@@ -84,10 +83,8 @@ public:
 	struct MidiDescription
 	{
 		MidiDescription(Type type = SNARE):type(type) {}
-		Type           type;
-		MidiNotes midiNotes;
-
-		std::string getTypeLabel() const;
+		Type			type;
+		MidiNotes		midiNotes;
 
 	private:
 		friend class boost::serialization::access;
@@ -100,6 +97,10 @@ public:
 
 protected:
 	typedef boost::recursive_mutex Mutex;
+
+public:
+	static std::string getName(Type type);
+	static std::string getColor(Type type);
 
 public:
 	Pad():
@@ -132,7 +133,6 @@ public:
 	void setType(Type type);
 	void setTypeFlam(const Parameter::Value& value);
 	Type getTypeFlam() const;
-	std::string getName() const;
 	bool isA(int note) const;
 	int getDefaultOutputNote() const;
 	int getGhostVelocityLimit() const;
@@ -145,8 +145,8 @@ public:
 	void setFlamTimeWindow2(const Parameter::Value& value);
 	int getFlamCancelDuringRoll() const;
 	void setFlamCancelDuringRoll(const Parameter::Value& value);
-	QColor getColor() const {return QColor(_color.c_str());}
-	void setColor(const QColor& color) {_color = color.name().toStdString();}
+	std::string getName() const;
+	std::string getColor() const;
 
 	/**
 	 * Compute flams, ghosts on current and next midi message.
@@ -171,7 +171,6 @@ private:
 	MidiNotes			_midiNotes;
 
 	// Archived data
-	std::string			_color;
 	Type				_type;
 	Parameter::Value	_typeFlam;
 	int					_defaultOutputNote;
@@ -188,7 +187,6 @@ private:
 	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		// Basic Pad
-		ar  & BOOST_SERIALIZATION_NVP(_color);
 		ar  & BOOST_SERIALIZATION_NVP(_type);
 		ar  & BOOST_SERIALIZATION_NVP(_typeFlam);
 		ar  & BOOST_SERIALIZATION_NVP(_defaultOutputNote);

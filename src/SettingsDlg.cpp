@@ -94,8 +94,8 @@ void SettingsDlg::on_stackedWidget_currentChanged(int index)
 		}
 	case SETTING_CURVE:
 		{
-			spinBoxRefreshPeriod->setValue(25);
-			spinBoxCurveWindowLength->setValue(5);
+			spinBoxRefreshPeriod->setValue(_pSettings->getRedrawPeriod());
+			spinBoxCurveWindowLength->setValue(_pSettings->getCurveWindowLength());
 			break;
 		}
 	default:
@@ -119,7 +119,7 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 
 		// Clear the dialog first and set pad info
 		dlg.clear();
-		dlg.setWindowTitle(padDescription.getTypeLabel().c_str());
+		dlg.setWindowTitle(Pad::getName(padDescription.type).c_str());
 		dlg.setNotes(padDescription.midiNotes);
 
 		if (dlg.exec())
@@ -189,6 +189,7 @@ void SettingsDlg::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const fs::path& path
 		tableViewDrumKit->openPersistentEditor(_pDrumKitItemModel->index(i, 1));
 	}
 
+	tableViewDrumKit->resizeColumnToContents(0);
 	lineEditPath->setText(pathConfig.generic_string().c_str());
 }
 
@@ -216,4 +217,14 @@ void SettingsDlg::accept()
 			QDialog::accept();
 		}
 	}
+}
+
+void SettingsDlg::on_spinBoxRefreshPeriod_valueChanged(int value)
+{
+	_pSettings->setRedrawPeriod(value);
+}
+
+void SettingsDlg::on_spinBoxCurveWindowLength_valueChanged(int value)
+{
+	_pSettings->setCurveWindowLength(value);
 }

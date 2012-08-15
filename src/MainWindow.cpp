@@ -75,7 +75,8 @@ MainWindow::MainWindow():
     _bConnected(false),
 	_currentSlot(_userSettings.configSlots.end()),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0),
-	_bRedrawState(true)
+	_bRedrawState(true),
+	_redrawPeriod(25)
 {
 	setupUi(this);
 	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
@@ -333,13 +334,13 @@ MainWindow::MainWindow():
 				{
 					continue;
 				}
-				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), pPad->getColor()));
+				Parameter::Ptr pGroup1(new Parameter(pPad->getName(), QColor(pPad->getColor().c_str())));
 
 				Parameter::Ptr pParam1(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
 							pPad->getTypeFlam(),
 							boost::bind(&Pad::setTypeFlam, pPad, _1),
 							tr("Specify the Pad type of the second hit of the flam").toStdString(),
-							Pad::DICT_TYPES));
+							Pad::DICT_NAMES));
 				pGroup1->addChild(pParam1);
 
 				Parameter::Ptr pParam2(new Parameter("Time window 1 (velocity ignored) (ms)", 0, 150,
@@ -384,8 +385,8 @@ MainWindow::MainWindow():
 				Parameter::Ptr pParameter(new Parameter(pPad->getName(), 0, 127,
 							pPad->getGhostVelocityLimit(),
 							boost::bind(&Pad::setGhostVelocityLimit, pPad, _1),
-							tr("Under this velocity the not is ignored").toStdString()));
-				pParameter->setColor(pPad->getColor());
+							tr("Under this velocity the note is ignored").toStdString()));
+				pParameter->setColor(QColor(pPad->getColor().c_str()));
 				pGroup1->addChild(pParameter);
 			}
 		}
@@ -460,6 +461,12 @@ MainWindow::MainWindow():
     {
         on_pushButtonStart_clicked();
     }
+
+	// Settings connections
+	_pSettings->connectRedrawPeriodChanged(boost::bind(&MainWindow::onRedrawPeriodChanged, this, _1));
+	_pSettings->connectCurveWindowLengthChanged(boost::bind(&MainWindow::onCurveWindowLengthChanged, this, _1));
+	onRedrawPeriodChanged(_pSettings->getRedrawPeriod());
+	onCurveWindowLengthChanged(_pSettings->getCurveWindowLength());
 }
 
 MainWindow::~MainWindow()
@@ -1588,7 +1595,7 @@ void MainWindow::onUpdatePlot(int msgType, int, int msgNote, int msgVelocity, in
 	// Redraw order, plots are redrawn after an idle time
 	if (_bRedrawState)
 	{
-		_pRedrawTimer->start(25);
+		_pRedrawTimer->start(_redrawPeriod);
 	}
 }
 
@@ -2123,7 +2130,7 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 
 void MainWindow::showEvent(QShowEvent* pEvent)
 {
-	_pRedrawTimer->start(25);
+	_pRedrawTimer->start(_redrawPeriod);
 	_bRedrawState = true;
 	QMainWindow::showEvent(pEvent);
 }
@@ -2139,4 +2146,17 @@ void MainWindow::on_actionSettings_triggered()
 	SettingsDlg settings(_pSettings.get());
 	connect(this, SIGNAL(midiNoteOn(int,int)), &settings, SIGNAL(midiNoteOn(int,int)));
 	settings.exec();
+}
+
+void MainWindow::onRedrawPeriodChanged(int value)
+{
+	_redrawPeriod = value;
+}
+
+void MainWindow::onCurveWindowLengthChanged(int value)
+{
+	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
+	int timeWindowInMs = value*1000;
+	int maxValue = pScaleDiv->interval().maxValue();
+	_pPlotZoomer->moveWindow(maxValue-timeWindowInMs,timeWindowInMs, true, false);
 }
