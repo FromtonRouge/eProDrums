@@ -53,10 +53,10 @@ public:
     MovingState setCurrentControlSpeed(float value);
     float getCurrentControlAcceleration() const;
     void setCurrentControlAcceleration(float value);
-	bool isControlPosActivated() const;
-	void setControlPosActivation(const Parameter::Value& state);
-	bool isControlSpeedActivated() const;
-	void setControlSpeedActivation(const Parameter::Value& state);
+	bool isBlueDetectionByPosition() const;
+	void setBlueDetectionByPosition(const Parameter::Value& state);
+	bool isBlueDetectionBySpeed() const;
+	void setBlueDetectionBySpeed(const Parameter::Value& state);
     int getControlPosThreshold() const;
     void setControlPosThreshold(const Parameter::Value& value);
     int getOpenSpeed() const;
@@ -67,23 +67,20 @@ public:
 	void setBlue(bool state);
 	bool isHalfOpen() const;
 	void setHalfOpen(bool state);
-	bool isFootCancelStrategy1Activated() const;
-	void setFootCancelStrategy1Activation(const Parameter::Value& state);
+	bool isFootSplashCancel() const;
+	void setFootSplashCancel(const Parameter::Value& state);
 	int getFootCancelClosingSpeed() const;
 	void setFootCancelClosingSpeed(const Parameter::Value& value);
 	int getFootCancelPos() const;
 	void setFootCancelPos(const Parameter::Value& value);
 	int getFootCancelPosDiff() const;
 	void setFootCancelPosDiff(const Parameter::Value& value);
-
 	int getFootCancelMaskTime() const;
 	void setFootCancelMaskTime(const Parameter::Value& value);
 	void connectFootCancelMaskTime(const OnFootCancelMaskTimeChanged::slot_function_type& slot) {_onFootCancelMaskTimeChanged.disconnect_all_slots();_onFootCancelMaskTimeChanged.connect(slot);}
-
 	int getFootCancelVelocity() const;
 	void setFootCancelVelocity(const Parameter::Value& value);
 	void connectFootCancelVelocity(const OnFootCancelVelocityChanged::slot_function_type& slot) {_onFootCancelVelocityChanged.disconnect_all_slots(); _onFootCancelVelocityChanged.connect(slot);}
-
 	int getFootCancelTimeLimit() const;
 	void setFootCancelTimeLimit(int value);
 	int getHalfOpenEnteringTime() const;
@@ -94,8 +91,8 @@ public:
 	void setCancelOpenHitVelocity(const Parameter::Value& value);
 	int getCancelOpenHitThreshold() const;
 	int getCancelOpenHitVelocity() const;
-	bool isCancelOpenHitActivated() const;
-	void setCancelOpenHit(const Parameter::Value& value);
+	bool isCancelHitWhileOpen() const;
+	void setCancelHitWhileOpen(const Parameter::Value& value);
 	int getSecurityPosition() const;
 	void setSecurityPosition(const Parameter::Value& value);
 	int getSecurityOpenPosition() const;
@@ -123,19 +120,18 @@ private:
 	int		_posOnOpenBegin; 
 
 	// Archived data
-	Parameter::Value	_afterHitMaskVelocity;
-	Parameter::Value	_bControlPosActivated;
-	Parameter::Value	_bControlSpeedActivated;
+	Parameter::Value	_isBlueDetectionByPosition;
+	Parameter::Value	_isBlueDetectionBySpeed;
 	Parameter::Value	_controlPosThreshold;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
-	Parameter::Value	_bFootCancelStrategy1Activated;
+	Parameter::Value	_isFootSplashCancel;
 	Parameter::Value	_footCancelClosingSpeed;
 	Parameter::Value	_footCancelPos;
 	Parameter::Value	_footCancelPosDiff;
 	Parameter::Value	_footCancelMaskTime;
 	Parameter::Value	_footCancelVelocity;
-	Parameter::Value	_bCancelOpenHitActivated;
+	Parameter::Value	_isCancelHitWhileOpen;
 	Parameter::Value	_cancelOpenHitThreshold;
 	Parameter::Value	_cancelOpenHitVelocity;
 	Parameter::Value	_securityPosition;
@@ -154,19 +150,18 @@ private:
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Pad);
 
 		// Hi Hat control and pedal
-		ar  & BOOST_SERIALIZATION_NVP(_afterHitMaskVelocity);
-		ar  & BOOST_SERIALIZATION_NVP(_bControlPosActivated);
-		ar  & BOOST_SERIALIZATION_NVP(_bControlSpeedActivated);
+		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
+		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
-		ar  & BOOST_SERIALIZATION_NVP(_bFootCancelStrategy1Activated);
+		ar  & BOOST_SERIALIZATION_NVP(_isFootSplashCancel);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelMaskTime);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelVelocity);
-		ar  & BOOST_SERIALIZATION_NVP(_bCancelOpenHitActivated);
+		ar  & BOOST_SERIALIZATION_NVP(_isCancelHitWhileOpen);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);

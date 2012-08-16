@@ -196,8 +196,8 @@ MainWindow::MainWindow():
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by speed", QColor(150, 250, 150),
-					pElHihatPedal->isControlSpeedActivated(),
-					boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1)));
+					pElHihatPedal->isBlueDetectionBySpeed(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Security yellow position (unit)", 0, 127,
 							pElHihatPedal->getSecurityPosition(),
@@ -231,8 +231,8 @@ MainWindow::MainWindow():
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", QColor(250, 150, 150),
-					pElHihatPedal->isControlPosActivated(),
-					boost::bind(&HiHatPedalElement::setControlPosActivation, pElHihatPedal, _1)));
+					pElHihatPedal->isBlueDetectionByPosition(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
 		{
 			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 						   	pElHihatPedal->getControlPosThreshold(),
@@ -276,8 +276,8 @@ MainWindow::MainWindow():
 	{
 		Parameter::Ptr pRoot(new Parameter());
 		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel", QColor(130, 130, 250),
-					pElHihatPedal->isFootCancelStrategy1Activated(),
-					boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1)));
+					pElHihatPedal->isFootSplashCancel(),
+					boost::bind(&HiHatPedalElement::setFootSplashCancel, pElHihatPedal, _1)));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
@@ -305,8 +305,8 @@ MainWindow::MainWindow():
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Cancel while open", QColor(250, 150, 150),
-					pElHihatPedal->isCancelOpenHitActivated(),
-					boost::bind(&HiHatPedalElement::setCancelOpenHit, pElHihatPedal, _1)));
+					pElHihatPedal->isCancelHitWhileOpen(),
+					boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1)));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 							pElHihatPedal->getCancelOpenHitThreshold(),
@@ -1253,8 +1253,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pGroup2->update(	pElHihatPedal->isControlSpeedActivated(),
-							boost::bind(&HiHatPedalElement::setControlSpeedActivation, pElHihatPedal, _1));
+					pGroup2->update(	pElHihatPedal->isBlueDetectionBySpeed(),
+							boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
 					{
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
 								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
@@ -1276,8 +1276,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
-					pGroup3->update(	pElHihatPedal->isControlPosActivated(),
-							boost::bind(&HiHatPedalElement::setControlPosActivation, pElHihatPedal, _1));
+					pGroup3->update(	pElHihatPedal->isBlueDetectionByPosition(),
+							boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1));
 					{
 						pGroup3->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
 								boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1));
@@ -1314,8 +1314,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					const Parameter::Ptr& pRoot = pTreeView->getRoot();
 					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
 
-					pGroup1->update(	pElHihatPedal->isFootCancelStrategy1Activated(),
-										boost::bind(&HiHatPedalElement::setFootCancelStrategy1Activation, pElHihatPedal, _1));
+					pGroup1->update(	pElHihatPedal->isFootSplashCancel(),
+										boost::bind(&HiHatPedalElement::setFootSplashCancel, pElHihatPedal, _1));
 					{
 						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
 														boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
@@ -1333,8 +1333,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pGroup2->update(	pElHihatPedal->isCancelOpenHitActivated(),
-										boost::bind(&HiHatPedalElement::setCancelOpenHit, pElHihatPedal, _1));
+					pGroup2->update(	pElHihatPedal->isCancelHitWhileOpen(),
+										boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1));
 					{
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getCancelOpenHitThreshold(),
 														boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1));
@@ -1693,7 +1693,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		bool bSecured = false;
 
 		// Blue state by pedal speed
-		if (pElHihatPedal->isControlSpeedActivated())
+		if (pElHihatPedal->isBlueDetectionBySpeed())
 		{
 			bool bComputeBlueState = true;
 			if (currentControlPos<=pElHihatPedal->getSecurityPosition())
@@ -1764,13 +1764,13 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 
 		// Blue state by pedal position
-		if (pElHihatPedal->isControlPosActivated())
+		if (pElHihatPedal->isBlueDetectionByPosition())
 		{
 			if (currentControlPos > pElHihatPedal->getControlPosThreshold())
 			{
 				pElHihatPedal->setBlue(true);
 			}
-			else if (!pElHihatPedal->isControlSpeedActivated())
+			else if (!pElHihatPedal->isBlueDetectionBySpeed())
 			{
 				pElHihatPedal->setBlue(false);
 			}
@@ -1796,7 +1796,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 		emit hiHatState(state);
 
-		if (pElHihatPedal->isFootCancelStrategy1Activated())
+		if (pElHihatPedal->isFootSplashCancel())
 		{
 			int posDiff = pElHihatPedal->getPositionOnCloseBegin()-currentControlPos;
 			float speed = pElHihatPedal->getCurrentControlSpeed();
@@ -1829,7 +1829,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		case Pad::NOTE_HIHAT:
 			{
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
-				if ( pElHihatPedal->isCancelOpenHitActivated()
+				if ( pElHihatPedal->isCancelHitWhileOpen()
 					 && currentControlPos >= pElHihatPedal->getCancelOpenHitThreshold() 
 					 && currentMsg.getValue()<pElHihatPedal->getCancelOpenHitVelocity())
 				{
