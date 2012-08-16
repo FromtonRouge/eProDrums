@@ -32,6 +32,7 @@ HEADERS += AddMidiNote.h \
            EProPlotIntervalData.h \
            EProPlotMarker.h \
            EProPlotZoomer.h \
+           HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
            MainWindow.h \
@@ -64,6 +65,7 @@ SOURCES += AddMidiNote.cpp \
            EProPlotIntervalData.cpp \
            EProPlotMarker.cpp \
            EProPlotZoomer.cpp \
+           HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \
            main.cpp \

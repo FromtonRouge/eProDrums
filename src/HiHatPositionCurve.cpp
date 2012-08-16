@@ -39,13 +39,13 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 
     QColor colorMask(Qt::magenta);
 	colorMask.setAlpha(150);
-	_pLayerFootCancelMaskTime1 = new QwtPlotHistogram("Foot Cancel Mask Time 1");
-	_pLayerFootCancelMaskTime1->setPen(QPen(QColor(Qt::magenta)));
-	_pLayerFootCancelMaskTime1->setBrush(colorMask);
-    _pLayerFootCancelMaskTime1->setStyle(QwtPlotHistogram::Outline);
-	_pLayerFootCancelMaskTime1->setData(new EProPlotIntervalData());
-	_pLayerFootCancelMaskTime1->setItemAttribute(Legend, false);
-	_pLayerFootCancelMaskTime1->attach(pPlot);
+	_pLayerFootCanceMaskTime = new QwtPlotHistogram("Foot Cancel Mask Time");
+	_pLayerFootCanceMaskTime->setPen(QPen(QColor(Qt::magenta)));
+	_pLayerFootCanceMaskTime->setBrush(colorMask);
+    _pLayerFootCanceMaskTime->setStyle(QwtPlotHistogram::Outline);
+	_pLayerFootCanceMaskTime->setData(new EProPlotIntervalData());
+	_pLayerFootCanceMaskTime->setItemAttribute(Legend, false);
+	_pLayerFootCanceMaskTime->attach(pPlot);
 
 	_pLayerStateSecured = new QwtPlotIntervalCurve("Hi Hat secured");
 	QColor secured(255, 255, 150);
@@ -116,14 +116,14 @@ void HiHatPositionCurve::setVisible(bool state)
 
 	_pLayerOpenInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
 	_pLayerCloseInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
-	_pLayerFootCancelMaskTime1->setVisible(state&&_bShowFootCancelStragegy1Info);
+	_pLayerFootCanceMaskTime->setVisible(state&&_bShowFootCancelStragegy1Info);
 
 	EProPlotCurve::setVisible(state);
 }
 
 void HiHatPositionCurve::clear()
 {
-	static_cast<EProPlotIntervalData*>(_pLayerFootCancelMaskTime1->data())->clear();
+	static_cast<EProPlotIntervalData*>(_pLayerFootCanceMaskTime->data())->clear();
 	static_cast<EProPlotIntervalData*>(_pLayerStateSecured ->data())->clear();
 	static_cast<EProPlotIntervalData*>(_pLayerStateClosed->data())->clear();
 	static_cast<EProPlotIntervalData*>(_pLayerStateHalfOpen->data())->clear();
@@ -178,22 +178,22 @@ void HiHatPositionCurve::add(const QPointF& point, const boost::any& userData)
 	EProPlotCurve::add(point, userData);
 }
 
-void HiHatPositionCurve::addFootCancelStrategy1Info(int startTime, int maskLength, int velocity)
+void HiHatPositionCurve::addFootCancelInfo(int startTime, int maskLength, int velocity)
 {
-	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCancelMaskTime1->data());
+	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCanceMaskTime->data());
 	pDataFootCancel->add(QwtIntervalSample(velocity, startTime, startTime+maskLength));
 }
 
-void HiHatPositionCurve::changeFootCancelStrategy1MaskLength(int maskLength)
+void HiHatPositionCurve::setFootCancelMaskTime(int maskLength)
 {
-	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCancelMaskTime1->data());
+	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCanceMaskTime->data());
 	pDataFootCancel->increaseAllIntervallsOnTheRight(maskLength);
 	plot()->replot();
 }
 
-void HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity(int velocity)
+void HiHatPositionCurve::setFootCancelMaskVelocity(int velocity)
 {
-	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCancelMaskTime1->data());
+	EProPlotIntervalData* pDataFootCancel = static_cast<EProPlotIntervalData*>(_pLayerFootCanceMaskTime->data());
 	pDataFootCancel->changeAllValues(velocity);
 	plot()->replot();
 }
@@ -208,11 +208,11 @@ void HiHatPositionCurve::showHiHatStates(bool state)
 	plot()->replot();
 }
 
-void HiHatPositionCurve::showFootCancelStrategy1Info(bool state)
+void HiHatPositionCurve::showFootCancelInfo(bool state)
 {
 	_bShowFootCancelStragegy1Info = state;
 	_pLayerOpenInfo->setVisible(state&&isVisible());
 	_pLayerCloseInfo->setVisible(state&&isVisible());
-	_pLayerFootCancelMaskTime1->setVisible(state&&isVisible());
+	_pLayerFootCanceMaskTime->setVisible(state&&isVisible());
 	plot()->replot();
 }

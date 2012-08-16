@@ -30,8 +30,12 @@ public:
 	static const int MAX_ALLOWED_ACCELERATION = 2500000;
 	static const int MIN_FOOT_SPEED = -8000;
 
+	typedef boost::signals2::signal<void (bool)> OnFootCancelActivated;
 	typedef boost::signals2::signal<void (int)> OnFootCancelMaskTimeChanged;
 	typedef boost::signals2::signal<void (int)> OnFootCancelVelocityChanged;
+	typedef boost::signals2::signal<void (bool)> OnFootCancelAfterPedalHitActivated;
+	typedef boost::signals2::signal<void (int)> OnFootCancelAfterPedalHitMaskTimeChanged;
+	typedef boost::signals2::signal<void (int)> OnFootCancelAfterPedalHitVelocityChanged;
 	typedef boost::shared_ptr<HiHatPedalElement> Ptr;
 	enum MovingState
 	{
@@ -67,20 +71,38 @@ public:
 	void setBlue(bool state);
 	bool isHalfOpen() const;
 	void setHalfOpen(bool state);
-	bool isFootSplashCancel() const;
-	void setFootSplashCancel(const Parameter::Value& state);
+
+	bool isFootCancel() const;
+	void setFootCancel(const Parameter::Value& state);
+	void connectFootCancelActivated(const OnFootCancelActivated::slot_function_type& slot) {_onFootCancelActivated.connect(slot);}
+
+	bool isFootCancelAfterPedalHit() const;
+	void setFootCancelAfterPedalHit(const Parameter::Value& state);
+	void connectFootCancelAfterPedalHitActivated(const OnFootCancelAfterPedalHitActivated::slot_function_type& slot) {_onFootCancelAfterPedalHitActivated.connect(slot);}
+
 	int getFootCancelClosingSpeed() const;
 	void setFootCancelClosingSpeed(const Parameter::Value& value);
 	int getFootCancelPos() const;
 	void setFootCancelPos(const Parameter::Value& value);
 	int getFootCancelPosDiff() const;
 	void setFootCancelPosDiff(const Parameter::Value& value);
+
 	int getFootCancelMaskTime() const;
 	void setFootCancelMaskTime(const Parameter::Value& value);
 	void connectFootCancelMaskTime(const OnFootCancelMaskTimeChanged::slot_function_type& slot) {_onFootCancelMaskTimeChanged.disconnect_all_slots();_onFootCancelMaskTimeChanged.connect(slot);}
+
 	int getFootCancelVelocity() const;
 	void setFootCancelVelocity(const Parameter::Value& value);
 	void connectFootCancelVelocity(const OnFootCancelVelocityChanged::slot_function_type& slot) {_onFootCancelVelocityChanged.disconnect_all_slots(); _onFootCancelVelocityChanged.connect(slot);}
+
+	int getFootCancelAfterPedalHitMaskTime() const;
+	void setFootCancelAfterPedalHitMaskTime(const Parameter::Value& value);
+	void connectFootCancelAfterPedalHitMaskTime(const OnFootCancelAfterPedalHitMaskTimeChanged::slot_function_type& slot) {_onFootCancelAfterPedalHitMaskTimeChanged.disconnect_all_slots();_onFootCancelAfterPedalHitMaskTimeChanged.connect(slot);}
+
+	int getFootCancelAfterPedalHitVelocity() const;
+	void setFootCancelAfterPedalHitVelocity(const Parameter::Value& value);
+	void connectFootCancelAfterPedalHitVelocity(const OnFootCancelAfterPedalHitVelocityChanged::slot_function_type& slot) {_onFootCancelAfterPedalHitVelocityChanged.disconnect_all_slots(); _onFootCancelAfterPedalHitVelocityChanged.connect(slot);}
+
 	int getFootCancelTimeLimit() const;
 	void setFootCancelTimeLimit(int value);
 	int getHalfOpenEnteringTime() const;
@@ -125,12 +147,15 @@ private:
 	Parameter::Value	_controlPosThreshold;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
-	Parameter::Value	_isFootSplashCancel;
+	Parameter::Value	_isFootCancel;
+	Parameter::Value	_isFootCancelAfterPedalHit;
 	Parameter::Value	_footCancelClosingSpeed;
 	Parameter::Value	_footCancelPos;
 	Parameter::Value	_footCancelPosDiff;
 	Parameter::Value	_footCancelMaskTime;
 	Parameter::Value	_footCancelVelocity;
+	Parameter::Value	_footCancelAfterPedalHitMaskTime;
+	Parameter::Value	_footCancelAfterPedalHitVelocity;
 	Parameter::Value	_isCancelHitWhileOpen;
 	Parameter::Value	_cancelOpenHitThreshold;
 	Parameter::Value	_cancelOpenHitVelocity;
@@ -139,8 +164,12 @@ private:
 	Parameter::Value	_halfOpenMaximumPosition;
 	Parameter::Value	_halfOpenActivationTime;
 
-	OnFootCancelMaskTimeChanged	_onFootCancelMaskTimeChanged;
-	OnFootCancelVelocityChanged _onFootCancelVelocityChanged;
+	OnFootCancelActivated						_onFootCancelActivated;
+	OnFootCancelMaskTimeChanged					_onFootCancelMaskTimeChanged;
+	OnFootCancelVelocityChanged 				_onFootCancelVelocityChanged;
+	OnFootCancelAfterPedalHitActivated			_onFootCancelAfterPedalHitActivated;
+	OnFootCancelAfterPedalHitMaskTimeChanged	_onFootCancelAfterPedalHitMaskTimeChanged;
+	OnFootCancelAfterPedalHitVelocityChanged	_onFootCancelAfterPedalHitVelocityChanged;
 
 private:
     friend class boost::serialization::access;
@@ -155,12 +184,15 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
-		ar  & BOOST_SERIALIZATION_NVP(_isFootSplashCancel);
+		ar  & BOOST_SERIALIZATION_NVP(_isFootCancel);
+		ar  & BOOST_SERIALIZATION_NVP(_isFootCancelAfterPedalHit);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelMaskTime);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelVelocity);
+		ar  & BOOST_SERIALIZATION_NVP(_footCancelAfterPedalHitMaskTime);
+		ar  & BOOST_SERIALIZATION_NVP(_footCancelAfterPedalHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_isCancelHitWhileOpen);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);

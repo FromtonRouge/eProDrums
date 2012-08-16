@@ -26,49 +26,25 @@
 class QwtPlotIntervalCurve;
 class QwtPlotHistogram;
 
-class HiHatPositionCurve : public EProPlotCurve
+class HiHatPedalCurve : public EProPlotCurve
 {
 public:
-	enum HiHatState
-	{
-		HHS_SECURED,
-		HHS_CLOSED,
-		HHS_HALF_OPEN,
-		HHS_OPEN
-	};
-
-public:
-    HiHatPositionCurve(QwtPlot* pPlot);
-    virtual ~HiHatPositionCurve();
-
-	void addOpenInfo(const QPointF& point);
-	void addCloseInfo(const QPointF& point);
+    HiHatPedalCurve(QwtPlot* pPlot);
+    virtual ~HiHatPedalCurve();
 
 	virtual void setVisible(bool state);
 	virtual void clear();
 	virtual void add(const QPointF& point, const boost::any& userData = boost::any());
 
-	void setHiHatState(HiHatState state) {_hiHatState = state;}
-
-	void showHiHatStates(bool state);
-	void showFootCancelInfo(bool state);
-
-	void addFootCancelInfo(int startTime, int maskLength, int velocity);
 	void setFootCancelMaskTime(int maskLength);
 	void setFootCancelMaskVelocity(int velocity);
 
+	void showMask(bool state);
+
 private:
-	EProPlotCurve* _pLayerOpenInfo;
-	EProPlotCurve* _pLayerCloseInfo;
-	QwtPlotHistogram* _pLayerFootCanceMaskTime;
-	bool _bShowFootCancelStragegy1Info;
-	bool _bShowHiHatStates;
-
-	QwtPlotIntervalCurve* _pLayerStateSecured;
-	QwtPlotIntervalCurve* _pLayerStateClosed;
-	QwtPlotIntervalCurve* _pLayerStateHalfOpen;
-	QwtPlotIntervalCurve* _pLayerStateOpen;
-	HiHatState _hiHatState;
-	HiHatState _previousHiHatState;
-
+	QwtPlotHistogram*	_pLayerFootCancelMask;
+	int					_maskVelocity;
+	int					_maskTime;
+	bool				_isShowMask;
 };
+

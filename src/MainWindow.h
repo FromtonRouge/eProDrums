@@ -43,6 +43,7 @@
 class EProPlot;
 class EProPlotCurve;
 class HiHatPositionCurve;
+class HiHatPedalCurve;
 class EProPlotZoomer;
 class QwtPlotItem;
 class QTimer;
@@ -76,7 +77,7 @@ signals:
 	void hiHatState(int state);
     void hiHatPedalControl(int value);
 	void hiHatStartMoving(int movingState, int pos, int timestamp);
-	void footCancelStrategy1Started(int timestamp, int maskLength, int velocity);
+	void footCancelStarted(int timestamp, int maskLength, int velocity);
     void updatePlot(int msgType, int msgChannel, int msgNote, int msgVelocity, int timestamp, float , float);
 	void midiNoteOn(int msgNote, int msgVelocity);
 	void sLog(const QString&);
@@ -117,7 +118,7 @@ private slots:
     void on_menuEdit_aboutToShow();
 	void on_tabWidget_currentChanged(int index);
 
-	void onFootCancelStrategy1Started(int timestamp, int maskLength, int velocity);
+	void onFootCancelStarted(int timestamp, int maskLength, int velocity);
 	void onHiHatState(int state);
 	void onHiHatStartMoving(int movingState, int pos, int timestamp);
 	void onRedrawCurves();
@@ -161,6 +162,8 @@ private:
 		}
 	}
 
+	void selectLastSlot();
+
 	void toLog(const std::string&);
 
 private:
@@ -187,7 +190,7 @@ private:
     EProPlot* _pPlot;
     HiHatPositionCurve* _curveHiHatPosition;
     EProPlotCurve* _curveHiHatAcceleration;
-    EProPlotCurve* _curveHiHatPedal;
+    HiHatPedalCurve* _curveHiHatPedal;
     EProPlotCurve* _curveHiHat;
     EProPlotCurve* _curveCrash;
     EProPlotCurve* _curveYellowCrash;

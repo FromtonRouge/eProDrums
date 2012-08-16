@@ -33,6 +33,7 @@
 #include "EProPlotZoomer.h"
 #include "EProPlotCurve.h"
 #include "HiHatPositionCurve.h"
+#include "HiHatPedalCurve.h"
 
 #include "qwt_symbol.h"
 #include "qwt_scale_div.h"
@@ -109,8 +110,7 @@ MainWindow::MainWindow():
 	_curveHiHatAcceleration->setStyle(EProPlotCurve::Lines);
 	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatAccel, qHiHatAccel, QSize(2,2)));
 	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
-	_curveHiHatPedal = new EProPlotCurve("Hi Hat Pedal", QColor(Qt::white), 2, _pPlot);
-	_curveHiHatPedal->setStyle(EProPlotCurve::Sticks);
+	_curveHiHatPedal = new HiHatPedalCurve(_pPlot);
 	_curveHiHat = new EProPlotCurve("Hi Hat", QColor(255, 255, 0), 2, _pPlot);
 	_curveHiHat->setStyle(EProPlotCurve::Sticks);
 	_curveTom1 = new EProPlotCurve("Tom 1", QColor(255, 255, 0), 2, _pPlot);
@@ -137,7 +137,7 @@ MainWindow::MainWindow():
 
     connect(this, SIGNAL(hiHatStartMoving(int, int, int)), this, SLOT(onHiHatStartMoving(int, int, int)));
     connect(this, SIGNAL(hiHatState(int)), this, SLOT(onHiHatState(int)));
-    connect(this, SIGNAL(footCancelStrategy1Started(int, int, int)), this, SLOT(onFootCancelStrategy1Started(int, int, int)));
+    connect(this, SIGNAL(footCancelStarted(int, int, int)), this, SLOT(onFootCancelStarted(int, int, int)));
     connect(this, SIGNAL(updatePlot(int, int, int, int, int, float, float)), this, SLOT(onUpdatePlot(int, int, int, int, int, float, float)));
 
 	// Buffer and Calibration offset
@@ -166,28 +166,24 @@ MainWindow::MainWindow():
 
 	_currentSlot = _userSettings.configSlots.begin();
 
-	// Select the slot
-    if (listWidgetSlots->count())
-    {
-        int index = _pSettings->getLastSelectedSlotIndex();
-        if (index<listWidgetSlots->count())
-        {
-            listWidgetSlots->item(index)->setSelected(true);
-        }
-        else
-        {
-            listWidgetSlots->item(0)->setSelected(true);
-        }
-    }
+	selectLastSlot();
 
 	const Slot::Ptr& pCurrentSlot = getCurrentSlot();
 	const Pad::List& pads = pCurrentSlot->getPads();
 	const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
 
+	std::vector<QColor> groupColors;
+	groupColors.push_back(QColor(150, 150, 250));
+	groupColors.push_back(QColor(150, 250, 150));
+	groupColors.push_back(QColor(250, 150, 150));
+	groupColors.push_back(QColor(250, 250, 150));
+	groupColors.push_back(QColor(150, 250, 250));
+	groupColors.push_back(QColor(250, 150, 250));
+
 	// Hi-hat
 	{
 		Parameter::Ptr pRoot(new Parameter());
-		Parameter::Ptr pGroup1(new Parameter("Simultaneous hits"));
+		Parameter::Ptr pGroup1(new Parameter("Simultaneous hits", groupColors[0]));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
 							pCurrentSlot->getCymbalSimHitWindow(),
@@ -195,7 +191,7 @@ MainWindow::MainWindow():
 							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by speed", QColor(150, 250, 150),
+		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by speed", groupColors[1],
 					pElHihatPedal->isBlueDetectionBySpeed(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
@@ -230,7 +226,7 @@ MainWindow::MainWindow():
 							tr("Afters the specified time (ms), if the hi-hat is still yellow, it goes in half open mode. It will leave this mode if the control position go back under [Security yellow position]").toStdString())));
 		}
 
-		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", QColor(250, 150, 150),
+		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
 					pElHihatPedal->isBlueDetectionByPosition(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
 		{
@@ -240,7 +236,7 @@ MainWindow::MainWindow():
 							tr("Above this position the hi-hat is converted to blue").toStdString())));
 		}
 
-		Parameter::Ptr pGroup4(new Parameter("Green to Yellow Crash conversion", QColor(250, 250, 150)));
+		Parameter::Ptr pGroup4(new Parameter("Green to Yellow Crash conversion", groupColors[3]));
 		{
 			const std::string& szDescription = tr("A [Green to Yellow Crash] is converted from green to yellow if one of these pads is hit at the same time").toStdString();
 			pGroup4->setDescription(szDescription);
@@ -275,9 +271,10 @@ MainWindow::MainWindow():
 	// Foot splash cancel
 	{
 		Parameter::Ptr pRoot(new Parameter());
-		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel", QColor(130, 130, 250),
-					pElHihatPedal->isFootSplashCancel(),
-					boost::bind(&HiHatPedalElement::setFootSplashCancel, pElHihatPedal, _1)));
+		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel", groupColors[0],
+					pElHihatPedal->isFootCancel(),
+					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1)));
+		pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::showFootCancelInfo, _curveHiHatPosition, _1));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
@@ -295,30 +292,49 @@ MainWindow::MainWindow():
 							pElHihatPedal->getFootCancelMaskTime(),
 							boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1),
 							tr("Time length of the mask window (ms)").toStdString())));
-			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
+			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
 
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
 							pElHihatPedal->getFootCancelVelocity(),
 							boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1),
 							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
-			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
+			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Cancel while open", QColor(250, 150, 150),
+		Parameter::Ptr pGroup2(new Parameter("Foot splash cancel after pedal hit", groupColors[1],
+					pElHihatPedal->isFootCancelAfterPedalHit(),
+					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1)));
+		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::showMask, _curveHiHatPedal, _1));
+		{
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Mask time (ms)", 0, 200,
+							pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
+							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1),
+							tr("Time length of the mask window (ms)").toStdString())));
+			pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, _curveHiHatPedal, _1));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
+							pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
+							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1),
+							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
+			pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, _curveHiHatPedal, _1));
+		}
+
+		Parameter::Ptr pGroup3(new Parameter("Cancel while open", groupColors[2],
 					pElHihatPedal->isCancelHitWhileOpen(),
 					boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 							pElHihatPedal->getCancelOpenHitThreshold(),
 							boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1),
 							tr("If the current control pos is >= [Position] and hi-hat hit is < [Velocity] the hi-hat hit is ignored").toStdString())));
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity (unit)", 0, 127,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Velocity (unit)", 0, 127,
 							pElHihatPedal->getCancelOpenHitVelocity(),
 							boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1),
 							tr("If the current control pos is >= [Position] and hi-hat hit is < [Velocity] the hi-hat hit is ignored").toStdString())));
 		}
 		pRoot->addChild(pGroup1);
 		pRoot->addChild(pGroup2);
+		pRoot->addChild(pGroup3);
 		gridLayoutFootSplashCancel->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
 
@@ -378,7 +394,7 @@ MainWindow::MainWindow():
 	// Ghost notes
 	{
 		Parameter::Ptr pRoot(new Parameter());
-		Parameter::Ptr pGroup1(new Parameter("Ghost notes"));
+		Parameter::Ptr pGroup1(new Parameter("Ghost notes", groupColors[0]));
 		{
 			Pad::List::const_iterator it = pads.begin();
 			while (it!=pads.end())
@@ -897,6 +913,23 @@ void MainWindow::on_actionSave_As_triggered()
     saveUserSettings(filePath.toStdString());
 }
 
+void MainWindow::selectLastSlot()
+{
+	// Select the slot
+    if (listWidgetSlots->count())
+    {
+        int index = _pSettings->getLastSelectedSlotIndex();
+        if (index<listWidgetSlots->count())
+        {
+            listWidgetSlots->item(index)->setSelected(true);
+        }
+        else
+        {
+            listWidgetSlots->item(0)->setSelected(true);
+        }
+    }
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
     fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
@@ -913,6 +946,7 @@ void MainWindow::on_actionOpen_triggered()
     }
 
     loadUserSettings(filePath.toStdString());
+	selectLastSlot();
 }
 
 void MainWindow::loadUserSettings(const std::string& szFilePath)
@@ -1314,8 +1348,9 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					const Parameter::Ptr& pRoot = pTreeView->getRoot();
 					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
 
-					pGroup1->update(	pElHihatPedal->isFootSplashCancel(),
-										boost::bind(&HiHatPedalElement::setFootSplashCancel, pElHihatPedal, _1));
+					pGroup1->update(	pElHihatPedal->isFootCancel(),
+										boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1));
+					pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::showFootCancelInfo, _curveHiHatPosition, _1));
 					{
 						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
 														boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
@@ -1325,20 +1360,34 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 														boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
 						pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelMaskTime(),
 														boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskLength, _curveHiHatPosition, _1));
+						pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
 
 						pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelVelocity(),
 														boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::changeFootCancelStrategy1MaskVelocity, _curveHiHatPosition, _1));
+						pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pGroup2->update(	pElHihatPedal->isCancelHitWhileOpen(),
+					pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
+										boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
+					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::showMask, _curveHiHatPedal, _1));
+					{
+						pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
+														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
+						pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, _curveHiHatPedal, _1));
+						
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
+														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1));
+						pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, _curveHiHatPedal, _1));
+					}
+
+					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
+					pGroup3->update(	pElHihatPedal->isCancelHitWhileOpen(),
 										boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1));
 					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getCancelOpenHitThreshold(),
+						pGroup3->getChildAt(0)->update(	pElHihatPedal->getCancelOpenHitThreshold(),
 														boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1));
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getCancelOpenHitVelocity(),
+						pGroup3->getChildAt(1)->update(	pElHihatPedal->getCancelOpenHitVelocity(),
 														boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1));
 					}
 
@@ -1796,7 +1845,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 		emit hiHatState(state);
 
-		if (pElHihatPedal->isFootSplashCancel())
+		if (pElHihatPedal->isFootCancel())
 		{
 			int posDiff = pElHihatPedal->getPositionOnCloseBegin()-currentControlPos;
 			float speed = pElHihatPedal->getCurrentControlSpeed();
@@ -1811,7 +1860,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				int cancelMaskTime = pElHihatPedal->getFootCancelMaskTime();
 				pElHihatPedal->setFootCancelTimeLimit(currentTime+cancelMaskTime);
 				
-				emit footCancelStrategy1Started(currentTime, cancelMaskTime, pElHihatPedal->getFootCancelVelocity());
+				emit footCancelStarted(currentTime, cancelMaskTime, pElHihatPedal->getFootCancelVelocity());
 
 				if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_HIHAT_CONTROL))
 				{
@@ -1826,6 +1875,20 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	{
 		switch (currentMsg.getOutputNote())
 		{
+		case Pad::NOTE_HIHAT_PEDAL:
+			{
+				if (bHasNextMidiMessage && pElHihatPedal->isFootCancelAfterPedalHit())
+				{
+					MidiMessage* pNextHiHat = getNextMessage(pElHihat);
+					if (	pNextHiHat && currentMsg.isInTimeWindow(*pNextHiHat, pElHihatPedal->getFootCancelAfterPedalHitMaskTime()) &&
+							pNextHiHat->getValue() < pElHihatPedal->getFootCancelAfterPedalHitVelocity())
+					{
+						pNextHiHat->ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
+					}
+				}
+				break;
+			}
+
 		case Pad::NOTE_HIHAT:
 			{
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
@@ -1843,6 +1906,19 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				if (pElHihatPedal->isBlue())
 				{
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+				}
+
+				if (pElHihatPedal->isFootCancelAfterPedalHit() && !lastMsgSent[Pad::HIHAT_PEDAL].empty())
+				{
+					const MidiMessage& rLastHiHatPedal = lastMsgSent[Pad::HIHAT_PEDAL].front();
+					if (pElHihatPedal->isA(rLastHiHatPedal.getOriginalNote()))
+					{
+						if (	currentMsg.isInTimeWindow(rLastHiHatPedal, pElHihatPedal->getFootCancelAfterPedalHitMaskTime()) &&
+								currentMsg.getValue() < pElHihatPedal->getFootCancelAfterPedalHitVelocity())
+						{
+							currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
+						}
+					}
 				}
 
 				// Flam and ghost
@@ -2102,9 +2178,9 @@ void MainWindow::onHiHatState(int state)
 	_curveHiHatPosition->setHiHatState(hhState);
 }
 
-void MainWindow::onFootCancelStrategy1Started(int startTime, int maskLength, int velocity)
+void MainWindow::onFootCancelStarted(int startTime, int maskLength, int velocity)
 {
-	_curveHiHatPosition->addFootCancelStrategy1Info(startTime, maskLength, velocity);
+	_curveHiHatPosition->addFootCancelInfo(startTime, maskLength, velocity);
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)
@@ -2114,13 +2190,27 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 	case 0:
 		{
 			_curveHiHatPosition->showHiHatStates(true);
-			_curveHiHatPosition->showFootCancelStrategy1Info(false);
+			_curveHiHatPosition->showFootCancelInfo(false);
+			_curveHiHatPedal->showMask(false);
 			break;
 		}
 	case 1:
 		{
 			_curveHiHatPosition->showHiHatStates(false);
-			_curveHiHatPosition->showFootCancelStrategy1Info(true);
+
+			const Slot::Ptr& pCurrentSlot = getCurrentSlot();
+			if (pCurrentSlot.get())
+			{
+				const Pad::List& pads = pCurrentSlot->getPads();
+				const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
+				_curveHiHatPosition->showFootCancelInfo(pElHihatPedal->isFootCancel());
+				_curveHiHatPedal->showMask(pElHihatPedal->isFootCancelAfterPedalHit());
+			}
+			else
+			{
+				_curveHiHatPosition->showFootCancelInfo(false);
+				_curveHiHatPedal->showMask(false);
+			}
 			break;
 		}
 	default:
