@@ -271,9 +271,10 @@ MainWindow::MainWindow():
 	// Foot splash cancel
 	{
 		Parameter::Ptr pRoot(new Parameter());
-		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel", groupColors[0],
+		Parameter::Ptr pGroup1(new Parameter("Foot splash cancel from control speed", groupColors[0],
 					pElHihatPedal->isFootCancel(),
-					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1)));
+					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1),
+					tr("A hi-hat mask window is created if conditions below are met").toStdString()));
 		pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::showFootCancelInfo, _curveHiHatPosition, _1));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
@@ -301,9 +302,10 @@ MainWindow::MainWindow():
 			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Foot splash cancel after pedal hit", groupColors[1],
+		Parameter::Ptr pGroup2(new Parameter("Foot splash cancel after a pedal hit", groupColors[1],
 					pElHihatPedal->isFootCancelAfterPedalHit(),
-					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1)));
+					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1),
+					tr("A hi-hat mask window is created when a hi-hat pedal hit is detected").toStdString()));
 		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::showMask, _curveHiHatPedal, _1));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Mask time (ms)", 0, 200,
