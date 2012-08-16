@@ -117,8 +117,6 @@ public:
 	void setCancelHitWhileOpen(const Parameter::Value& value);
 	int getSecurityPosition() const;
 	void setSecurityPosition(const Parameter::Value& value);
-	int getSecurityOpenPosition() const;
-	void setSecurityOpenPosition(const Parameter::Value& value);
 	int getHalfOpenMaximumPosition() const;
 	void setHalfOpenMaximumPosition(const Parameter::Value& value);
 	int getHalfOpenActivationTime() const;
@@ -160,7 +158,6 @@ private:
 	Parameter::Value	_cancelOpenHitThreshold;
 	Parameter::Value	_cancelOpenHitVelocity;
 	Parameter::Value	_securityPosition;
-	Parameter::Value	_securityOpenPosition;
 	Parameter::Value	_halfOpenMaximumPosition;
 	Parameter::Value	_halfOpenActivationTime;
 
@@ -197,7 +194,6 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
-		ar  & BOOST_SERIALIZATION_NVP(_securityOpenPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenMaximumPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenActivationTime);
 	}

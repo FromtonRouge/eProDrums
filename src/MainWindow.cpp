@@ -200,11 +200,6 @@ MainWindow::MainWindow():
 							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
 							tr("Under this position the hi-hat is always yellow regardless [Open speed]").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Security open position (unit)", 0, 127,
-							pElHihatPedal->getSecurityOpenPosition(),
-							boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1),
-							tr("Above this position the hi-hat color state (blue or yellow) won't change anymore during the open movement").toStdString())));
-
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
 						   	pElHihatPedal->getOpenSpeed(),
 							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
@@ -1295,19 +1290,16 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
 								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getSecurityOpenPosition(),
-								boost::bind(&HiHatPedalElement::setSecurityOpenPosition, pElHihatPedal, _1));
-
-						pGroup2->getChildAt(2)->update(	pElHihatPedal->getOpenSpeed(),
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->getOpenSpeed(),
 								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(3)->update(	pElHihatPedal->getCloseSpeed(),
+						pGroup2->getChildAt(2)->update(	pElHihatPedal->getCloseSpeed(),
 								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(4)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+						pGroup2->getChildAt(3)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
 								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(5)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+						pGroup2->getChildAt(4)->update(	pElHihatPedal->getHalfOpenActivationTime(),
 								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
 					}
 
@@ -1784,18 +1776,9 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				// Are we opening the Hi-Hat
 				if (pElHihatPedal->getCurrentControlSpeed() > 0)
 				{
-					if (currentControlPos>pElHihatPedal->getSecurityOpenPosition())
+					if (pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed())
 					{
-						// The current position is in the open security zone
-						// In this zone: no blue state modification
-						// Note: the blue state can true or false
-					}
-					else
-					{
-						if (pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed())
-						{
-							pElHihatPedal->setBlue(true);
-						}
+						pElHihatPedal->setBlue(true);
 					}
 				}
 				else if (pElHihatPedal->getCurrentControlSpeed() < 0)
