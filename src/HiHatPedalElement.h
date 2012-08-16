@@ -74,11 +74,11 @@ public:
 
 	bool isFootCancel() const;
 	void setFootCancel(const Parameter::Value& state);
-	void connectFootCancelActivated(const OnFootCancelActivated::slot_function_type& slot) {_onFootCancelActivated.connect(slot);}
+	void connectFootCancelActivated(const OnFootCancelActivated::slot_function_type& slot) {_onFootCancelActivated.disconnect_all_slots();_onFootCancelActivated.connect(slot);}
 
 	bool isFootCancelAfterPedalHit() const;
 	void setFootCancelAfterPedalHit(const Parameter::Value& state);
-	void connectFootCancelAfterPedalHitActivated(const OnFootCancelAfterPedalHitActivated::slot_function_type& slot) {_onFootCancelAfterPedalHitActivated.connect(slot);}
+	void connectFootCancelAfterPedalHitActivated(const OnFootCancelAfterPedalHitActivated::slot_function_type& slot) {_onFootCancelAfterPedalHitActivated.disconnect_all_slots();_onFootCancelAfterPedalHitActivated.connect(slot);}
 
 	int getFootCancelClosingSpeed() const;
 	void setFootCancelClosingSpeed(const Parameter::Value& value);

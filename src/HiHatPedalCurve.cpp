@@ -28,7 +28,8 @@
 HiHatPedalCurve::HiHatPedalCurve(QwtPlot* pPlot): EProPlotCurve("Hi Hat Pedal", QColor(Qt::white), 2, pPlot),
 	_maskVelocity(0),
 	_maskTime(0),
-	_isShowMask(true)
+	_isMaskActivated(true),
+	_isMaskLayerShown(true)
 {
 	setStyle(EProPlotCurve::Sticks);
 
@@ -47,17 +48,29 @@ HiHatPedalCurve::~HiHatPedalCurve()
 {
 }
 
-void HiHatPedalCurve::showMask(bool state)
+void HiHatPedalCurve::updateMaskLayer()
 {
-	_isShowMask = state;
-	_pLayerFootCancelMask->setVisible(_isShowMask);
+	_pLayerFootCancelMask->setVisible(_isMaskLayerShown&&_isMaskActivated&&isVisible());
+}
+
+void HiHatPedalCurve::showMaskLayer(bool state)
+{
+	_isMaskLayerShown = state;
+	updateMaskLayer();
+	plot()->replot();
+}
+
+void HiHatPedalCurve::activateMask(bool state)
+{
+	_isMaskActivated = state;
+	updateMaskLayer();
 	plot()->replot();
 }
 
 void HiHatPedalCurve::setVisible(bool state)
 {
-	_pLayerFootCancelMask->setVisible(state&&_isShowMask);
 	EProPlotCurve::setVisible(state);
+	updateMaskLayer();
 }
 
 void HiHatPedalCurve::clear()

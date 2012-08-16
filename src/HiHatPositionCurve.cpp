@@ -29,8 +29,10 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	EProPlotCurve("Hi Hat Position", QColor(245, 255, 166), 1, pPlot),
 	_hiHatState(HHS_CLOSED),
 	_previousHiHatState(HHS_CLOSED),
-	_bShowFootCancelStragegy1Info(true),
-	_bShowHiHatStates(true)
+	_isFootCancelActivated(true),
+	_isHiHatStatesActivated(true),
+	_isFootCancelLayersShown(true),
+	_isHiHatLayersShown(true)
 {
 	setMarkerInformationOutlineColor(QColor(Qt::red));
 	setStyle(EProPlotCurve::Lines);
@@ -107,18 +109,28 @@ void HiHatPositionCurve::addCloseInfo(const QPointF& point)
 	_pLayerCloseInfo->add(point);
 }
 
+void HiHatPositionCurve::updateHiHatLayers()
+{
+	bool bHiHatStates = _isHiHatLayersShown&&_isHiHatStatesActivated&&isVisible();
+	_pLayerStateSecured ->setVisible(bHiHatStates);
+	_pLayerStateClosed->setVisible(bHiHatStates);
+	_pLayerStateHalfOpen->setVisible(bHiHatStates);
+	_pLayerStateOpen->setVisible(bHiHatStates);
+}
+
+void HiHatPositionCurve::updateFootCancelLayers()
+{
+	bool bFootCancelInfo = _isFootCancelLayersShown&&_isFootCancelActivated&&isVisible();
+	_pLayerOpenInfo->setVisible(bFootCancelInfo);
+	_pLayerCloseInfo->setVisible(bFootCancelInfo);
+	_pLayerFootCanceMaskTime->setVisible(bFootCancelInfo);
+}
+
 void HiHatPositionCurve::setVisible(bool state)
 {
-	_pLayerStateSecured ->setVisible(state&&_bShowHiHatStates);
-	_pLayerStateClosed->setVisible(state&&_bShowHiHatStates);
-	_pLayerStateHalfOpen->setVisible(state&&_bShowHiHatStates);
-	_pLayerStateOpen->setVisible(state&&_bShowHiHatStates);
-
-	_pLayerOpenInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
-	_pLayerCloseInfo->setVisible(state&&_bShowFootCancelStragegy1Info);
-	_pLayerFootCanceMaskTime->setVisible(state&&_bShowFootCancelStragegy1Info);
-
 	EProPlotCurve::setVisible(state);
+	updateHiHatLayers();
+	updateFootCancelLayers();
 }
 
 void HiHatPositionCurve::clear()
@@ -198,21 +210,30 @@ void HiHatPositionCurve::setFootCancelMaskVelocity(int velocity)
 	plot()->replot();
 }
 
-void HiHatPositionCurve::showHiHatStates(bool state)
+void HiHatPositionCurve::activateHiHatStates(bool state)
 {
-	_bShowHiHatStates = state;
-	_pLayerStateSecured ->setVisible(state&&isVisible());
-	_pLayerStateClosed->setVisible(state&&isVisible());
-	_pLayerStateHalfOpen->setVisible(state&&isVisible());
-	_pLayerStateOpen->setVisible(state&&isVisible());
+	_isHiHatStatesActivated = state;
+	updateHiHatLayers();
 	plot()->replot();
 }
 
-void HiHatPositionCurve::showFootCancelInfo(bool state)
+void HiHatPositionCurve::activateFootCancel(bool state)
 {
-	_bShowFootCancelStragegy1Info = state;
-	_pLayerOpenInfo->setVisible(state&&isVisible());
-	_pLayerCloseInfo->setVisible(state&&isVisible());
-	_pLayerFootCanceMaskTime->setVisible(state&&isVisible());
+	_isFootCancelActivated = state;
+	updateFootCancelLayers();
+	plot()->replot();
+}
+
+void HiHatPositionCurve::showHiHatLayers(bool state)
+{
+	_isHiHatLayersShown = state;
+	updateHiHatLayers();
+	plot()->replot();
+}
+
+void HiHatPositionCurve::showFootCancelLayers(bool state)
+{
+	_isFootCancelLayersShown = state;
+	updateFootCancelLayers();
 	plot()->replot();
 }

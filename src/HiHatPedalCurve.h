@@ -39,12 +39,17 @@ public:
 	void setFootCancelMaskTime(int maskLength);
 	void setFootCancelMaskVelocity(int velocity);
 
-	void showMask(bool state);
+	void activateMask(bool state);
+	void showMaskLayer(bool state);
+
+protected:
+	void updateMaskLayer();
 
 private:
 	QwtPlotHistogram*	_pLayerFootCancelMask;
 	int					_maskVelocity;
 	int					_maskTime;
-	bool				_isShowMask;
+	bool				_isMaskActivated;
+	bool				_isMaskLayerShown;
 };
 

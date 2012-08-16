@@ -50,19 +50,23 @@ public:
 
 	void setHiHatState(HiHatState state) {_hiHatState = state;}
 
-	void showHiHatStates(bool state);
-	void showFootCancelInfo(bool state);
+	void activateHiHatStates(bool state);
+	void activateFootCancel(bool state);
+	void showHiHatLayers(bool state);
+	void showFootCancelLayers(bool state);
 
 	void addFootCancelInfo(int startTime, int maskLength, int velocity);
 	void setFootCancelMaskTime(int maskLength);
 	void setFootCancelMaskVelocity(int velocity);
 
 private:
+	void updateHiHatLayers();
+	void updateFootCancelLayers();
+
+private:
 	EProPlotCurve* _pLayerOpenInfo;
 	EProPlotCurve* _pLayerCloseInfo;
 	QwtPlotHistogram* _pLayerFootCanceMaskTime;
-	bool _bShowFootCancelStragegy1Info;
-	bool _bShowHiHatStates;
 
 	QwtPlotIntervalCurve* _pLayerStateSecured;
 	QwtPlotIntervalCurve* _pLayerStateClosed;
@@ -71,4 +75,9 @@ private:
 	HiHatState _hiHatState;
 	HiHatState _previousHiHatState;
 
+	bool	_isFootCancelLayersShown;
+	bool	_isFootCancelActivated;
+
+	bool	_isHiHatLayersShown;
+	bool	_isHiHatStatesActivated;
 };

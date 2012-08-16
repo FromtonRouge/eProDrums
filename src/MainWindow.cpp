@@ -275,7 +275,7 @@ MainWindow::MainWindow():
 					pElHihatPedal->isFootCancel(),
 					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1),
 					tr("A hi-hat mask window is created if conditions below are met").toStdString()));
-		pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::showFootCancelInfo, _curveHiHatPosition, _1));
+		pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
@@ -306,7 +306,7 @@ MainWindow::MainWindow():
 					pElHihatPedal->isFootCancelAfterPedalHit(),
 					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1),
 					tr("A hi-hat mask window is created when a hi-hat pedal hit is detected").toStdString()));
-		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::showMask, _curveHiHatPedal, _1));
+		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, _curveHiHatPedal, _1));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Mask time (ms)", 0, 200,
 							pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
@@ -1350,9 +1350,9 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					const Parameter::Ptr& pRoot = pTreeView->getRoot();
 					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
 
+					pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
 					pGroup1->update(	pElHihatPedal->isFootCancel(),
 										boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1));
-					pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::showFootCancelInfo, _curveHiHatPosition, _1));
 					{
 						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
 														boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
@@ -1370,9 +1370,9 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
+					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, _curveHiHatPedal, _1));
 					pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
 										boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
-					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::showMask, _curveHiHatPedal, _1));
 					{
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
 														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
@@ -1815,7 +1815,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 
 		// Blue state by pedal position
-		if (pElHihatPedal->isBlueDetectionByPosition())
+		if (!pElHihatPedal->isHalfOpen() && pElHihatPedal->isBlueDetectionByPosition())
 		{
 			if (currentControlPos > pElHihatPedal->getControlPosThreshold())
 			{
@@ -2191,28 +2191,16 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 	{
 	case 0:
 		{
-			_curveHiHatPosition->showHiHatStates(true);
-			_curveHiHatPosition->showFootCancelInfo(false);
-			_curveHiHatPedal->showMask(false);
+			_curveHiHatPosition->showHiHatLayers(true);
+			_curveHiHatPosition->showFootCancelLayers(false);
+			_curveHiHatPedal->showMaskLayer(false);
 			break;
 		}
 	case 1:
 		{
-			_curveHiHatPosition->showHiHatStates(false);
-
-			const Slot::Ptr& pCurrentSlot = getCurrentSlot();
-			if (pCurrentSlot.get())
-			{
-				const Pad::List& pads = pCurrentSlot->getPads();
-				const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
-				_curveHiHatPosition->showFootCancelInfo(pElHihatPedal->isFootCancel());
-				_curveHiHatPedal->showMask(pElHihatPedal->isFootCancelAfterPedalHit());
-			}
-			else
-			{
-				_curveHiHatPosition->showFootCancelInfo(false);
-				_curveHiHatPedal->showMask(false);
-			}
+			_curveHiHatPosition->showHiHatLayers(false);
+			_curveHiHatPosition->showFootCancelLayers(true);
+			_curveHiHatPedal->showMaskLayer(true);
 			break;
 		}
 	default:
