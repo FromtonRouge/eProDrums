@@ -136,6 +136,11 @@ void HiHatPedalElement::setBlueDetectionByPosition(const Parameter::Value& state
 {
 	Mutex::scoped_lock lock(_mutex);
 	_isBlueDetectionByPosition = state;
+	if (!boost::get<bool>(_isBlueDetectionByPosition))
+	{
+		// Reset the blue state
+		setBlue(false);
+	}
 }
 
 bool HiHatPedalElement::isBlueDetectionBySpeed() const
