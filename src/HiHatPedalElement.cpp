@@ -32,6 +32,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_currentControlAcceleration(0),
 	_posOnCloseBegin(127),
 	_posOnOpenBegin(0),
+	_isBlueDetectionByAccent(false),
 	_isBlueDetectionByPosition(false),
 	_isBlueDetectionBySpeed(false),
 	_controlPosThreshold(127),
@@ -53,7 +54,8 @@ HiHatPedalElement::HiHatPedalElement():
 	_cancelOpenHitVelocity(0),
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
-	_halfOpenActivationTime(0)
+	_halfOpenActivationTime(0),
+	_blueAccentThreshold(80)
 {
 }
 
@@ -82,6 +84,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_currentControlAcceleration = rOther._currentControlAcceleration;
 		_posOnCloseBegin = rOther._posOnCloseBegin; 
 		_posOnOpenBegin = rOther._posOnOpenBegin; 
+		_isBlueDetectionByAccent = rOther._isBlueDetectionByAccent;
 		_isBlueDetectionByPosition = rOther._isBlueDetectionByPosition;
 		_isBlueDetectionBySpeed = rOther._isBlueDetectionBySpeed;
 		_controlPosThreshold = rOther._controlPosThreshold;
@@ -102,12 +105,25 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_securityPosition = rOther._securityPosition;
 		_halfOpenMaximumPosition = rOther._halfOpenMaximumPosition;
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
+		_blueAccentThreshold = rOther._blueAccentThreshold;
 	}
 	return *this;
 }
 
 HiHatPedalElement::~HiHatPedalElement()
 {
+}
+
+bool HiHatPedalElement::isBlueDetectionByAccent() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_isBlueDetectionByAccent);
+}
+
+void HiHatPedalElement::setBlueDetectionByAccent(const Parameter::Value& state)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isBlueDetectionByAccent = state;
 }
 
 bool HiHatPedalElement::isBlueDetectionByPosition() const
@@ -488,4 +504,16 @@ void HiHatPedalElement::setHalfOpenActivationTime(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_halfOpenActivationTime = value;
+}
+
+int HiHatPedalElement::getBlueAccentThreshold() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_blueAccentThreshold);
+}
+
+void HiHatPedalElement::setBlueAccentThreshold(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_blueAccentThreshold = value;
 }

@@ -57,6 +57,8 @@ public:
     MovingState setCurrentControlSpeed(float value);
     float getCurrentControlAcceleration() const;
     void setCurrentControlAcceleration(float value);
+	bool isBlueDetectionByAccent() const;
+	void setBlueDetectionByAccent(const Parameter::Value& state);
 	bool isBlueDetectionByPosition() const;
 	void setBlueDetectionByPosition(const Parameter::Value& state);
 	bool isBlueDetectionBySpeed() const;
@@ -121,6 +123,8 @@ public:
 	void setHalfOpenMaximumPosition(const Parameter::Value& value);
 	int getHalfOpenActivationTime() const;
 	void setHalfOpenActivationTime(const Parameter::Value& value);
+	int getBlueAccentThreshold() const;
+	void setBlueAccentThreshold(const Parameter::Value& value);
 
 private:
 	bool	_isBlue;
@@ -140,6 +144,7 @@ private:
 	int		_posOnOpenBegin; 
 
 	// Archived data
+	Parameter::Value	_isBlueDetectionByAccent;
 	Parameter::Value	_isBlueDetectionByPosition;
 	Parameter::Value	_isBlueDetectionBySpeed;
 	Parameter::Value	_controlPosThreshold;
@@ -160,6 +165,7 @@ private:
 	Parameter::Value	_securityPosition;
 	Parameter::Value	_halfOpenMaximumPosition;
 	Parameter::Value	_halfOpenActivationTime;
+	Parameter::Value	_blueAccentThreshold;
 
 	OnFootCancelActivated						_onFootCancelActivated;
 	OnFootCancelMaskTimeChanged					_onFootCancelMaskTimeChanged;
@@ -176,6 +182,7 @@ private:
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Pad);
 
 		// Hi Hat control and pedal
+		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByAccent);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
@@ -196,6 +203,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenMaximumPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenActivationTime);
+		ar  & BOOST_SERIALIZATION_NVP(_blueAccentThreshold);
 	}
 };
 

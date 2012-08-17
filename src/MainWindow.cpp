@@ -183,75 +183,89 @@ MainWindow::MainWindow():
 	// Hi-hat
 	{
 		Parameter::Ptr pRoot(new Parameter());
-		Parameter::Ptr pGroup1(new Parameter("Simultaneous hits", groupColors[0]));
+
+		Parameter::Ptr pGroup1(new Parameter("Secured Positions", groupColors[0]));
 		{
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
-							pCurrentSlot->getCymbalSimHitWindow(),
-							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1),
-							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Secured yellow position (unit)", 0, 127,
+							pElHihatPedal->getSecurityPosition(),
+							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
+							tr("Under this position the hi-hat is always yellow").toStdString())));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by speed", groupColors[1],
+		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by accent", groupColors[1],
+					pElHihatPedal->isBlueDetectionByAccent(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
+		{
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Accent velocity (unit)", 0, 127,
+						   	pElHihatPedal->getBlueAccentThreshold(),
+							boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1),
+							tr("A hi-hat hit is converted to blue if the hit velocity is above this parameter\nand if the control position is above [Security yellow position]").toStdString())));
+
+		}
+
+		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by speed", groupColors[2],
 					pElHihatPedal->isBlueDetectionBySpeed(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Security yellow position (unit)", 0, 127,
-							pElHihatPedal->getSecurityPosition(),
-							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
-							tr("Under this position the hi-hat is always yellow regardless [Open speed]").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
 						   	pElHihatPedal->getOpenSpeed(),
 							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
 							tr("Above this speed the hi-hat is converted to blue").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
 							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1),
 							tr("Under this speed the hi-hat is converted to yellow").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 						   	pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
 							tr("Half open detection algorithm starts between [Security yellow position] and this position").toStdString())));
 
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Half open time detection (ms)", 0, 5000,
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Half open time detection (ms)", 0, 5000,
 						   	pElHihatPedal->getHalfOpenActivationTime(),
 							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
 							tr("Afters the specified time (ms), if the hi-hat is still yellow, it goes in half open mode. It will leave this mode if the control position go back under [Security yellow position]").toStdString())));
 		}
 
-		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
+		Parameter::Ptr pGroup4(new Parameter("Hi-hat blue detection by position", groupColors[3],
 					pElHihatPedal->isBlueDetectionByPosition(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
 		{
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 						   	pElHihatPedal->getControlPosThreshold(),
 							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
 							tr("Above this position the hi-hat is converted to blue").toStdString())));
 		}
 
-		Parameter::Ptr pGroup4(new Parameter("Green to Yellow Crash conversion", groupColors[3]));
+		Parameter::Ptr pGroup5(new Parameter("Green to Yellow Crash conversion", groupColors[4]));
 		{
 			const std::string& szDescription = tr("A [Green to Yellow Crash] is converted from green to yellow if one of these pads is hit at the same time").toStdString();
-			pGroup4->setDescription(szDescription);
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Green Crash",
+			pGroup5->setDescription(szDescription);
+
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
+							pCurrentSlot->getCymbalSimHitWindow(),
+							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1),
+							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
+
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Green Crash",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1), szDescription)));
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Ride",
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Ride",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1), szDescription)));
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Snare",
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Snare",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1), szDescription)));
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 2",
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Tom 2",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1), szDescription)));
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Tom 3",
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Tom 3",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1), szDescription)));
 		}
@@ -260,6 +274,7 @@ MainWindow::MainWindow():
 		pRoot->addChild(pGroup2);
 		pRoot->addChild(pGroup3);
 		pRoot->addChild(pGroup4);
+		pRoot->addChild(pGroup5);
 		gridLayoutHiHat->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
 
@@ -1279,53 +1294,61 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					const Parameter::Ptr& pRoot = pTreeView->getRoot();
 					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
 					{
-						pGroup1->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
-								boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1));
+						pGroup1->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
+								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pGroup2->update(	pElHihatPedal->isBlueDetectionBySpeed(),
+					pGroup2->update(	pElHihatPedal->isBlueDetectionByAccent(),
+							boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1));
+					{
+						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentThreshold(),
+								boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1));
+					}
+					
+					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
+					pGroup3->update(	pElHihatPedal->isBlueDetectionBySpeed(),
 							boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
 					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
-								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
-
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getOpenSpeed(),
+						pGroup3->getChildAt(0)->update(	pElHihatPedal->getOpenSpeed(),
 								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(2)->update(	pElHihatPedal->getCloseSpeed(),
+						pGroup3->getChildAt(1)->update(	pElHihatPedal->getCloseSpeed(),
 								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(3)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+						pGroup3->getChildAt(2)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
 								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
 
-						pGroup2->getChildAt(4)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+						pGroup3->getChildAt(3)->update(	pElHihatPedal->getHalfOpenActivationTime(),
 								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
 					}
 
-					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
-					pGroup3->update(	pElHihatPedal->isBlueDetectionByPosition(),
+					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
+					pGroup4->update(	pElHihatPedal->isBlueDetectionByPosition(),
 							boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1));
 					{
-						pGroup3->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
+						pGroup4->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
 								boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1));
 					}
 
-					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
+					const Parameter::Ptr& pGroup5 = pRoot->getChildAt(4);
 					{
-						pGroup4->getChildAt(0)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+						pGroup5->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
+								boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1));
+
+						pGroup5->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
 
-						pGroup4->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+						pGroup5->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
 								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
 
-						pGroup4->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+						pGroup5->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
 								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
 
-						pGroup4->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+						pGroup5->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
 								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
 
-						pGroup4->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+						pGroup5->getChildAt(5)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
 								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
 					}
 
@@ -1890,6 +1913,14 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 				if (pElHihatPedal->isBlue())
 				{
+					// Change the yellow hi-hat to blue if the pedal is blue
+					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+				}
+				else if (	currentControlPos>pElHihatPedal->getSecurityPosition()
+					   		&& !pElHihatPedal->isHalfOpen()
+							&& currentMsg.getValue()>pElHihatPedal->getBlueAccentThreshold())
+				{
+					// Change the yellow hi-hat to blue on accent
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
 
