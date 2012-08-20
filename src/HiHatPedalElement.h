@@ -65,6 +65,8 @@ public:
 	void setBlueDetectionBySpeed(const Parameter::Value& state);
     int getControlPosThreshold() const;
     void setControlPosThreshold(const Parameter::Value& value);
+	int getControlPosDelayTime() const;
+	void setControlPosDelayTime(const Parameter::Value& value);
     int getOpenSpeed() const;
     void setOpenSpeed(const Parameter::Value& value);
     int getCloseSpeed() const;
@@ -109,6 +111,8 @@ public:
 	void setFootCancelTimeLimit(int value);
 	int getHalfOpenEnteringTime() const;
 	void setHalfOpenEnteringTime(int value);
+	int getBlueStateEnteringTime() const;
+	void setBlueStateEnteringTime(int value);
 	int getPositionOnCloseBegin() const;
 	int getPositionOnOpenBegin() const;
 	void setCancelOpenHitThreshold(const Parameter::Value& value);
@@ -131,6 +135,7 @@ private:
 	bool	_isHalfOpen;
 	int		_footCancelTimeLimit;
 	int		_halfOpenEnteringTime;
+	int		_blueStateEnteringTime;
     int		_previousControlPos;
     int		_currentControlPos;
 	float	_currentControlSpeed;			// in unit/s
@@ -148,6 +153,7 @@ private:
 	Parameter::Value	_isBlueDetectionByPosition;
 	Parameter::Value	_isBlueDetectionBySpeed;
 	Parameter::Value	_controlPosThreshold;
+	Parameter::Value	_controlPosDelayTime;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
 	Parameter::Value	_isFootCancel;
@@ -186,6 +192,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
+		ar  & BOOST_SERIALIZATION_NVP(_controlPosDelayTime);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_isFootCancel);

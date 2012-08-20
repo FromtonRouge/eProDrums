@@ -36,6 +36,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_isBlueDetectionByPosition(false),
 	_isBlueDetectionBySpeed(false),
 	_controlPosThreshold(127),
+	_controlPosDelayTime(0),
 	_openSpeed(330),
 	_closeSpeed(-200),
 	_isFootCancel(false),
@@ -49,6 +50,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_footCancelAfterPedalHitVelocity(25),
 	_footCancelTimeLimit(0),
 	_halfOpenEnteringTime(0),
+	_blueStateEnteringTime(0),
 	_isCancelHitWhileOpen(false),
 	_cancelOpenHitThreshold(0),
 	_cancelOpenHitVelocity(0),
@@ -77,6 +79,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_isHalfOpen = rOther._isHalfOpen;
 		_footCancelTimeLimit = rOther._footCancelTimeLimit;
 		_halfOpenEnteringTime = rOther._halfOpenEnteringTime;
+		_blueStateEnteringTime = rOther._blueStateEnteringTime;
 		_previousControlPos = rOther._previousControlPos;
 		_currentControlPos = rOther._currentControlPos;
 		_currentControlSpeed = rOther._currentControlSpeed;
@@ -88,6 +91,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_isBlueDetectionByPosition = rOther._isBlueDetectionByPosition;
 		_isBlueDetectionBySpeed = rOther._isBlueDetectionBySpeed;
 		_controlPosThreshold = rOther._controlPosThreshold;
+		_controlPosDelayTime = rOther._controlPosDelayTime;
 		_openSpeed = rOther._openSpeed;
 		_closeSpeed = rOther._closeSpeed;
 		_isFootCancel = rOther._isFootCancel;
@@ -213,6 +217,18 @@ void HiHatPedalElement::setControlPosThreshold(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
     _controlPosThreshold = value;
+}
+
+int HiHatPedalElement::getControlPosDelayTime() const
+{
+	Mutex::scoped_lock lock(_mutex);
+    return boost::get<int>(_controlPosDelayTime);
+}
+
+void HiHatPedalElement::setControlPosDelayTime(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+    _controlPosDelayTime = value;
 }
 
 int HiHatPedalElement::getCurrentControlPos() const
@@ -438,6 +454,18 @@ void HiHatPedalElement::setHalfOpenEnteringTime(int value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_halfOpenEnteringTime = value;
+}
+
+int HiHatPedalElement::getBlueStateEnteringTime() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _blueStateEnteringTime;
+}
+
+void HiHatPedalElement::setBlueStateEnteringTime(int value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_blueStateEnteringTime = value;
 }
 
 int HiHatPedalElement::getCancelOpenHitThreshold() const

@@ -203,40 +203,44 @@ MainWindow::MainWindow():
 
 		}
 
-		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by speed", groupColors[2],
+		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
+					pElHihatPedal->isBlueDetectionByPosition(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
+		{
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
+						   	pElHihatPedal->getControlPosThreshold(),
+							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
+							tr("Above this position the hi-hat is converted to blue").toStdString())));
+			pGroup3->addChild(Parameter::Ptr(new Parameter("Delay time (ms)", 0, 5000,
+						   	pElHihatPedal->getControlPosDelayTime(),
+							boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1),
+							tr("Delay time before switching to blue state if the control position is above the threshold").toStdString())));
+		}
+
+		Parameter::Ptr pGroup4(new Parameter("Hi-hat blue detection by speed", groupColors[3],
 					pElHihatPedal->isBlueDetectionBySpeed(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
 
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
 						   	pElHihatPedal->getOpenSpeed(),
 							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
 							tr("Above this speed the hi-hat is converted to blue").toStdString())));
 
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
 							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1),
 							tr("Under this speed the hi-hat is converted to yellow").toStdString())));
 
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 						   	pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
 							tr("Half open detection algorithm starts between [Security yellow position] and this position").toStdString())));
 
-			pGroup3->addChild(Parameter::Ptr(new Parameter("Half open time detection (ms)", 0, 5000,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Half open detection time (ms)", 0, 5000,
 						   	pElHihatPedal->getHalfOpenActivationTime(),
 							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
 							tr("Afters the specified time (ms), if the hi-hat is still yellow, it goes in half open mode. It will leave this mode if the control position go back under [Security yellow position]").toStdString())));
-		}
-
-		Parameter::Ptr pGroup4(new Parameter("Hi-hat blue detection by position", groupColors[3],
-					pElHihatPedal->isBlueDetectionByPosition(),
-					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
-		{
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
-						   	pElHihatPedal->getControlPosThreshold(),
-							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
-							tr("Above this position the hi-hat is converted to blue").toStdString())));
 		}
 
 		Parameter::Ptr pGroup5(new Parameter("Green to Yellow Crash conversion", groupColors[4]));
@@ -1305,30 +1309,33 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentThreshold(),
 								boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1));
 					}
-					
+
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
-					pGroup3->update(	pElHihatPedal->isBlueDetectionBySpeed(),
-							boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
-					{
-						pGroup3->getChildAt(0)->update(	pElHihatPedal->getOpenSpeed(),
-								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
-
-						pGroup3->getChildAt(1)->update(	pElHihatPedal->getCloseSpeed(),
-								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
-
-						pGroup3->getChildAt(2)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
-								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
-
-						pGroup3->getChildAt(3)->update(	pElHihatPedal->getHalfOpenActivationTime(),
-								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
-					}
-
-					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
-					pGroup4->update(	pElHihatPedal->isBlueDetectionByPosition(),
+					pGroup3->update(	pElHihatPedal->isBlueDetectionByPosition(),
 							boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1));
 					{
-						pGroup4->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
+						pGroup3->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
 								boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1));
+
+						pGroup3->getChildAt(1)->update(	pElHihatPedal->getControlPosDelayTime(),
+								boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1));
+					}
+					
+					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
+					pGroup4->update(	pElHihatPedal->isBlueDetectionBySpeed(),
+							boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
+					{
+						pGroup4->getChildAt(0)->update(	pElHihatPedal->getOpenSpeed(),
+								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
+
+						pGroup4->getChildAt(1)->update(	pElHihatPedal->getCloseSpeed(),
+								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
+
+						pGroup4->getChildAt(2)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
+
+						pGroup4->getChildAt(3)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup5 = pRoot->getChildAt(4);
@@ -1756,19 +1763,18 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	{
 		int currentControlPos = pElHihatPedal->getCurrentControlPos();
 		float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
-		bool bSecured = false;
+		bool bSecured = currentControlPos<=pElHihatPedal->getSecurityPosition();
 
 		// Blue state by pedal speed
 		if (pElHihatPedal->isBlueDetectionBySpeed())
 		{
 			bool bComputeBlueState = true;
-			if (currentControlPos<=pElHihatPedal->getSecurityPosition())
+			if (bSecured)
 			{
 				pElHihatPedal->setHalfOpenEnteringTime(0);
 				pElHihatPedal->setHalfOpen(false);
 				pElHihatPedal->setBlue(false);
 				bComputeBlueState = false;
-				bSecured = true;
 			}
 			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()==0)
 			{
@@ -1825,10 +1831,19 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		{
 			if (currentControlPos > pElHihatPedal->getControlPosThreshold())
 			{
-				pElHihatPedal->setBlue(true);
+				if (pElHihatPedal->getBlueStateEnteringTime()==0)
+				{
+					pElHihatPedal->setBlueStateEnteringTime(currentTime);
+				}
+
+				if (currentTime-pElHihatPedal->getBlueStateEnteringTime() >= pElHihatPedal->getControlPosDelayTime())
+				{
+					pElHihatPedal->setBlue(true);
+				}
 			}
 			else if (!pElHihatPedal->isBlueDetectionBySpeed())
 			{
+				pElHihatPedal->setBlueStateEnteringTime(0);
 				pElHihatPedal->setBlue(false);
 			}
 		}
@@ -1916,7 +1931,8 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// Change the yellow hi-hat to blue if the pedal is blue
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
-				else if (	currentControlPos>pElHihatPedal->getSecurityPosition()
+				else if (	pElHihatPedal->isBlueDetectionByAccent()
+							&& currentControlPos>pElHihatPedal->getSecurityPosition()
 					   		&& !pElHihatPedal->isHalfOpen()
 							&& currentMsg.getValue()>pElHihatPedal->getBlueAccentThreshold())
 				{
