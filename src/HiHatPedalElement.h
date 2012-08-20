@@ -63,6 +63,8 @@ public:
 	void setBlueDetectionByPosition(const Parameter::Value& state);
 	bool isBlueDetectionBySpeed() const;
 	void setBlueDetectionBySpeed(const Parameter::Value& state);
+	bool isHalfOpenModeEnabled() const;
+	void setHalfOpenModeEnabled(const Parameter::Value& state);
     int getControlPosThreshold() const;
     void setControlPosThreshold(const Parameter::Value& value);
 	int getControlPosDelayTime() const;
@@ -152,6 +154,7 @@ private:
 	Parameter::Value	_isBlueDetectionByAccent;
 	Parameter::Value	_isBlueDetectionByPosition;
 	Parameter::Value	_isBlueDetectionBySpeed;
+	Parameter::Value	_isHalfOpenModeEnabled;
 	Parameter::Value	_controlPosThreshold;
 	Parameter::Value	_controlPosDelayTime;
 	Parameter::Value	_openSpeed;
@@ -191,6 +194,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByAccent);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
+		ar  & BOOST_SERIALIZATION_NVP(_isHalfOpenModeEnabled);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosDelayTime);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);

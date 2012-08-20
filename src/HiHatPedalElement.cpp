@@ -35,6 +35,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_isBlueDetectionByAccent(false),
 	_isBlueDetectionByPosition(false),
 	_isBlueDetectionBySpeed(false),
+	_isHalfOpenModeEnabled(false),
 	_controlPosThreshold(127),
 	_controlPosDelayTime(0),
 	_openSpeed(330),
@@ -90,6 +91,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_isBlueDetectionByAccent = rOther._isBlueDetectionByAccent;
 		_isBlueDetectionByPosition = rOther._isBlueDetectionByPosition;
 		_isBlueDetectionBySpeed = rOther._isBlueDetectionBySpeed;
+		_isHalfOpenModeEnabled = rOther._isHalfOpenModeEnabled;
 		_controlPosThreshold = rOther._controlPosThreshold;
 		_controlPosDelayTime = rOther._controlPosDelayTime;
 		_openSpeed = rOther._openSpeed;
@@ -157,6 +159,18 @@ void HiHatPedalElement::setBlueDetectionBySpeed(const Parameter::Value& state)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_isBlueDetectionBySpeed = state;
+}
+
+bool HiHatPedalElement::isHalfOpenModeEnabled() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_isHalfOpenModeEnabled);
+}
+
+void HiHatPedalElement::setHalfOpenModeEnabled(const Parameter::Value& state)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isHalfOpenModeEnabled = state;
 }
 
 int HiHatPedalElement::getOpenSpeed() const
