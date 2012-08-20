@@ -58,7 +58,8 @@ HiHatPedalElement::HiHatPedalElement():
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
 	_halfOpenActivationTime(0),
-	_blueAccentThreshold(80)
+	_blueAccentThreshold(80),
+	_blueAccentPosition(0)
 {
 }
 
@@ -112,6 +113,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_halfOpenMaximumPosition = rOther._halfOpenMaximumPosition;
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
 		_blueAccentThreshold = rOther._blueAccentThreshold;
+		_blueAccentPosition = rOther._blueAccentPosition;
 	}
 	return *this;
 }
@@ -563,4 +565,16 @@ void HiHatPedalElement::setBlueAccentThreshold(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_blueAccentThreshold = value;
+}
+
+int HiHatPedalElement::getBlueAccentPosition() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<int>(_blueAccentPosition);
+}
+
+void HiHatPedalElement::setBlueAccentPosition(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_blueAccentPosition = value;
 }

@@ -197,11 +197,15 @@ MainWindow::MainWindow():
 					pElHihatPedal->isBlueDetectionByAccent(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
 		{
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Activation position (unit)", 0, 127,
+						   	pElHihatPedal->getBlueAccentPosition(),
+							boost::bind(&HiHatPedalElement::setBlueAccentPosition, pElHihatPedal, _1),
+							tr("Above this position and above [Secured yellow position] the accent algorithm is enabled").toStdString())));
+
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Accent velocity (unit)", 0, 127,
 						   	pElHihatPedal->getBlueAccentThreshold(),
 							boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1),
-							tr("A hi-hat hit is converted to blue if the hit velocity is above this parameter\nand if the control position is above [Security yellow position]").toStdString())));
-
+							tr("A hi-hat hit is converted to blue if the hit velocity is above this parameter\nand if the control position is above [Activation position] and [Security yellow position]").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
@@ -1314,7 +1318,9 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					pGroup2->update(	pElHihatPedal->isBlueDetectionByAccent(),
 							boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1));
 					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentThreshold(),
+						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentPosition(),
+								boost::bind(&HiHatPedalElement::setBlueAccentPosition, pElHihatPedal, _1));
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->getBlueAccentThreshold(),
 								boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1));
 					}
 
@@ -1948,6 +1954,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				}
 				else if (	pElHihatPedal->isBlueDetectionByAccent()
 							&& currentControlPos>pElHihatPedal->getSecurityPosition()
+							&& currentControlPos>pElHihatPedal->getBlueAccentPosition()
 					   		&& !pElHihatPedal->isHalfOpen()
 							&& currentMsg.getValue()>pElHihatPedal->getBlueAccentThreshold())
 				{
