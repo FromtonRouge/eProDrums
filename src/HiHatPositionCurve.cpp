@@ -21,6 +21,7 @@
 
 #include "HiHatPositionCurve.h"
 #include "EProPlotIntervalData.h"
+#include "EProPlotMarker.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_plot_histogram.h"
 #include "qwt_plot.h"
@@ -35,6 +36,8 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	_isHiHatLayersShown(true)
 {
 	setMarkerInformationOutlineColor(QColor(Qt::red));
+	getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
+
 	setStyle(EProPlotCurve::Lines);
 	QColor qHiHatControl(245, 255, 166);
 	setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatControl, qHiHatControl, QSize(2,2)));

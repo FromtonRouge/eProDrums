@@ -30,8 +30,8 @@
 #include "HiHatPedalElement.h"
 
 #include "EProPlot.h"
+#include "EProPlotMarker.h"
 #include "EProPlotZoomer.h"
-#include "EProPlotCurve.h"
 #include "HiHatPositionCurve.h"
 #include "HiHatPedalCurve.h"
 
@@ -103,32 +103,26 @@ MainWindow::MainWindow():
 
     // Curve CC#4
     QColor qBlue(100, 150, 255);
-	QColor qHiHatControl(245, 255, 166);
+
 	QColor qHiHatAccel(245, 0, 150);
+	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
 	_curveHiHatAcceleration = new EProPlotCurve("Hi Hat Acceleration", qHiHatAccel, 1, _pPlot);
 	_curveHiHatAcceleration->setMarkerInformationOutlineColor(QColor(Qt::white));
+	_curveHiHatAcceleration->getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
 	_curveHiHatAcceleration->setStyle(EProPlotCurve::Lines);
 	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatAccel, qHiHatAccel, QSize(2,2)));
-	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
-	_curveHiHatPedal = new HiHatPedalCurve(_pPlot);
-	_curveHiHat = new EProPlotCurve("Hi Hat", QColor(255, 255, 0), 2, _pPlot);
-	_curveHiHat->setStyle(EProPlotCurve::Sticks);
-	_curveTom1 = new EProPlotCurve("Tom 1", QColor(255, 255, 0), 2, _pPlot);
-	_curveTom1->setStyle(EProPlotCurve::Sticks);
-	_curveTom2 = new EProPlotCurve("Tom 2", qBlue, 2, _pPlot);
-	_curveTom2->setStyle(EProPlotCurve::Sticks);
-	_curveTom3 = new EProPlotCurve("Tom 3", QColor(0, 255, 0), 2, _pPlot);
-	_curveTom3->setStyle(EProPlotCurve::Sticks);
-	_curveRide = new EProPlotCurve("Ride", qBlue, 2, _pPlot);
-	_curveRide->setStyle(EProPlotCurve::Sticks);
-	_curveYellowCrash = new EProPlotCurve("Yellow Crash", QColor(255, 255, 0), 2, _pPlot);
-	_curveYellowCrash->setStyle(EProPlotCurve::Sticks);
-	_curveCrash = new EProPlotCurve("Green Crash", QColor(0, 255, 0), 2, _pPlot);
-	_curveCrash->setStyle(EProPlotCurve::Sticks);
-	_curveSnare = new EProPlotCurve("Snare", QColor(255, 0, 0), 2, _pPlot);
-	_curveSnare->setStyle(EProPlotCurve::Sticks);
-	_curveBassPedal = new EProPlotCurve("Bass Drum", QColor(255, 200, 100), 2, _pPlot);
-	_curveBassPedal->setStyle(EProPlotCurve::Sticks);
+
+	_curves[Pad::NOTE_SNARE] = new EProPlotCurve("Snare", QColor(255, 0, 0), 2, _pPlot);
+	_curves[Pad::NOTE_HIHAT] = new EProPlotCurve("Hi Hat", QColor(255, 255, 0), 2, _pPlot);
+	_curves[Pad::NOTE_HIHAT_PEDAL] = new HiHatPedalCurve(_pPlot);
+	_curves[Pad::NOTE_TOM1] = new EProPlotCurve("Tom 1", QColor(255, 255, 0), 2, _pPlot);
+	_curves[Pad::NOTE_TOM2] = new EProPlotCurve("Tom 2", qBlue, 2, _pPlot);
+	_curves[Pad::NOTE_TOM3] = new EProPlotCurve("Tom 3", QColor(0, 255, 0), 2, _pPlot);
+	_curves[Pad::NOTE_CRASH1] = new EProPlotCurve("Green Crash", QColor(0, 255, 0), 2, _pPlot);
+	_curves[Pad::NOTE_CRASH2] = _curves[Pad::NOTE_CRASH1];
+	_curves[Pad::NOTE_CRASH3] = new EProPlotCurve("Yellow Crash", QColor(255, 255, 0), 2, _pPlot);
+	_curves[Pad::NOTE_RIDE] = new EProPlotCurve("Ride", qBlue, 2, _pPlot);
+	_curves[Pad::NOTE_BASS_DRUM] = new EProPlotCurve("Bass Drum", QColor(255, 200, 100), 2, _pPlot);
 
     _pPlot->showAll();
 
@@ -332,19 +326,21 @@ MainWindow::MainWindow():
 					pElHihatPedal->isFootCancelAfterPedalHit(),
 					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1),
 					tr("A hi-hat mask window is created when a hi-hat pedal hit is detected").toStdString()));
-		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, _curveHiHatPedal, _1));
+
+		HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
+		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Mask time (ms)", 0, 200,
 							pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
 							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1),
 							tr("Time length of the mask window (ms)").toStdString())));
-			pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, _curveHiHatPedal, _1));
+			pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
 							pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
 							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1),
 							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
-			pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, _curveHiHatPedal, _1));
+			pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Cancel while open", groupColors[2],
@@ -1031,16 +1027,16 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 			// Set curve visibility
 			setCurveVisibility(_curveHiHatPosition, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_CONTROL));
 			setCurveVisibility(_curveHiHatAcceleration, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
-			setCurveVisibility(_curveHiHat, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT));
-			setCurveVisibility(_curveHiHatPedal, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_PEDAL));
-			setCurveVisibility(_curveCrash, _userSettings.isCurveVisible(UserSettings::CURVE_CRASH));
-			setCurveVisibility(_curveYellowCrash, _userSettings.isCurveVisible(UserSettings::CURVE_YELLOW_CRASH));
-			setCurveVisibility(_curveRide, _userSettings.isCurveVisible(UserSettings::CURVE_RIDE));
-			setCurveVisibility(_curveTom1, _userSettings.isCurveVisible(UserSettings::CURVE_TOM1));
-			setCurveVisibility(_curveTom2, _userSettings.isCurveVisible(UserSettings::CURVE_TOM2));
-			setCurveVisibility(_curveTom3, _userSettings.isCurveVisible(UserSettings::CURVE_TOM3));
-			setCurveVisibility(_curveSnare, _userSettings.isCurveVisible(UserSettings::CURVE_SNARE));
-			setCurveVisibility(_curveBassPedal, _userSettings.isCurveVisible(UserSettings::CURVE_BASS_PEDAL));
+			setCurveVisibility(_curves[Pad::NOTE_HIHAT], _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT));
+			setCurveVisibility(_curves[Pad::NOTE_HIHAT_PEDAL], _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_PEDAL));
+			setCurveVisibility(_curves[Pad::NOTE_CRASH1], _userSettings.isCurveVisible(UserSettings::CURVE_CRASH));
+			setCurveVisibility(_curves[Pad::NOTE_CRASH3], _userSettings.isCurveVisible(UserSettings::CURVE_YELLOW_CRASH));
+			setCurveVisibility(_curves[Pad::NOTE_RIDE], _userSettings.isCurveVisible(UserSettings::CURVE_RIDE));
+			setCurveVisibility(_curves[Pad::NOTE_TOM1], _userSettings.isCurveVisible(UserSettings::CURVE_TOM1));
+			setCurveVisibility(_curves[Pad::NOTE_TOM2], _userSettings.isCurveVisible(UserSettings::CURVE_TOM2));
+			setCurveVisibility(_curves[Pad::NOTE_TOM3], _userSettings.isCurveVisible(UserSettings::CURVE_TOM3));
+			setCurveVisibility(_curves[Pad::NOTE_SNARE], _userSettings.isCurveVisible(UserSettings::CURVE_SNARE));
+			setCurveVisibility(_curves[Pad::NOTE_BASS_DRUM], _userSettings.isCurveVisible(UserSettings::CURVE_BASS_PEDAL));
         }
     }
     catch (const std::exception& e)
@@ -1060,16 +1056,16 @@ void MainWindow::saveUserSettings(const std::string& szFilePath)
 		// On save we udpate all curve visibility
 		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_CONTROL, _curveHiHatPosition->isVisible());
 		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_ACCELERATION, _curveHiHatAcceleration->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT, _curveHiHat->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_PEDAL, _curveHiHatPedal->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_CRASH, _curveCrash->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_YELLOW_CRASH, _curveYellowCrash->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_RIDE, _curveRide->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM1, _curveTom1->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM2, _curveTom2->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM3, _curveTom3->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_SNARE, _curveSnare->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_BASS_PEDAL, _curveBassPedal->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT, _curves[Pad::NOTE_HIHAT]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_PEDAL, _curves[Pad::NOTE_HIHAT_PEDAL]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_CRASH, _curves[Pad::NOTE_CRASH1]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_YELLOW_CRASH, _curves[Pad::NOTE_CRASH3]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_RIDE, _curves[Pad::NOTE_RIDE]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM1, _curves[Pad::NOTE_TOM1]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM2, _curves[Pad::NOTE_TOM2]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM3, _curves[Pad::NOTE_TOM3]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_SNARE, _curves[Pad::NOTE_SNARE]->isVisible());
+		_userSettings.setCurveVisibility(UserSettings::CURVE_BASS_PEDAL, _curves[Pad::NOTE_BASS_DRUM]->isVisible());
 
         fs::path pathConfig(szFilePath);
         std::ofstream ofs(pathConfig.generic_string().c_str());
@@ -1412,17 +1408,18 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, _curveHiHatPedal, _1));
+					HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
+					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
 					pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
 										boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
 					{
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
 														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, _curveHiHatPedal, _1));
+						pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
 						
 						pGroup2->getChildAt(1)->update(	pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
 														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, _curveHiHatPedal, _1));
+						pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1615,76 +1612,11 @@ void MainWindow::onUpdatePlot(int msgType, int, int msgNote, int msgVelocity, in
     }
     else if (msgType == 9)
     {
-		QPointF point(timestamp, msgVelocity);
-	
-        switch (msgNote)
-        {
-		case Pad::NOTE_SNARE:
-            {
-				_curveSnare->add(point);
-                break;
-            }
-
-		case Pad::NOTE_TOM1:
-            {
-				_curveTom1->add(point);
-                break;
-            }
-
-		case Pad::NOTE_TOM2:
-            {
-				_curveTom2->add(point);
-                break;
-            }
-
-		case Pad::NOTE_TOM3:
-            {
-				_curveTom3->add(point);
-                break;
-            }
-
-		case Pad::NOTE_HIHAT:
-            {
-				_curveHiHat->add(point);
-                break;
-            }
-
-		case Pad::NOTE_HIHAT_PEDAL:
-            {
-				_curveHiHatPedal->add(point);
-                break;
-            }
-
-		case Pad::NOTE_RIDE:
-            {
-				_curveRide->add(point);
-                break;
-            }
-
-		case Pad::NOTE_CRASH3:
-			{
-				_curveYellowCrash->add(point);
-				break;
-			}
-
-		case Pad::NOTE_CRASH1:
-		case Pad::NOTE_CRASH2:
-            {
-				_curveCrash->add(point);
-                break;
-            }
-
-		case Pad::NOTE_BASS_DRUM:
-            {
-				_curveBassPedal->add(point);
-                break;
-            }
-
-        default:
-            {
-                break;
-            }
-        }
+		EProPlotCurve::Dict::iterator it = _curves.find(msgNote);
+		if (it!=_curves.end())
+		{
+			it->second->add(QPointF(timestamp, msgVelocity));
+		}
     }
 
 	// Redraw order, plots are redrawn after an idle time
@@ -2188,6 +2120,18 @@ void MainWindow::onLeftMouseClicked(const QPoint& pos)
 		_curveHiHatAcceleration->setMarkerInformationLabel((fmtAccel%accel).str());
 	}
 
+	EProPlotCurve::Dict::iterator it = _curves.begin();
+	while (it!=_curves.end())
+	{
+		EProPlotCurve::Dict::value_type& v = *(it++);
+		EProPlotCurve* pCurve = v.second;
+		index = pCurve->updateMarkers(pos);
+		if (index>=0)
+		{
+			pCurve->setMarkerInformationLabel((boost::format("%d")%pCurve->y(index)).str());
+		}
+	}
+
 	_pPlot->replot();
 }
 
@@ -2245,14 +2189,14 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 		{
 			_curveHiHatPosition->showHiHatLayers(true);
 			_curveHiHatPosition->showFootCancelLayers(false);
-			_curveHiHatPedal->showMaskLayer(false);
+			dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL])->showMaskLayer(false);
 			break;
 		}
 	case 1:
 		{
 			_curveHiHatPosition->showHiHatLayers(false);
 			_curveHiHatPosition->showFootCancelLayers(true);
-			_curveHiHatPedal->showMaskLayer(true);
+			dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL])->showMaskLayer(true);
 			break;
 		}
 	default:

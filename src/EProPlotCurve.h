@@ -27,9 +27,11 @@
 
 #include "qwt_symbol.h"
 
+#include <boost/unordered_map.hpp>
+#include <boost/any.hpp>
+
 #include <string>
 #include <vector>
-#include <boost/any.hpp>
 
 class QwtPlot;
 class EProPlotMarker;
@@ -39,6 +41,7 @@ class EProPlotCurve : public QwtPlotCurve
 {
 public:
 	typedef std::vector<EProPlotMarker*> Markers;
+	typedef boost::unordered_map<unsigned int, EProPlotCurve*> Dict;
 
 public:
     EProPlotCurve(const std::string& szName, const QColor& color, int width, QwtPlot* pPlot);
@@ -55,6 +58,7 @@ public:
 	virtual void add(const QPointF& point, const boost::any& userData = boost::any());
 
 	EProPlotMarker* createMarker(const QPointF& point, QwtSymbol::Style style, const QColor& inColor, const QColor& outColor, const QSize& size);
+	EProPlotMarker* getMarker() const {return _pMarkerInformation;}
 
 	double x(int index) const {return sample(index).x();}
 	double y(int index) const {return sample(index).y();}

@@ -24,6 +24,7 @@
 #include "MidiMessage.h"
 #include "Pad.h"
 #include "StreamSink.h"
+#include "EProPlotCurve.h"
 
 #include "ui_MainWindow.h"
 
@@ -41,9 +42,7 @@
 #include <list>
 
 class EProPlot;
-class EProPlotCurve;
 class HiHatPositionCurve;
-class HiHatPedalCurve;
 class EProPlotZoomer;
 class QwtPlotItem;
 class QTimer;
@@ -170,40 +169,31 @@ private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;
 
 	std::auto_ptr<Settings> _pSettings;
-
-	UserSettings _userSettings;
-	Slot::List::iterator _currentSlot;
+	UserSettings			_userSettings;
+	Slot::List::iterator	_currentSlot;
 
 	// Midi related...
-    HMIDIIN  _midiInHandle;
-    HMIDIOUT _midiOutHandle;
-    bool _bConnected;
-    MidiMessage::List _midiMessages;
-	MidiMessage _lastHiHatMsgControl;
+    HMIDIIN				_midiInHandle;
+    HMIDIOUT			_midiOutHandle;
+    bool				_bConnected;
+    MidiMessage::List	_midiMessages;
+	MidiMessage			_lastHiHatMsgControl;
 
 	// Thread etc...
-    boost::condition _condition;
-    boost::shared_ptr<boost::thread> _midiThread;
+    boost::condition					_condition;
+    boost::shared_ptr<boost::thread>	_midiThread;
 
-	int _calibrationOffset;
-
-    EProPlot* _pPlot;
-    HiHatPositionCurve* _curveHiHatPosition;
-    EProPlotCurve* _curveHiHatAcceleration;
-    HiHatPedalCurve* _curveHiHatPedal;
-    EProPlotCurve* _curveHiHat;
-    EProPlotCurve* _curveCrash;
-    EProPlotCurve* _curveYellowCrash;
-    EProPlotCurve* _curveRide;
-    EProPlotCurve* _curveTom1;
-    EProPlotCurve* _curveTom2;
-    EProPlotCurve* _curveTom3;
-    EProPlotCurve* _curveSnare;
-    EProPlotCurve* _curveBassPedal;
+	// Curves
+    EProPlot*			_pPlot;
+    HiHatPositionCurve*	_curveHiHatPosition;
+    EProPlotCurve*		_curveHiHatAcceleration;
+	EProPlotCurve::Dict	_curves;
 
     // Plot pickers
     EProPlotZoomer*	_pPlotZoomer;
 	QTimer*			_pRedrawTimer;
 	bool			_bRedrawState;
 	int				_redrawPeriod;
+	int				_calibrationOffset;
+
 };

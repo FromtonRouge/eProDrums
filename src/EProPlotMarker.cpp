@@ -26,7 +26,7 @@
 EProPlotMarker::EProPlotMarker(QwtPlot* pPlot, QwtSymbol::Style style, const QColor& inColor, const QColor& outColor, const QSize& size)
 {
 	setLineStyle(QwtPlotMarker::NoLine);
-	setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
+	setLabelAlignment(Qt::AlignHCenter|Qt::AlignTop);
 	setLinePen(QPen(inColor, 0, Qt::DashDotLine));
     setSymbol(new QwtSymbol(style, inColor, outColor, size));
 	attach(pPlot);

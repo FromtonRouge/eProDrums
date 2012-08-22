@@ -32,6 +32,7 @@
 EProPlotCurve::EProPlotCurve(const std::string& szName, const QColor& color, int width, QwtPlot* pPlot):
     QwtPlotCurve(szName.c_str())
 {
+	setStyle(Sticks);
 	attach(pPlot);
 	QPen pen(color);
 	pen.setWidth(width);
