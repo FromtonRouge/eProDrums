@@ -22,7 +22,6 @@ QMAKE_CXXFLAGS_DEBUG += /Od
 # Input
 HEADERS += AddMidiNote.h \
            DialogAbout.h \
-           DoubleValueControl.h \
            DrumKitItemDelegate.h \
            DrumKitItemModel.h \
            DrumKitMidiMap.h \
@@ -47,18 +46,14 @@ HEADERS += AddMidiNote.h \
            SettingsDlg.h \
            Slot.h \
 		   TreeViewParameters.h \
-           UserSettings.h \
-           ValueControl.h
+           UserSettings.h
 FORMS += AddMidiNote.ui \
          DialogAbout.ui \
-         DoubleValueControl.ui \
          MainWindow.ui \
          PadNotesWidget.ui \
-         SettingsDlg.ui \
-         ValueControl.ui
+         SettingsDlg.ui
 SOURCES += AddMidiNote.cpp \
            DialogAbout.cpp \
-           DoubleValueControl.cpp \
            EProPlot.cpp \
            EProPlotCurve.cpp \
            EProPlotData.cpp \
@@ -77,8 +72,7 @@ SOURCES += AddMidiNote.cpp \
            Settings.cpp \
            SettingsDlg.cpp \
            Slot.cpp \
-           UserSettings.cpp \
-           ValueControl.cpp
+           UserSettings.cpp
 RESOURCES += EProDrums.qrc
 
 win32 {
