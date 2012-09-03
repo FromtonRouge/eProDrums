@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "LinearFunction.h"
+
 #include <QtGui/QColor>
 
 #include <boost/variant.hpp>
@@ -40,7 +42,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	typedef boost::shared_ptr<Parameter> Ptr;
 	typedef std::vector<Ptr> List;
 	typedef std::map<int, std::string> DictEnums;
-	typedef boost::variant<bool, int, float, std::string> Value;
+	typedef boost::variant<bool, int, float, std::string, LinearFunction::List> Value;
 	typedef boost::signals2::signal<void (const Value&)> OnValueChanged;
 
 	Parameter(	const std::string& szLabel = std::string(),
@@ -114,6 +116,19 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
    	{
 		connect(slot);
 	}
+
+	Parameter(	const std::string& szLabel,
+		   		const LinearFunction::List& value,
+				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
+				const std::string& szDescription = std::string()):
+		label(szLabel),
+		_bEnabled(true),
+		_value(value),
+		_description(szDescription)
+   	{
+		connect(slot);
+   	}
+
 
 	size_t getIndex() const
 	{

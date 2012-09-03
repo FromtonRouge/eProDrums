@@ -3,5 +3,6 @@
 	<file>EProDrums.png</file>
 	<file>Add.png</file>
 	<file>Remove.png</file>
+	<file>FunctionEdit.png</file>
     </qresource>
 </RCC>

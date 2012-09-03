@@ -20,8 +20,8 @@
 // ============================================================ 
 
 #include "MainWindow.h"
-#include "ValueControl.h"
 #include "DialogAbout.h"
+#include "DialogFunction.h"
 #include "Settings.h"
 #include "SettingsDlg.h"
 #include "TreeViewParameters.h"
@@ -191,15 +191,10 @@ MainWindow::MainWindow():
 					pElHihatPedal->isBlueDetectionByAccent(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
 		{
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Activation position (unit)", 0, 127,
-						   	pElHihatPedal->getBlueAccentPosition(),
-							boost::bind(&HiHatPedalElement::setBlueAccentPosition, pElHihatPedal, _1),
-							tr("Above this position and above [Secured yellow position] the accent algorithm is enabled").toStdString())));
-
-			pGroup2->addChild(Parameter::Ptr(new Parameter("Accent velocity (unit)", 0, 127,
-						   	pElHihatPedal->getBlueAccentThreshold(),
-							boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1),
-							tr("A hi-hat hit is converted to blue if the hit velocity is above this parameter\nand if the control position is above [Activation position] and [Security yellow position]").toStdString())));
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Parameters",
+						   	pElHihatPedal->getBlueAccentFunctions(),
+							boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1),
+							tr("List of linear functions used to determine when to convert an accented hi-hat note to blue").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
@@ -1314,10 +1309,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					pGroup2->update(	pElHihatPedal->isBlueDetectionByAccent(),
 							boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1));
 					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentPosition(),
-								boost::bind(&HiHatPedalElement::setBlueAccentPosition, pElHihatPedal, _1));
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getBlueAccentThreshold(),
-								boost::bind(&HiHatPedalElement::setBlueAccentThreshold, pElHihatPedal, _1));
+						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentFunctions(),
+								boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1884,14 +1877,33 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// Change the yellow hi-hat to blue if the pedal is blue
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
-				else if (	pElHihatPedal->isBlueDetectionByAccent()
-							&& currentControlPos>pElHihatPedal->getSecurityPosition()
-							&& currentControlPos>pElHihatPedal->getBlueAccentPosition()
-					   		&& !pElHihatPedal->isHalfOpen()
-							&& currentMsg.getValue()>pElHihatPedal->getBlueAccentThreshold())
+				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
 				{
-					// Change the yellow hi-hat to blue on accent
-					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+					const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
+					if (!functions.empty())
+					{
+						LinearFunction::List::const_iterator it = functions.begin();
+						float x1, x2, a, b, threshold;
+						while (it!=functions.end())
+						{
+							const LinearFunction& f = *(it++);
+							x1 = f.getX1();
+							x2 = f.getX2();
+							a = f.getA();
+							b = f.getB();
+							if (currentControlPos>=x1 && currentControlPos<=x2)
+							{
+								// f = a*x + b
+								threshold = a*currentControlPos+b;
+								if (currentMsg.getValue()>threshold)
+								{
+									// Change the yellow hi-hat to blue on accent
+									currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+									break;
+								}
+							}
+						}
+					}
 				}
 
 				if (pElHihatPedal->isFootCancelAfterPedalHit() && !lastMsgSent[Pad::HIHAT_PEDAL].empty())

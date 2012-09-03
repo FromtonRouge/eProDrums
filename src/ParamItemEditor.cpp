@@ -21,6 +21,7 @@
 
 #include "ParamItemEditor.h"
 #include "Parameter.h"
+#include "DialogFunction.h"
 
 #include <QtGui/QStackedWidget>
 #include <QtGui/QHBoxLayout>
@@ -29,6 +30,7 @@
 #include <QtGui/QSpinBox>
 #include <QtGui/QDoubleSpinBox>
 #include <QtGui/QComboBox>
+#include <QtGui/QPushButton>
 
 const float SLIDER_FACTOR(1000);
 
@@ -41,7 +43,8 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	_pSlider(NULL),
 	_pDoubleSlider(NULL),
 	_pLineEdit(NULL),
-	_pComboBox(NULL)
+	_pComboBox(NULL),
+	_pPushButton(NULL)
 {
 	_pStackedWidget = new QStackedWidget(this);
 
@@ -92,6 +95,13 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	_pComboBox = new QComboBox(this);
 	connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
 	_pStackedWidget->addWidget(_pComboBox);
+
+	// For LinearFunction::List
+	_pPushButton = new QPushButton(this);
+	_pPushButton->setIcon(QIcon(":/FunctionEdit.png"));
+	_pPushButton->setText(tr("Edit parameters..."));
+	connect(_pPushButton, SIGNAL(clicked(bool)), this, SLOT(onPushButtonClicked()));
+	_pStackedWidget->addWidget(_pPushButton);
 
 	QHBoxLayout* pLayout = new QHBoxLayout;
 	pLayout->setContentsMargins(0,0,0,0);
@@ -232,5 +242,20 @@ void ParamItemEditor::setData(Parameter* pData)
 	{
 		_pStackedWidget->setCurrentIndex(3);
 		_pLineEdit->setText(boost::get<std::string>(value).c_str());
+	}
+	else if (boost::get<LinearFunction::List>(&value))
+	{
+		_pStackedWidget->setCurrentIndex(5);
+	}
+}
+
+void ParamItemEditor::onPushButtonClicked()
+{
+	const LinearFunction::List& functions = boost::get<LinearFunction::List>(_pData->getValue());
+	DialogFunction dlg(functions, this);
+	if (dlg.exec())
+	{
+		_pData->setValue(dlg.getFunctions());
+		emit editFinished(this);
 	}
 }

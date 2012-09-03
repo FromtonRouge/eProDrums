@@ -129,10 +129,8 @@ public:
 	void setHalfOpenMaximumPosition(const Parameter::Value& value);
 	int getHalfOpenActivationTime() const;
 	void setHalfOpenActivationTime(const Parameter::Value& value);
-	int getBlueAccentThreshold() const;
-	void setBlueAccentThreshold(const Parameter::Value& value);
-	int getBlueAccentPosition() const;
-	void setBlueAccentPosition(const Parameter::Value& value);
+	LinearFunction::List getBlueAccentFunctions() const;
+	void setBlueAccentFunctions(const Parameter::Value& value);
 
 private:
 	bool	_isBlue;
@@ -176,8 +174,7 @@ private:
 	Parameter::Value	_securityPosition;
 	Parameter::Value	_halfOpenMaximumPosition;
 	Parameter::Value	_halfOpenActivationTime;
-	Parameter::Value	_blueAccentThreshold;
-	Parameter::Value	_blueAccentPosition;
+	Parameter::Value	_blueAccentFunctions;
 
 	OnFootCancelActivated						_onFootCancelActivated;
 	OnFootCancelMaskTimeChanged					_onFootCancelMaskTimeChanged;
@@ -217,8 +214,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenMaximumPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenActivationTime);
-		ar  & BOOST_SERIALIZATION_NVP(_blueAccentThreshold);
-		ar  & BOOST_SERIALIZATION_NVP(_blueAccentPosition);
+		ar  & BOOST_SERIALIZATION_NVP(_blueAccentFunctions);
 	}
 };
 

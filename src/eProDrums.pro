@@ -22,6 +22,7 @@ QMAKE_CXXFLAGS_DEBUG += /Od
 # Input
 HEADERS += AddMidiNote.h \
            DialogAbout.h \
+           DialogFunction.h \
            DrumKitItemDelegate.h \
            DrumKitItemModel.h \
            DrumKitMidiMap.h \
@@ -31,6 +32,9 @@ HEADERS += AddMidiNote.h \
            EProPlotIntervalData.h \
            EProPlotMarker.h \
            EProPlotZoomer.h \
+		   FunctionItemDelegate.h \
+		   FunctionItemEditor.h \
+		   FunctionItemModel.h \
            HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
@@ -49,17 +53,20 @@ HEADERS += AddMidiNote.h \
            UserSettings.h
 FORMS += AddMidiNote.ui \
          DialogAbout.ui \
+         DialogFunction.ui \
          MainWindow.ui \
          PadNotesWidget.ui \
          SettingsDlg.ui
 SOURCES += AddMidiNote.cpp \
            DialogAbout.cpp \
+           DialogFunction.cpp \
            EProPlot.cpp \
            EProPlotCurve.cpp \
            EProPlotData.cpp \
            EProPlotIntervalData.cpp \
            EProPlotMarker.cpp \
            EProPlotZoomer.cpp \
+		   FunctionItemEditor.cpp \
            HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \

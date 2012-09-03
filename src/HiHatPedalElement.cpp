@@ -58,8 +58,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
 	_halfOpenActivationTime(0),
-	_blueAccentThreshold(80),
-	_blueAccentPosition(0)
+	_blueAccentFunctions(LinearFunction::List())
 {
 }
 
@@ -112,8 +111,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_securityPosition = rOther._securityPosition;
 		_halfOpenMaximumPosition = rOther._halfOpenMaximumPosition;
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
-		_blueAccentThreshold = rOther._blueAccentThreshold;
-		_blueAccentPosition = rOther._blueAccentPosition;
+		_blueAccentFunctions = rOther._blueAccentFunctions;
 	}
 	return *this;
 }
@@ -555,26 +553,14 @@ void HiHatPedalElement::setHalfOpenActivationTime(const Parameter::Value& value)
 	_halfOpenActivationTime = value;
 }
 
-int HiHatPedalElement::getBlueAccentThreshold() const
+LinearFunction::List HiHatPedalElement::getBlueAccentFunctions() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_blueAccentThreshold);
+	return boost::get<LinearFunction::List>(_blueAccentFunctions);
 }
 
-void HiHatPedalElement::setBlueAccentThreshold(const Parameter::Value& value)
+void HiHatPedalElement::setBlueAccentFunctions(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_blueAccentThreshold = value;
-}
-
-int HiHatPedalElement::getBlueAccentPosition() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_blueAccentPosition);
-}
-
-void HiHatPedalElement::setBlueAccentPosition(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_blueAccentPosition = value;
+	_blueAccentFunctions = value;
 }

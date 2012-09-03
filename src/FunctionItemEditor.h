@@ -21,38 +21,33 @@
 
 #pragma once
 
-#include "ui_ValueControl.h"
+#include <QtGui/QWidget>
 
-class QColor;
-class QwtThermo;
-class ValueControl : public QWidget, private Ui::ValueControl
+class QDoubleSpinBox;
+
+/**
+ * Function item delegate.
+ */
+class FunctionItemEditor : public QWidget
 {
-    Q_OBJECT
-
-public:
-	ValueControl(const std::string& szLabel, int minValue=0, int maxValue=127);
-	virtual ~ValueControl();
-
-	int getValue() const;
-    void setValue(int value);
-
-    void showThermo();
-    void hideThermo();
-    void setThermoAlarmLevel(int value);
-
-    void setThermoFillColor(const QColor& color);
-    void setThermoAlarmColor(const QColor& color);
+	Q_OBJECT
 
 signals:
-	void valueChanged(int);
+	void editFinished(QWidget*);
+
+public:
+	FunctionItemEditor(QWidget* pParent=NULL);
+	virtual ~FunctionItemEditor();
+
+	void setSingleStep(double);
+	void setMinimum(double);
+	void setMaximum(double);
+	void setData(double value);
+	double getData() const;
 
 private slots:
-	void on_slider_valueChanged(int);
-	void on_spinBox_valueChanged(int);
-
-public slots:
-    void setThermoValue(int value);
+	void onValueChanged(double);
 
 private:
-	QwtThermo* _pThermo;
+	QDoubleSpinBox*	_pDoubleSpinBox;
 };

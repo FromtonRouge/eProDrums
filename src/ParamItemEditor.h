@@ -33,6 +33,7 @@ class QSpinBox;
 class QDoubleSpinBox;
 class QLineEdit;
 class QComboBox;
+class QPushButton;
 
 /**
  * Slider that forward wheel events to the parent.
@@ -74,6 +75,7 @@ private slots:
 	void onDoubleSpinBoxValueChanged(double);
 	void onLineEditValueChanged(const QString&);
 	void onComboBoxIndexChanged(int);
+	void onPushButtonClicked();
 
 private:
 	Parameter*			_pData;
@@ -85,4 +87,5 @@ private:
 	Slider*				_pDoubleSlider;
 	QLineEdit*			_pLineEdit;
 	QComboBox*			_pComboBox;
+	QPushButton*		_pPushButton;
 };
