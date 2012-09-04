@@ -54,7 +54,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		_bEnabled(bEnabled),
 		_value(_bEnabled),
 		_color(color),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
 	}
@@ -72,7 +72,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		maximum(maximum),
 		_value(value),
 		_dictEnums(dictEnums),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
    	}
@@ -88,7 +88,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		minimum(minimum),
 		maximum(maximum),
 		_value(value),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
    	}
@@ -100,7 +100,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		label(szLabel),
 		_bEnabled(true),
 		_value(value),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
    	}
@@ -112,19 +112,21 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		label(szLabel),
 		_bEnabled(true),
 		_value(value),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
 	}
 
 	Parameter(	const std::string& szLabel,
+				const LinearFunction::Description::Ptr& pDescription,
 		   		const LinearFunction::List& value,
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),
+		_pFunctionDescription(pDescription),
 		_bEnabled(true),
 		_value(value),
-		_description(szDescription)
+		_szDescription(szDescription)
    	{
 		connect(slot);
    	}
@@ -178,11 +180,12 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	void update(const Value& value, const OnValueChanged::slot_function_type& slot) {connect(slot); setValue(value);}
 	void setEnabled(bool state) {_bEnabled = state;}
 	bool isEnabled() const {return _bEnabled;}
-	void setDescription(const std::string& sz)  {_description = sz;}
-	const std::string& getDescription() const {return _description;}
+	void setDescription(const std::string& sz)  {_szDescription = sz;}
+	const std::string& getDescription() const {return _szDescription;}
 	void setEnums(const DictEnums& dictEnums) {_dictEnums = dictEnums;}
 	const DictEnums& getEnums() const {return _dictEnums;}
 	bool hasEnums() const {return !_dictEnums.empty();}
+	const LinearFunction::Description::Ptr& getFunctionDescription() const {return _pFunctionDescription;}
 
 public:
 	std::string label;
@@ -190,14 +193,15 @@ public:
 	Value maximum;
 
 private:
-	std::string					_description;
+	LinearFunction::Description::Ptr	_pFunctionDescription;		// Only used on functions
+	std::string							_szDescription;
 
-	bool						_bEnabled;
-	Parameter::Ptr				_pParent;
-	Parameter::List				_children;
-	QColor						_color;
-	Value						_value;
-	DictEnums					_dictEnums;
-	OnValueChanged				_onValueChanged;
+	bool								_bEnabled;
+	Parameter::Ptr						_pParent;
+	Parameter::List						_children;
+	QColor								_color;
+	Value								_value;
+	DictEnums							_dictEnums;
+	OnValueChanged						_onValueChanged;
 };
 

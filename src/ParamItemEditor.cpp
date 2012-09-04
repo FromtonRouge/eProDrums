@@ -252,7 +252,7 @@ void ParamItemEditor::setData(Parameter* pData)
 void ParamItemEditor::onPushButtonClicked()
 {
 	const LinearFunction::List& functions = boost::get<LinearFunction::List>(_pData->getValue());
-	DialogFunction dlg(functions, this);
+	DialogFunction dlg(_pData->getFunctionDescription(), functions, this);
 	if (dlg.exec())
 	{
 		_pData->setValue(dlg.getFunctions());

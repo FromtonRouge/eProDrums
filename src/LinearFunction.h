@@ -26,12 +26,55 @@
 
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
+#include <boost/shared_ptr.hpp>
 
 struct LinearFunction
 {
+	struct Description
+	{
+		typedef boost::shared_ptr<Description> Ptr;
+		Description():
+			szLabelX("X"),
+		   	szLabelY("Y"),
+		   	xMin(0), xMax(127),
+		   	yMin(0), yMax(127),
+		   	x1Default(0), x2Default(30),
+		   	y1Default(50), y2Default(50),
+			xStep(1), yStep(1),
+			aStep(0.01f), bStep(1),
+			aDecimals(2)
+	   	{}
+
+		std::string szLabelX;
+		std::string szLabelY;
+		float xMin, xMax;
+		float yMin, yMax;
+		float x1Default, x2Default;
+		float y1Default, y2Default;
+		float xStep, yStep;
+		float aStep, bStep;
+		int aDecimals;
+	};
+
 	typedef std::vector<LinearFunction> List;
 
 	LinearFunction():_x1(0), _x2(30), _y1(50), _y2(50), _a(0), _b(0) {updateAandB();}
+
+	/**
+	 * \return true if x is between _x1 and _x2
+	 */
+	bool canApply(float x) const
+	{
+		return x>=_x1 && x<=_x2;
+	}
+
+	/**
+	 * \return y=a*x+b
+	 */
+	float operator()(float x) const
+	{
+		return _a * x + _b;
+	}
 
 	void setPoints(float x1, float y1, float x2, float y2)
 	{

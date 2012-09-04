@@ -49,21 +49,24 @@ std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(RIDE, "#70A5FF")
 	(BASS_DRUM, "#FCCB42");
 
+Pad::Pad():
+	_defaultOutputNote(0),
+	_ghostVelocityLimit(0),
+	_flamFunctions(LinearFunction::List()),
+	_flamCancelDuringRoll(100)
+{
+}
+
 Pad::Pad(	Type type,
 			int defaultMidiNote,
 			int ghostVelocityLimit,
-			float flamVelocityFactor,
-			int flamTimeWindow1,
-			int flamTimeWindow2,
 			int flamCancelDuringRoll):
 	_type(type),
 	_typeFlam(type),
 	_defaultOutputNote(defaultMidiNote),
 	_ghostVelocityLimit(ghostVelocityLimit),
 	_isFlamActivated(false),
-	_flamVelocityFactor(flamVelocityFactor),
-	_flamTimeWindow1(flamTimeWindow1),
-	_flamTimeWindow2(flamTimeWindow2),
+	_flamFunctions(LinearFunction::List()),
 	_flamCancelDuringRoll(flamCancelDuringRoll)
 {
 }
@@ -99,9 +102,7 @@ Pad& Pad::operator=(const Pad& rOther)
 		_defaultOutputNote = rOther._defaultOutputNote;
 		_ghostVelocityLimit = rOther._ghostVelocityLimit;
 		_isFlamActivated = rOther._isFlamActivated;
-		_flamVelocityFactor = rOther._flamVelocityFactor;
-		_flamTimeWindow1 = rOther._flamTimeWindow1;
-		_flamTimeWindow2 = rOther._flamTimeWindow2;
+		_flamFunctions = rOther._flamFunctions;
 		_flamCancelDuringRoll = rOther._flamCancelDuringRoll;
 	}
 	return *this;
@@ -205,40 +206,16 @@ void Pad::setFlamActivated(const Parameter::Value& value)
 	_isFlamActivated = value;
 }
 
-float Pad::getFlamVelocityFactor() const
+LinearFunction::List Pad::getFlamFunctions() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<float>(_flamVelocityFactor);
+	return boost::get<LinearFunction::List>(_flamFunctions);
 }
 
-void Pad::setFlamVelocityFactor(const Parameter::Value& value)
+void Pad::setFlamFunctions(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_flamVelocityFactor = value;
-}
-
-int Pad::getFlamTimeWindow1() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_flamTimeWindow1);
-}
-
-void Pad::setFlamTimeWindow1(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_flamTimeWindow1 = value;
-}
-
-int Pad::getFlamTimeWindow2() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_flamTimeWindow2);
-}
-
-void Pad::setFlamTimeWindow2(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_flamTimeWindow2 = value;
+	_flamFunctions = value;
 }
 
 MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext)
@@ -263,39 +240,22 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 		bool bDoGhostNoteTest = false;
 		if (isFlamActivated())
 		{
-			// Here we have a ghost note
-			// TODO: Cancel ghost note if another tom is hit at the same time
-			// TODO: Roll detection to cancel flam
-			if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow1()))
+			if (pNext)
 			{
 				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 				{
+					int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
+					const LinearFunction::List& functions = getFlamFunctions();
+					LinearFunction::List::const_iterator it = functions.begin();
+					while (it!=functions.end())
 					{
-						int t1stHit = pCurrent->getTimestamp();
-						int t2ndHit = pNext->getTimestamp();
-						int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-						int vel1stHit = pCurrent->getValue();
-						logFlams(fmtFlamTw1Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1() % vel1stHit % getGhostVelocityLimit());
+						const LinearFunction& f = *(it++);
+						if (f.canApply(timeDiff) && pNext->getValue() >= int(pCurrent->getValue()*f(timeDiff)))
+						{
+							pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+							break;
+						}
 					}
-
-					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-				}
-			}
-			else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
-					pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
-			{
-				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
-				{
-					{
-						int t1stHit = pCurrent->getTimestamp();
-						int t2ndHit = pNext->getTimestamp();
-						int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-						int vel1stHit = pCurrent->getValue();
-						int vel2ndHit = pNext->getValue();
-						logFlams(fmtFlamTw2Ghost % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
-					}
-
-					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 				}
 			}
 			else
@@ -319,35 +279,22 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	}
 	else if (isFlamActivated())
 	{
-		if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow1()))
+		if (pNext)
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 			{
+				int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
+				const LinearFunction::List& functions = getFlamFunctions();
+				LinearFunction::List::const_iterator it = functions.begin();
+				while (it!=functions.end())
 				{
-					int t1stHit = pCurrent->getTimestamp();
-					int t2ndHit = pNext->getTimestamp();
-					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-					logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
+					const LinearFunction& f = *(it++);
+					if (f.canApply(timeDiff) && pNext->getValue() >= int(pCurrent->getValue()*f(timeDiff)))
+					{
+						pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+						break;
+					}
 				}
-
-				pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-			}
-		}
-		else if (pNext && pCurrent->isInTimeWindow(*pNext, getFlamTimeWindow2()) &&
-				pNext->getValue() >= int(pCurrent->getValue()*getFlamVelocityFactor()))
-		{
-			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
-			{
-				{
-					int t1stHit = pCurrent->getTimestamp();
-					int t2ndHit = pNext->getTimestamp();
-					int tDiff = std::abs(pNext->getTimestamp()-pCurrent->getTimestamp());
-					int vel1stHit = pCurrent->getValue();
-					int vel2ndHit = pNext->getValue();
-					logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
-				}
-
-				pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 			}
 		}
 		else if (!history.empty())
@@ -355,47 +302,27 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			// No buffer code
 			// Get the last hit
 			const MidiMessage& rLast = history.front();
-
-			if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow1()))
+			if (!rLast.isAlreadyModified())
 			{
 				if (history.size()<2 || isFlamAllowed(history[1], history[0]))
 				{
+					int timeDiff = rLast.getAbsTimeDiff(*pCurrent);
+					const LinearFunction::List& functions = getFlamFunctions();
+					LinearFunction::List::const_iterator it = functions.begin();
+					while (it!=functions.end())
 					{
-						int t1stHit = rLast.getTimestamp();
-						int t2ndHit = pCurrent->getTimestamp();
-						int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
-						logFlams(fmtFlamTw1 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow1());
-					}
+						const LinearFunction& f = *(it++);
+						if (f.canApply(timeDiff) && pCurrent->getValue() >= int(rLast.getValue()*f(timeDiff)))
+						{
+							pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
 
-					pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
-
-					if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
-					{
-						// If the previous hit was a ghost note, we send it for the flam here
-						messageToSend.push_back(rLast);
-					}
-				}
-			}
-			else if ( !rLast.isAlreadyModified() && rLast.isInTimeWindow(*pCurrent, getFlamTimeWindow2()) &&
-					pCurrent->getValue() >= int(rLast.getValue()*getFlamVelocityFactor()))
-			{
-				if (history.size()<2 || isFlamAllowed(history[1], history[0]))
-				{
-					{
-						int t1stHit = rLast.getTimestamp();
-						int t2ndHit = pCurrent->getTimestamp();
-						int tDiff = std::abs(pCurrent->getTimestamp()-rLast.getTimestamp());
-						int vel1stHit = rLast.getValue();
-						int vel2ndHit = pCurrent->getValue();
-						logFlams(fmtFlamTw2 % t1stHit % t2ndHit % tDiff % getFlamTimeWindow2() % vel1stHit % vel2ndHit);
-					}
-
-					pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
-
-					if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
-					{
-						// If the previous hit was a ghost note, we send it for the flam here
-						messageToSend.push_back(rLast);
+							if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
+							{
+								// If the previous hit was a ghost note, we send it for the flam here
+								messageToSend.push_back(rLast);
+							}
+							break;
+						}
 					}
 				}
 			}

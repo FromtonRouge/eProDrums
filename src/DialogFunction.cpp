@@ -43,22 +43,24 @@ QwtText DialogFunction::FunctionPlotPicker::trackerText(const QPoint& pointInPix
 	return (fmtMsg%point.x()%point.y()).str().c_str();
 }
 
-DialogFunction::DialogFunction(const LinearFunction::List& functions, QWidget* pParent):QDialog(pParent),
-	_pFunctionItemModel(new FunctionItemModel(functions)),
-	_pFunctionItemDelegate(new FunctionItemDelegate())
+DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
+								const LinearFunction::List& functions,
+								QWidget* pParent):QDialog(pParent),
+	_pFunctionItemModel(new FunctionItemModel(pDescription, functions)),
+	_pFunctionItemDelegate(new FunctionItemDelegate(pDescription))
 {
 	setupUi(this);
 
 	connect(_pFunctionItemModel.get(), SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(onModelChanged()));
 
 	_pPlot = new QwtPlot(this);
-    _pPlot->setAxisScale(QwtPlot::xBottom, 0, 127, 30);
-    _pPlot->setAxisScale(QwtPlot::yLeft, 0, 127, 30);
+    _pPlot->setAxisScale(QwtPlot::xBottom, pDescription->xMin, pDescription->xMax);
+    _pPlot->setAxisScale(QwtPlot::yLeft, pDescription->yMin, pDescription->yMax);
     _pPlot->setAxisMaxMinor(QwtPlot::yLeft, 2);
     _pPlot->setAxisMaxMinor(QwtPlot::xBottom, 2);
     _pPlot->setCanvasBackground(QColor(Qt::black));
-    _pPlot->setAxisTitle(QwtPlot::xBottom, "Hi-hat position");
-    _pPlot->setAxisTitle(QwtPlot::yLeft, "Velocity");
+    _pPlot->setAxisTitle(QwtPlot::xBottom, pDescription->szLabelX.c_str());
+    _pPlot->setAxisTitle(QwtPlot::yLeft, pDescription->szLabelY.c_str());
 
 	gridLayout->addWidget(_pPlot, 0, 0);
 

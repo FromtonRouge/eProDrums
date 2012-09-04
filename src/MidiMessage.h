@@ -77,6 +77,7 @@ public:
 	std::string str() const;
 	DWORD computeOutputMessage() const;
 	bool isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const;
+	int getAbsTimeDiff(const MidiMessage& otherMessage) const;
 
 	float hiHatSpeed;
 	float hiHatAcceleration;

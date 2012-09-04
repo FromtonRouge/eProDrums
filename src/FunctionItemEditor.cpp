@@ -41,6 +41,11 @@ void FunctionItemEditor::setSingleStep(double singleStep)
 	_pDoubleSpinBox->setSingleStep(singleStep);
 }
 
+void FunctionItemEditor::setDecimals(int decimals)
+{
+	_pDoubleSpinBox->setDecimals(decimals);
+}
+
 void FunctionItemEditor::setMinimum(double value)
 {
 	_pDoubleSpinBox->setMinimum(value);

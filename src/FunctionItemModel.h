@@ -32,8 +32,9 @@ class FunctionItemModel : public QAbstractTableModel
 	Q_OBJECT
 
 public:
-	FunctionItemModel(const LinearFunction::List& functions, QObject* pParent=NULL):
+	FunctionItemModel(const LinearFunction::Description::Ptr& pDescription, const LinearFunction::List& functions, QObject* pParent=NULL):
 		QAbstractTableModel(pParent),
+		_pDescription(pDescription),
 		_functions(functions)
 	{
 	}
@@ -239,11 +240,12 @@ public:
 		if (!_functions.empty())
 		{
 			const LinearFunction& prevFunc = _functions.back();
-			newFunc.setPoints(prevFunc.getX2(), prevFunc.getY2(), prevFunc.getX2() + 30, prevFunc.getY2());
+			float xDiff = _pDescription->x2Default-_pDescription->x1Default;
+			newFunc.setPoints(prevFunc.getX2(), prevFunc.getY2(), prevFunc.getX2() + xDiff, prevFunc.getY2());
 		}
 		else
 		{
-			newFunc.setPoints(0, 50, 30, 50);
+			newFunc.setPoints(_pDescription->x1Default, _pDescription->y1Default, _pDescription->x2Default, _pDescription->y2Default);
 		}
 		_functions.push_back(newFunc);
 		endInsertRows();
@@ -266,5 +268,6 @@ public:
 
 private:
 
-	LinearFunction::List _functions;
+	LinearFunction::Description::Ptr	_pDescription;
+	LinearFunction::List				_functions;
 };

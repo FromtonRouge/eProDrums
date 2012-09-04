@@ -23,6 +23,7 @@
 
 #include <QtGui/QStyledItemDelegate>
 #include "FunctionItemEditor.h"
+#include "LinearFunction.h"
 
 /**
  * Function item delegate.
@@ -32,7 +33,7 @@ class FunctionItemDelegate : public QStyledItemDelegate
 	Q_OBJECT
 
 public:
-	FunctionItemDelegate(QObject* pParent=NULL):QStyledItemDelegate(pParent) { }
+	FunctionItemDelegate(const LinearFunction::Description::Ptr& pDescription, QObject* pParent=NULL):QStyledItemDelegate(pParent), _pDescription(pDescription) { }
 	virtual ~FunctionItemDelegate() {}
 
 	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex&) const
@@ -49,22 +50,42 @@ public:
 		const QVariant& variant = index.data(Qt::EditRole);
 		if (pEditor && !variant.isNull())
 		{
-			if (index.column()==5)
+			switch (index.column())
 			{
-				pEditor->setSingleStep(0.01);
-				pEditor->setMaximum(5000);
-				pEditor->setMinimum(-5000);
+			case 1:
+			case 2:
+				{
+					pEditor->setSingleStep(_pDescription->xStep);
+					break;
+				}
+			case 3:
+			case 4:
+				{
+					pEditor->setSingleStep(_pDescription->yStep);
+					break;
+				}
+			case 5:
+				{
+					pEditor->setSingleStep(_pDescription->aStep);
+					pEditor->setDecimals(_pDescription->aDecimals);
+					pEditor->setMaximum(5000);
+					pEditor->setMinimum(-5000);
+					break;
+				}
+			case 6:
+				{
+					pEditor->setSingleStep(_pDescription->bStep);
+					pEditor->setMaximum(500);
+					pEditor->setMinimum(0);
+					break;
+				}
+			default:
+				{
+					pEditor->setSingleStep(1);
+					break;
+				}
 			}
-			else if (index.column()==6)
-			{
-				pEditor->setSingleStep(1);
-				pEditor->setMaximum(500);
-				pEditor->setMinimum(0);
-			}
-			else
-			{
-				pEditor->setSingleStep(1);
-			}
+
 			pEditor->setData(variant.toFloat());
 		}
 	}
@@ -75,4 +96,7 @@ public:
 		QVariant variant(pEditor->getData());
 		pModel->setData(index, variant);
 	}
+
+private:
+	LinearFunction::Description::Ptr	_pDescription;
 };

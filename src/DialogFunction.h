@@ -41,7 +41,8 @@ class DialogFunction : public QDialog, private Ui::DialogFunction
 	Q_OBJECT
 
 public:
-	DialogFunction(const LinearFunction::List& functions, QWidget* pParent=NULL);
+	DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
+					const LinearFunction::List& functions, QWidget* pParent=NULL);
 	virtual ~DialogFunction();
 
 	const LinearFunction::List& getFunctions();

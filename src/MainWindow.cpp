@@ -21,7 +21,6 @@
 
 #include "MainWindow.h"
 #include "DialogAbout.h"
-#include "DialogFunction.h"
 #include "Settings.h"
 #include "SettingsDlg.h"
 #include "TreeViewParameters.h"
@@ -191,7 +190,11 @@ MainWindow::MainWindow():
 					pElHihatPedal->isBlueDetectionByAccent(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
 		{
+			LinearFunction::Description::Ptr pDescription(new LinearFunction::Description());
+			pDescription->szLabelX = tr("Hi-hat position (unit)").toStdString();
+			pDescription->szLabelY = tr("Velocity (unit)").toStdString();
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Parameters",
+							pDescription,
 						   	pElHihatPedal->getBlueAccentFunctions(),
 							boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1),
 							tr("List of linear functions used to determine when to convert an accented hi-hat note to blue").toStdString())));
@@ -373,35 +376,37 @@ MainWindow::MainWindow():
 							pPad->isFlamActivated(),
 							boost::bind(&Pad::setFlamActivated, pPad, _1)));
 
-				Parameter::Ptr pParam1(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
-							pPad->getTypeFlam(),
-							boost::bind(&Pad::setTypeFlam, pPad, _1),
-							tr("Specify the Pad type of the second hit of the flam").toStdString(),
-							Pad::DICT_NAMES));
-				pGroup1->addChild(pParam1);
+				pGroup1->addChild(Parameter::Ptr(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
+								pPad->getTypeFlam(),
+								boost::bind(&Pad::setTypeFlam, pPad, _1),
+								tr("Specify the Pad type of the second hit of the flam").toStdString(),
+								Pad::DICT_NAMES)));
 
-				Parameter::Ptr pParam2(new Parameter("Time window 1 (velocity ignored) (ms)", 0, 150,
-							pPad->getFlamTimeWindow1(),
-							boost::bind(&Pad::setFlamTimeWindow1, pPad, _1),
-							tr("In this time window, if 2 hits are detected on the same pad, the second hit is converted to [Pad Type] regardless the velocity of the second hit").toStdString()));
-				pGroup1->addChild(pParam2);
+				LinearFunction::Description::Ptr pDescription(new LinearFunction::Description());
+				pDescription->szLabelX = tr("Time between 2 hits (ms)").toStdString();
+				pDescription->szLabelY = tr("Velocity factor").toStdString();
+				pDescription->xMin = 0;
+				pDescription->xMax = 150;
+				pDescription->yMin = 0;
+				pDescription->yMax = 2;
+				pDescription->x1Default = 0;
+				pDescription->x2Default = 30;
+				pDescription->y1Default = 1.0f;
+				pDescription->y2Default = 1.0f;
+				pDescription->yStep = 0.01f;
+				pDescription->aStep = 0.001f;
+				pDescription->bStep = 0.01f;
+				pDescription->aDecimals = 3;
+				pGroup1->addChild(Parameter::Ptr(new Parameter("Parameters",
+								pDescription,
+								pPad->getFlamFunctions(),
+								boost::bind(&Pad::setFlamFunctions, pPad, _1),
+								tr("List of linear functions used to determine when to convert a flam in 2 different colors").toStdString())));
 
-				Parameter::Ptr pParam3(new Parameter("Time window 2 (with velocity) (ms)", 0, 150,
-							pPad->getFlamTimeWindow2(),
-							boost::bind(&Pad::setFlamTimeWindow2, pPad, _1),
-							tr("In this time window, if 2 hits are detected on the same pad, the second hit is converted to [Pad Type] only if the 2nd hit is [Factor] times greater than the 1st").toStdString()));
-				pGroup1->addChild(pParam3);
-
-				Parameter::Ptr pParam4(new Parameter("[Factor] 2nd hit velocity factor", 1.0f, 2.0f,
-							pPad->getFlamVelocityFactor(),
-							boost::bind(&Pad::setFlamVelocityFactor, pPad, _1)));
-				pGroup1->addChild(pParam4);
-
-				Parameter::Ptr pParam5(new Parameter("Flam cancel detection (ms)", 0, 250,
-							pPad->getFlamCancelDuringRoll(),
-							boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1),
-							tr("If the previous hit before the flam is under this value the flam is cancelled").toStdString()));
-				pGroup1->addChild(pParam5);
+				pGroup1->addChild(Parameter::Ptr(new Parameter("Flam cancel detection (ms)", 0, 250,
+								pPad->getFlamCancelDuringRoll(),
+								boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1),
+								tr("If the previous hit before the flam is under this value the flam is cancelled").toStdString())));
 
 				pRoot->addChild(pGroup1);
 			}
@@ -1234,7 +1239,6 @@ Slot::Ptr MainWindow::createDefaultSlot()
 	// Hi Hat
     const Pad::Ptr& pElHihat = Pad::Ptr(new Pad(Pad::HIHAT, Pad::NOTE_HIHAT)); 
     pElHihat->setTypeFlam(Pad::SNARE);
-    pElHihat->setFlamTimeWindow2(0);
     pDefaultSlot->getPads().push_back(pElHihat);
 
 	// Hi Hat Pedal
@@ -1448,16 +1452,10 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 						pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
 								boost::bind(&Pad::setTypeFlam, pPad, _1));
 
-						pGroup1->getChildAt(1)->update(	pPad->getFlamTimeWindow1(),
-								boost::bind(&Pad::setFlamTimeWindow1, pPad, _1));
+						pGroup1->getChildAt(1)->update(	pPad->getFlamFunctions(),
+								boost::bind(&Pad::setFlamFunctions, pPad, _1));
 
-						pGroup1->getChildAt(2)->update(	pPad->getFlamTimeWindow2(),
-								boost::bind(&Pad::setFlamTimeWindow2, pPad, _1));
-
-						pGroup1->getChildAt(3)->update(	pPad->getFlamVelocityFactor(),
-								boost::bind(&Pad::setFlamVelocityFactor, pPad, _1));
-
-						pGroup1->getChildAt(4)->update(	pPad->getFlamCancelDuringRoll(),
+						pGroup1->getChildAt(2)->update(	pPad->getFlamCancelDuringRoll(),
 								boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
 					}
 
@@ -1880,28 +1878,15 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
 				{
 					const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
-					if (!functions.empty())
+					LinearFunction::List::const_iterator it = functions.begin();
+					while (it!=functions.end())
 					{
-						LinearFunction::List::const_iterator it = functions.begin();
-						float x1, x2, a, b, threshold;
-						while (it!=functions.end())
+						const LinearFunction& f = *(it++);
+						if (f.canApply(currentControlPos) && currentMsg.getValue()>f(currentControlPos))
 						{
-							const LinearFunction& f = *(it++);
-							x1 = f.getX1();
-							x2 = f.getX2();
-							a = f.getA();
-							b = f.getB();
-							if (currentControlPos>=x1 && currentControlPos<=x2)
-							{
-								// f = a*x + b
-								threshold = a*currentControlPos+b;
-								if (currentMsg.getValue()>threshold)
-								{
-									// Change the yellow hi-hat to blue on accent
-									currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
-									break;
-								}
-							}
+							// Change the yellow hi-hat to blue on accent
+							currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+							break;
 						}
 					}
 				}

@@ -40,6 +40,7 @@ public:
 	virtual ~FunctionItemEditor();
 
 	void setSingleStep(double);
+	void setDecimals(int);
 	void setMinimum(double);
 	void setMaximum(double);
 	void setData(double value);

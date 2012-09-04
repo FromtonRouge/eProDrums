@@ -103,21 +103,10 @@ public:
 	static std::string getColor(Type type);
 
 public:
-	Pad():
-		_defaultOutputNote(0),
-		_ghostVelocityLimit(0),
-		_flamVelocityFactor(1.10f),
-		_flamTimeWindow1(45),
-		_flamTimeWindow2(70),
-		_flamCancelDuringRoll(100)
-	{}
-
+	Pad();
 	Pad(	Type type,
 			int defaultMidiNote,
 			int ghostVelocityLimit = 0,
-			float flamVelocityFactor = 1.10f,
-			int flamTimeWindow1 = 45,
-			int flamTimeWindow2 = 70,
 			int flamCancelDuringRoll = 100);
 
 	Pad(const Pad& rOther);
@@ -139,12 +128,8 @@ public:
 	void setGhostVelocityLimit(const Parameter::Value& velocity);
 	bool isFlamActivated() const;
 	void setFlamActivated(const Parameter::Value& value);
-	float getFlamVelocityFactor() const;
-	void setFlamVelocityFactor(const Parameter::Value& value);
-	int getFlamTimeWindow1() const;
-	void setFlamTimeWindow1(const Parameter::Value& value);
-	int getFlamTimeWindow2() const;
-	void setFlamTimeWindow2(const Parameter::Value& value);
+	LinearFunction::List getFlamFunctions() const;
+	void setFlamFunctions(const Parameter::Value& value);
 	int getFlamCancelDuringRoll() const;
 	void setFlamCancelDuringRoll(const Parameter::Value& value);
 	std::string getName() const;
@@ -180,9 +165,7 @@ private:
 	// Settings
 	Parameter::Value	_ghostVelocityLimit;
 	Parameter::Value	_isFlamActivated;
-	Parameter::Value	_flamVelocityFactor;
-	Parameter::Value	_flamTimeWindow1;
-	Parameter::Value	_flamTimeWindow2;
+	Parameter::Value	_flamFunctions;
 	Parameter::Value	_flamCancelDuringRoll;
 
 private:
@@ -195,9 +178,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_defaultOutputNote);
 		ar  & BOOST_SERIALIZATION_NVP(_ghostVelocityLimit);
 		ar  & BOOST_SERIALIZATION_NVP(_isFlamActivated);
-		ar  & BOOST_SERIALIZATION_NVP(_flamVelocityFactor);
-		ar  & BOOST_SERIALIZATION_NVP(_flamTimeWindow1);
-		ar  & BOOST_SERIALIZATION_NVP(_flamTimeWindow2);
+		ar  & BOOST_SERIALIZATION_NVP(_flamFunctions);
 		ar  & BOOST_SERIALIZATION_NVP(_flamCancelDuringRoll);
 	}
 };

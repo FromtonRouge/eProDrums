@@ -49,9 +49,14 @@ DWORD MidiMessage::computeOutputMessage() const
     return result;
 }
 
+int MidiMessage::getAbsTimeDiff(const MidiMessage& otherMessage) const
+{
+	return std::abs(otherMessage.getTimestamp() - getTimestamp());
+}
+
 bool MidiMessage::isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const
 {
-	return timeWindow!=0 && std::abs(otherMessage.getTimestamp() - getTimestamp()) <= timeWindow;
+	return timeWindow!=0 && (getAbsTimeDiff(otherMessage) <= timeWindow);
 }
 
 void MidiMessage::changeOutputNote(int note, bool bChangeModifiedState)
