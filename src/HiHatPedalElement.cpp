@@ -60,8 +60,9 @@ HiHatPedalElement::HiHatPedalElement():
 	_halfOpenActivationTime(0)
 {
 	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 127, 127));
-	functions.push_back(LinearFunction(45, 127, 127, 70));
+	functions.push_back(LinearFunction(0, 48, 127, 127));
+	functions.push_back(LinearFunction(48, 60, 80, 80));
+	functions.push_back(LinearFunction(60, 127, 80, 80));
 	_blueAccentFunctions = functions;
 }
 

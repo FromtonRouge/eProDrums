@@ -1861,7 +1861,9 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// Change the yellow hi-hat to blue if the pedal is blue
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
-				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
+				else if (	pElHihatPedal->isBlueDetectionByAccent()
+						&& !pElHihatPedal->isHalfOpen()
+					   	&& currentControlPos > pElHihatPedal->getSecurityPosition())
 				{
 					const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
 					LinearFunction::List::const_iterator it = functions.begin();
