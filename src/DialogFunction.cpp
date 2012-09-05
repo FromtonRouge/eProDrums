@@ -145,7 +145,7 @@ void DialogFunction::onModelChanged()
 	{
 		const LinearFunction& f = functions[i];
 
-		boost::shared_ptr<QwtPlotIntervalCurve> pCurve(new QwtPlotIntervalCurve(f.getName().c_str()));
+		boost::shared_ptr<QwtPlotIntervalCurve> pCurve(new QwtPlotIntervalCurve);
 		pCurve->setStyle(QwtPlotIntervalCurve::Tube);
 		QwtIntervalSeriesData* pData = new QwtIntervalSeriesData();
 

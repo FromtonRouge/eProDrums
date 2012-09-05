@@ -36,7 +36,7 @@
          <x>0</x>
          <y>0</y>
          <width>840</width>
-         <height>255</height>
+         <height>209</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
@@ -360,8 +360,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>123</width>
-               <height>195</height>
+               <width>105</width>
+               <height>241</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
@@ -386,13 +386,6 @@
                  <bool>false</bool>
                 </property>
                 <layout class="QGridLayout" name="gridLayoutLogs">
-                 <item row="4" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsFlams">
-                   <property name="text">
-                    <string>Flams</string>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="1" column="2">
                   <widget class="QCheckBox" name="checkBoxLogsRawData">
                    <property name="text">
@@ -400,14 +393,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="5" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsGhostNotes">
-                   <property name="text">
-                    <string>Ghost Notes</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="2">
+                 <item row="4" column="2">
                   <widget class="QCheckBox" name="checkBoxLogsOthers">
                    <property name="text">
                     <string>Others</string>
@@ -438,7 +424,7 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="2">
+                 <item row="5" column="2">
                   <spacer name="verticalSpacer">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>

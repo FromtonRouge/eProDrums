@@ -50,25 +50,31 @@ std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(BASS_DRUM, "#FCCB42");
 
 Pad::Pad():
+	_type(SNARE),
+	_typeFlam(SNARE),
 	_defaultOutputNote(0),
 	_ghostVelocityLimit(0),
-	_flamFunctions(LinearFunction::List()),
+	_isFlamActivated(false),
 	_flamCancelDuringRoll(100)
 {
+	LinearFunction::List functions;
+	functions.push_back(LinearFunction(0, 45, 0.3f, 0.3f));
+	functions.push_back(LinearFunction(45, 80, 1.0f, 1.15f));
+	_flamFunctions = functions;
 }
 
-Pad::Pad(	Type type,
-			int defaultMidiNote,
-			int ghostVelocityLimit,
-			int flamCancelDuringRoll):
+Pad::Pad(Type type, int defaultMidiNote):
 	_type(type),
 	_typeFlam(type),
 	_defaultOutputNote(defaultMidiNote),
-	_ghostVelocityLimit(ghostVelocityLimit),
+	_ghostVelocityLimit(0),
 	_isFlamActivated(false),
-	_flamFunctions(LinearFunction::List()),
-	_flamCancelDuringRoll(flamCancelDuringRoll)
+	_flamCancelDuringRoll(100)
 {
+	LinearFunction::List functions;
+	functions.push_back(LinearFunction(0, 45, 0.3f, 0.3f));
+	functions.push_back(LinearFunction(45, 80, 1.0f, 1.15f));
+	_flamFunctions = functions;
 }
 
 std::string Pad::getName(Type type)
@@ -223,12 +229,6 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	Mutex::scoped_lock lock(_mutex);
 	MidiMessage::List messageToSend;
 
-	boost::format fmtFlamTw1("Flam in [FTW1] : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW1]=%d");
-	boost::format fmtFlamTw2("Flam in [FTW2] : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW2]=%d, vel1stHit=%d, vel2ndHit=%d");
-	boost::format fmtFlamTw1Ghost("Flam in [FTW1] after a ghost note : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW1]=%d, vel1stHit=%d, threshold=%d");
-	boost::format fmtFlamTw2Ghost("Flam in [FTW2] after a ghost note : t1stHit=%d, t2ndHit=%d, tDiff=%d, [FTW2]=%d, vel1stHit=%d, vel2ndHit=%d");
-	boost::format fmtGhostNote("Ghost note detected : velCurrent=%d <= [THRESHOLD]=%d");
-
 	// Hits history for this element
 	const MidiMessage::History& history = lastMsgSent[_type];
 
@@ -237,10 +237,11 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 	// Note: In buffer case, pNext != NULL, NULL otherwise
 	if (pCurrent->getValue() <= getGhostVelocityLimit())
 	{
-		bool bDoGhostNoteTest = false;
+		bool bDoGhostNoteTest = true;
 		if (isFlamActivated())
 		{
-			if (pNext)
+			// If the next hit is not a ghost note
+			if (pNext && pNext->getValue() > getGhostVelocityLimit())
 			{
 				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 				{
@@ -253,33 +254,23 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 						if (f.canApply(timeDiff) && pNext->getValue() >= int(pCurrent->getValue()*f(timeDiff)))
 						{
 							pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+							bDoGhostNoteTest = false;
 							break;
 						}
 					}
 				}
 			}
-			else
-			{
-				bDoGhostNoteTest = true;
-			}
-		}
-		else
-		{
-			bDoGhostNoteTest = true;
 		}
 		
 		if (bDoGhostNoteTest)
 		{
-			{
-				logGhost(fmtGhostNote % pCurrent->getValue() % getGhostVelocityLimit());
-			}
-
 			pCurrent->ignore(MidiMessage::IGNORED_BECAUSE_GHOST);
 		}
 	}
 	else if (isFlamActivated())
 	{
-		if (pNext)
+		// If the next hit is not a ghost note
+		if (pNext && pNext->getValue() > getGhostVelocityLimit())
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 			{

@@ -38,6 +38,4 @@ UserSettings::LogActivation UserSettings::LOG_ACTIVATED				= 1<<0;
 UserSettings::LogActivation UserSettings::LOG_RAW_DATA				= 1<<1;
 UserSettings::LogActivation UserSettings::LOG_FILTERED_DATA			= 1<<2;
 UserSettings::LogActivation UserSettings::LOG_HIHAT_CONTROL			= 1<<3;
-UserSettings::LogActivation UserSettings::LOG_FLAMS					= 1<<4;
-UserSettings::LogActivation UserSettings::LOG_GHOST_NOTES			= 1<<5;
-UserSettings::LogActivation UserSettings::LOG_OTHERS				= 1<<6;
+UserSettings::LogActivation UserSettings::LOG_OTHERS				= 1<<4;

@@ -494,8 +494,6 @@ MainWindow::MainWindow():
 	checkBoxLogsRawData->setChecked(false);
 	checkBoxLogsFilteredData->setChecked(false);
 	checkBoxLogsHiHatControl->setChecked(false);
-	checkBoxLogsFlams->setChecked(false);
-	checkBoxLogsGhostNotes->setChecked(false);
 	checkBoxLogsOthers->setChecked(true);
 	
     // Run the midi thread
@@ -1651,18 +1649,6 @@ void MainWindow::on_checkBoxLogsHiHatControl_toggled(bool checked)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_userSettings.setLog(UserSettings::LOG_HIHAT_CONTROL, checked);
-}
-
-void MainWindow::on_checkBoxLogsFlams_toggled(bool checked)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_userSettings.setLog(UserSettings::LOG_FLAMS, checked);
-}
-
-void MainWindow::on_checkBoxLogsGhostNotes_toggled(bool checked)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_userSettings.setLog(UserSettings::LOG_GHOST_NOTES, checked);
 }
 
 void MainWindow::on_checkBoxLogsOthers_toggled(bool checked)

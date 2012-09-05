@@ -48,7 +48,7 @@
 struct UserSettings
 {
 	typedef std::bitset<12>	CurveVisibility;
-	typedef std::bitset<7>	LogActivation;
+	typedef std::bitset<5>	LogActivation;
 
 	static CurveVisibility CURVE_HIHAT_CONTROL;
 	static CurveVisibility CURVE_HIHAT_ACCELERATION;
@@ -67,8 +67,6 @@ struct UserSettings
 	static LogActivation LOG_RAW_DATA;
 	static LogActivation LOG_FILTERED_DATA;
 	static LogActivation LOG_HIHAT_CONTROL;
-	static LogActivation LOG_FLAMS;
-	static LogActivation LOG_GHOST_NOTES;
 	static LogActivation LOG_OTHERS;
 
 	/**

@@ -87,8 +87,6 @@ private slots:
 	void on_checkBoxLogsRawData_toggled(bool checked);
 	void on_checkBoxLogsFilteredData_toggled(bool checked);
 	void on_checkBoxLogsHiHatControl_toggled(bool checked);
-	void on_checkBoxLogsFlams_toggled(bool checked);
-	void on_checkBoxLogsGhostNotes_toggled(bool checked);
 	void on_checkBoxLogsOthers_toggled(bool checked);
 
 	// Midi settings

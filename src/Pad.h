@@ -30,7 +30,6 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
-#include <boost/format.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
 /**
@@ -41,8 +40,6 @@ class Pad
 public:
 	typedef boost::shared_ptr<Pad> Ptr;
 	typedef std::vector<Ptr> List;
-
-	typedef boost::signals2::signal<void (const boost::format&)> SignalLog;
 
 	enum Type
 	{
@@ -104,10 +101,7 @@ public:
 
 public:
 	Pad();
-	Pad(	Type type,
-			int defaultMidiNote,
-			int ghostVelocityLimit = 0,
-			int flamCancelDuringRoll = 100);
+	Pad(Type type, int defaultMidiNote);
 
 	Pad(const Pad& rOther);
 	Pad& operator=(const Pad& rOther);
@@ -115,7 +109,6 @@ public:
 	virtual ~Pad();
 
 public:
-	void connectLogs(const SignalLog::slot_function_type& funcFlams, const SignalLog::slot_function_type& funcGhost) {_signalLogFlams.connect(funcFlams); _signalLogGhost.connect(funcGhost);}
 	MidiDescription getMidiDescription() const;
 	void setMidiNotes(const MidiNotes& notes);
 	Type getType() const;
@@ -141,10 +134,6 @@ public:
 	 */
 	MidiMessage::List applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext);
 
-protected:
-	void logFlams(const boost::format& fmt) const {_signalLogFlams(fmt);}
-	void logGhost(const boost::format& fmt) const {_signalLogGhost(fmt);}
-
 private:
 	bool isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const;
 
@@ -152,9 +141,6 @@ protected:
 	mutable Mutex		_mutex;
 
 private:
-	SignalLog			_signalLogFlams;
-	SignalLog			_signalLogGhost;
-
 	MidiNotes			_midiNotes;
 
 	// Archived data

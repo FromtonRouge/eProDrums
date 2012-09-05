@@ -58,7 +58,13 @@ struct LinearFunction
 
 	typedef std::vector<LinearFunction> List;
 
-	LinearFunction():_x1(0), _x2(30), _y1(50), _y2(50), _a(0), _b(0) {updateAandB();}
+	LinearFunction(float x1=0.f, float x2=30.f, float y1=50.f, float y2=50.f):
+		_x1(x1), _x2(x2),
+	   	_y1(y1), _y2(y2),
+	   	_a(0), _b(0)
+   	{
+		updateAandB();
+	}
 
 	/**
 	 * \return true if x is between _x1 and _x2
@@ -99,9 +105,6 @@ struct LinearFunction
 		_y2 = _a*_x2+_b;
 	}
 
-	const std::string& getName() const {return _name;}
-	void setName(const std::string& szName) {_name = szName;}
-
 	float getX1() const {return _x1;}
 	float getX2() const {return _x2;}
 	float getY1() const {return _y1;}
@@ -123,7 +126,6 @@ private:
 	}
 
 private:
-	std::string _name;
 	float _x1, _y1;
 	float _x2, _y2;
 	float _a, _b;
@@ -132,7 +134,6 @@ private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
-		ar  & BOOST_SERIALIZATION_NVP(_name);
 		ar  & BOOST_SERIALIZATION_NVP(_x1);
 		ar  & BOOST_SERIALIZATION_NVP(_y1);
 		ar  & BOOST_SERIALIZATION_NVP(_x2);

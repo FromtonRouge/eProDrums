@@ -175,7 +175,8 @@ public:
 				{
 				case 0:
 					{
-						variant = QString(f.getName().c_str());
+
+						variant = tr("Function ") + QString::number(index.row());
 						break;
 					}
 				}
@@ -188,7 +189,7 @@ public:
 				{
 				case 0:
 					{
-						variant = QString(f.getName().c_str());
+						variant = tr("Function ") + QString::number(index.row());
 						break;
 					}
 				case 1:
@@ -236,7 +237,6 @@ public:
 	{
 		beginInsertRows(QModelIndex(), _functions.size(), _functions.size());
 		LinearFunction newFunc;
-		newFunc.setName((tr("Function ") + QString::number(_functions.size()+1)).toStdString());
 		if (!_functions.empty())
 		{
 			const LinearFunction& prevFunc = _functions.back();

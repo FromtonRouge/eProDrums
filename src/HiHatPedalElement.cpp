@@ -57,9 +57,12 @@ HiHatPedalElement::HiHatPedalElement():
 	_cancelOpenHitVelocity(0),
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
-	_halfOpenActivationTime(0),
-	_blueAccentFunctions(LinearFunction::List())
+	_halfOpenActivationTime(0)
 {
+	LinearFunction::List functions;
+	functions.push_back(LinearFunction(0, 45, 127, 127));
+	functions.push_back(LinearFunction(45, 127, 127, 70));
+	_blueAccentFunctions = functions;
 }
 
 HiHatPedalElement::HiHatPedalElement(const HiHatPedalElement& rOther)
