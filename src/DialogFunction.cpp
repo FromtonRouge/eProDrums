@@ -23,6 +23,8 @@
 #include "FunctionItemModel.h"
 #include "FunctionItemDelegate.h"
 
+#include <qwt_symbol.h>
+#include <qwt_plot_marker.h>
 #include <qwt_plot_grid.h>
 #include <qwt_plot_intervalcurve.h>
 #include <qwt_series_data.h>
@@ -38,29 +40,39 @@ DialogFunction::FunctionPlotPicker::FunctionPlotPicker(QwtPlotCanvas* pCanvas):Q
 
 QwtText DialogFunction::FunctionPlotPicker::trackerText(const QPoint& pointInPixel) const
 {
-	boost::format fmtMsg("x=%.1f, y=%.1f");
-	const QPointF& point = invTransform(pointInPixel);
-	return (fmtMsg%point.x()%point.y()).str().c_str();
+	onTrackerPosChanged(invTransform(pointInPixel));
+	return QwtText();
 }
 
 DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
 								const LinearFunction::List& functions,
 								QWidget* pParent):QDialog(pParent),
 	_pFunctionItemModel(new FunctionItemModel(pDescription, functions)),
-	_pFunctionItemDelegate(new FunctionItemDelegate(pDescription))
+	_pFunctionItemDelegate(new FunctionItemDelegate(pDescription)),
+	_pDescription(pDescription)
 {
 	setupUi(this);
 
 	connect(_pFunctionItemModel.get(), SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(onModelChanged()));
 
 	_pPlot = new QwtPlot(this);
-    _pPlot->setAxisScale(QwtPlot::xBottom, pDescription->xMin, pDescription->xMax);
-    _pPlot->setAxisScale(QwtPlot::yLeft, pDescription->yMin, pDescription->yMax);
+    _pPlot->setAxisScale(QwtPlot::xBottom, _pDescription->xMin, _pDescription->xMax);
+    _pPlot->setAxisScale(QwtPlot::yLeft, _pDescription->yMin, _pDescription->yMax);
     _pPlot->setAxisMaxMinor(QwtPlot::yLeft, 2);
     _pPlot->setAxisMaxMinor(QwtPlot::xBottom, 2);
     _pPlot->setCanvasBackground(QColor(Qt::black));
-    _pPlot->setAxisTitle(QwtPlot::xBottom, pDescription->szLabelX.c_str());
-    _pPlot->setAxisTitle(QwtPlot::yLeft, pDescription->szLabelY.c_str());
+    _pPlot->setAxisTitle(QwtPlot::xBottom, _pDescription->szLabelX.c_str());
+    _pPlot->setAxisTitle(QwtPlot::yLeft, _pDescription->szLabelY.c_str());
+
+	QColor inColor(255, 0, 0);
+	QColor outColor(255, 255, 255);
+	_pPlotMarker = new QwtPlotMarker;
+	_pPlotMarker->setLineStyle(QwtPlotMarker::Cross);
+	_pPlotMarker->setLabelAlignment(Qt::AlignLeft|Qt::AlignTop);
+	_pPlotMarker->setLinePen(QPen(QColor(Qt::white), 0, Qt::DashDotLine));
+    _pPlotMarker->setSymbol(new QwtSymbol(QwtSymbol::Diamond, inColor, outColor, QSize(4,4)));
+	_pPlotMarker->attach(_pPlot);
+	_pPlotMarker->setVisible(false);
 
 	gridLayout->addWidget(_pPlot, 0, 0);
 
@@ -72,6 +84,7 @@ DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescrip
     _pPlotPicker->setRubberBandPen(QColor(Qt::white));
     _pPlotPicker->setTrackerPen(QColor(Qt::white));
 	_pPlotPicker->setTrackerMode(FunctionPlotPicker::AlwaysOn);
+	_pPlotPicker->onTrackerPosChanged.connect(boost::bind(&DialogFunction::onTrackerPosChanged, this, _1));
 
 	tableView->setModel(_pFunctionItemModel.get());
 	tableView->setItemDelegate(_pFunctionItemDelegate.get());
@@ -141,6 +154,9 @@ void DialogFunction::onModelChanged()
 	const LinearFunction::List& functions = _pFunctionItemModel->getFunctions();
 	_curves.clear();
 
+	int r = 200;
+	int g = 30;
+	int b = 30;
 	for (size_t i=0;i<functions.size();++i)
 	{
 		const LinearFunction& f = functions[i];
@@ -154,7 +170,11 @@ void DialogFunction::onModelChanged()
 		samples.push_back(QwtIntervalSample(f.getX2(), 0, f.getY2()));
 		pData->setSamples(samples);
 
-		QColor color(200, 50*i, 50*i+100);
+		g += 40;
+		b += 40; 
+		g = g>255?40:g;
+		b = b>255?40:b;
+		QColor color(r,g,b);
 		color.setAlpha(170);
 		pCurve->setBrush(color);
 		pCurve->setData(pData);
@@ -168,4 +188,51 @@ void DialogFunction::onModelChanged()
 const LinearFunction::List& DialogFunction::getFunctions()
 {
 	return _pFunctionItemModel->getFunctions();
+}
+
+void DialogFunction::onTrackerPosChanged(const QPointF& point)
+{
+	boost::format fmtMsg("x=%.1f, y=%.1f");
+	const LinearFunction::List& functions = _pFunctionItemModel->getFunctions();
+	LinearFunction::List::const_iterator it = functions.begin();
+	while (it!=functions.end())
+	{
+		const LinearFunction& f = *(it++);
+		float x = point.x();
+		if (f.canApply(x))
+		{
+			if (!_pPlotMarker->isVisible())
+			{
+				_pPlotMarker->setVisible(true);
+			}
+
+			float y = f(x);
+			_pPlotMarker->setValue(point.x(), y);
+			Qt::Alignment alignment;
+			if (y>=(_pDescription->yMax-_pDescription->yMin)/2)
+			{
+				alignment = Qt::AlignBottom;
+			}
+			else
+			{
+				alignment = Qt::AlignTop;
+			}
+
+			if (x<=(_pDescription->xMax-_pDescription->xMin)/2)
+			{
+				alignment |= Qt::AlignRight;
+			}
+			else
+			{
+				alignment |= Qt::AlignLeft;
+			}
+
+			_pPlotMarker->setLabelAlignment(alignment);
+
+			QwtText label((fmtMsg%x%y).str().c_str());
+			_pPlotMarker->setLabel(label);
+			_pPlot->replot();
+			break;
+		}
+	}
 }

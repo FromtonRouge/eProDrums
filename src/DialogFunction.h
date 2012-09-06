@@ -29,16 +29,29 @@
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/signals2.hpp>
 #include <vector>
 
 class FunctionItemModel;
 class FunctionItemDelegate;
 class QwtPlotIntervalCurve;
+class QwtPlotMarker;
 class QMenu;
 
 class DialogFunction : public QDialog, private Ui::DialogFunction
 {
 	Q_OBJECT
+private:
+	struct FunctionPlotPicker : public QwtPlotPicker
+	{
+		typedef boost::signals2::signal<void (const QPointF&)> OnTrackerPosChanged;
+		OnTrackerPosChanged onTrackerPosChanged;
+
+		FunctionPlotPicker(QwtPlotCanvas*);
+
+	protected:
+		virtual QwtText trackerText(const QPoint &) const;
+	};
 
 public:
 	DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
@@ -53,19 +66,17 @@ private slots:
 	void onActionAddTriggered(bool checked=false);
 	void onActionRemoveTriggered(bool checked=false);
 
-private:
-	struct FunctionPlotPicker : public QwtPlotPicker
-	{
-		FunctionPlotPicker(QwtPlotCanvas*);
-	protected:
-		virtual QwtText trackerText(const QPoint &) const;
-	};
+protected:
+	void onTrackerPosChanged(const QPointF&);
 
+private:
 	QwtPlot*			_pPlot;
+	QwtPlotMarker*		_pPlotMarker;
 	FunctionPlotPicker*	_pPlotPicker;
 	QMenu*				_pMenu;
 	boost::scoped_ptr<FunctionItemModel>			_pFunctionItemModel;
 	boost::scoped_ptr<FunctionItemDelegate>			_pFunctionItemDelegate;
 	std::vector<boost::shared_ptr<QwtPlotIntervalCurve>>	_curves;
 	LinearFunction::List	_functions;
+	LinearFunction::Description::Ptr	_pDescription;
 };

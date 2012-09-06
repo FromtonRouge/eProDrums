@@ -20,8 +20,7 @@
 // ============================================================ 
 
 #include "EProPlotMarker.h"
-#include "qwt_symbol.h"
-#include "qwt_plot.h"
+#include <qwt_plot.h>
 
 EProPlotMarker::EProPlotMarker(QwtPlot* pPlot, QwtSymbol::Style style, const QColor& inColor, const QColor& outColor, const QSize& size)
 {

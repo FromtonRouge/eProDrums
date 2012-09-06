@@ -78,16 +78,26 @@ public:
 		// Data given by the editor
 		if (role==Qt::EditRole)
 		{
+			size_t prevRow = idx.row()-1;
+			size_t nextRow = idx.row()+1;
 			switch (idx.column())
 			{
 			case 1:
 				{
+					if (prevRow<_functions.size())
+					{
+						_functions[prevRow].setX2(value.toFloat());
+					}
 					_functions[idx.row()].setX1(value.toFloat());
 					break;
 				}
 			case 2:
 				{
 					_functions[idx.row()].setX2(value.toFloat());
+					if (nextRow<_functions.size())
+					{
+						_functions[nextRow].setX1(value.toFloat());
+					}
 					break;
 				}
 			case 3:
@@ -111,7 +121,7 @@ public:
 					break;
 				}
 			}
-			emit dataChanged(index(idx.row(), 1), index(idx.row(), 6));
+			emit dataChanged(index(0, 1), index(rowCount(), 6));
 			return true;
 		}
 		return false;

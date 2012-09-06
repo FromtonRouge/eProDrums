@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "qwt_plot_marker.h"
-#include "qwt_symbol.h"
+#include <qwt_plot_marker.h>
+#include <qwt_symbol.h>
 #include <string>
 
 class QwtSymbol;
