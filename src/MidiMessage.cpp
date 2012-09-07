@@ -64,3 +64,9 @@ void MidiMessage::changeOutputNote(int note, bool bChangeModifiedState)
 	_outputNote = note;
 	_alreadyModified = bChangeModifiedState;
 }
+
+void MidiMessage::setValue(char value)
+{
+	_dwParam1 &= 0xFF00FFFF;  // reset the byte where value is stored
+	_dwParam1 |= (value<<16); // set the value
+}

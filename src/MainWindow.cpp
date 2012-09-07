@@ -1957,22 +1957,27 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				if (mutableCrashWithCrash && pPreviousCRASH2 && !pPreviousCRASH2->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousCRASH2, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithRide && pNextOrPreviousRIDE && currentMsg.isInTimeWindow(*pNextOrPreviousRIDE, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithSnare && pNextOrPreviousSNARE && currentMsg.isInTimeWindow(*pNextOrPreviousSNARE, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithTom2 && pNextOrPreviousTOM2 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM2, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithTom3 && pNextOrPreviousTOM3 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM3, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else
 				{
@@ -2001,6 +2006,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Previous was a mutable crash, if the mutable was not changed we have to change the CRASH2 to yellow
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.setValue(127);
 				}
 				else
 				{
@@ -2017,6 +2023,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow Crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2033,6 +2040,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow Crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2056,6 +2064,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2072,6 +2081,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{

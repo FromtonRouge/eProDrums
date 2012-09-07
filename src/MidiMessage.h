@@ -62,6 +62,7 @@ public:
 	int getOutputNote() const {return _outputNote;}
 	void changeOutputNote(int note, bool bChangeModifiedState=true);
 	int getValue() const { return (_dwParam1 & 0x00FF0000) >> 16;}
+	void setValue(char value);
 	int getTimestamp() const {return _dwParam2;}
 	void setTimestamp(int timestamp) {_dwParam2 = timestamp;}
 
@@ -79,18 +80,17 @@ public:
 	bool isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const;
 	int getAbsTimeDiff(const MidiMessage& otherMessage) const;
 
+public:
 	float hiHatSpeed;
 	float hiHatAcceleration;
 
 private:
-	DWORD_PTR	_dwParam1;
-	DWORD_PTR	_dwParam2;
+	DWORD_PTR			_dwParam1;
+	DWORD_PTR			_dwParam2;
 	IgnoreReason		_ignore;
-	bool		_alreadyModified;
-	int			_outputNote; // By default the output note is the original note
-
-	/** receive time set at construction time. */
-	Clock::time_point _tReceiveTime;
+	bool				_alreadyModified;
+	int					_outputNote; ///< By default the output note is the original note.
+	Clock::time_point	_tReceiveTime; ///< receive time set at construction time.
 };
 
 typedef std::set<int> MidiNotes;
