@@ -1756,11 +1756,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 						// Hi Hat closing and the close speed is reached
 						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);
 					}
-					else
-					{
-						// Only change the reason to CLOSING_MOVEMENT
-						pElHihatPedal->setBlueStateChangeReason(HiHatPedalElement::CLOSING_MOVEMENT);
-					}
 				}
 				else
 				{
