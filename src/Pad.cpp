@@ -58,8 +58,8 @@ Pad::Pad():
 	_flamCancelDuringRoll(100)
 {
 	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 0.3f, 0.3f));
-	functions.push_back(LinearFunction(45, 80, 1.0f, 1.15f));
+	functions.push_back(LinearFunction(0, 45, 1.0f, 1.0f));
+	functions.push_back(LinearFunction(45, 80, 1.15f, 1.20f));
 	_flamFunctions = functions;
 }
 
@@ -72,8 +72,8 @@ Pad::Pad(Type type, int defaultMidiNote):
 	_flamCancelDuringRoll(100)
 {
 	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 0.3f, 0.3f));
-	functions.push_back(LinearFunction(45, 80, 1.0f, 1.15f));
+	functions.push_back(LinearFunction(0, 45, 1.0f, 1.0f));
+	functions.push_back(LinearFunction(45, 80, 1.15f, 1.20f));
 	_flamFunctions = functions;
 }
 

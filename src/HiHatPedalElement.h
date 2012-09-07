@@ -44,6 +44,15 @@ public:
 		MS_START_CLOSE
 	};
 
+	enum BlueStateChangeReason
+	{
+		INITIAL_STATE,
+		POSITION_THRESHOLD,
+		IN_SECURED_ZONE,
+		OPENING_MOVEMENT,
+		CLOSING_MOVEMENT
+	};
+
 public:
 	HiHatPedalElement();
 	virtual ~HiHatPedalElement();
@@ -74,7 +83,9 @@ public:
     int getCloseSpeed() const;
     void setCloseSpeed(const Parameter::Value& value);
 	bool isBlue() const;
-	void setBlue(bool state);
+	BlueStateChangeReason getBlueStateChangeReason() const;
+	void setBlueStateChangeReason(BlueStateChangeReason reason);
+	void setBlue(bool state, BlueStateChangeReason reason);
 	bool isHalfOpen() const;
 	void setHalfOpen(bool state);
 
@@ -143,6 +154,7 @@ private:
 	float	_currentControlSpeed;			// in unit/s
 	float	_previousControlSpeed;			// in unit/s
 	float 	_currentControlAcceleration;	// in unit/s²
+	BlueStateChangeReason _blueStateChangeReason;
 
 	/** Position of the hh control at the very start of a closing movement. */
 	int		_posOnCloseBegin; 

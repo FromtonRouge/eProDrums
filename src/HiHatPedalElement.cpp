@@ -57,7 +57,8 @@ HiHatPedalElement::HiHatPedalElement():
 	_cancelOpenHitVelocity(0),
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
-	_halfOpenActivationTime(0)
+	_halfOpenActivationTime(0),
+	_blueStateChangeReason(INITIAL_STATE)
 {
 	LinearFunction::List functions;
 	functions.push_back(LinearFunction(0, 48, 127, 127));
@@ -115,6 +116,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_securityPosition = rOther._securityPosition;
 		_halfOpenMaximumPosition = rOther._halfOpenMaximumPosition;
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
+		_blueStateChangeReason = rOther._blueStateChangeReason;
 		_blueAccentFunctions = rOther._blueAccentFunctions;
 	}
 	return *this;
@@ -149,7 +151,7 @@ void HiHatPedalElement::setBlueDetectionByPosition(const Parameter::Value& state
 	if (!boost::get<bool>(_isBlueDetectionByPosition))
 	{
 		// Reset the blue state
-		setBlue(false);
+		setBlue(false, POSITION_THRESHOLD);
 	}
 }
 
@@ -207,10 +209,23 @@ bool HiHatPedalElement::isBlue() const
 	return _isBlue;
 }
 
-void HiHatPedalElement::setBlue(bool state)
+void HiHatPedalElement::setBlue(bool state, BlueStateChangeReason reason)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_isBlue = state;
+	_blueStateChangeReason = reason;
+}
+
+HiHatPedalElement::BlueStateChangeReason HiHatPedalElement::getBlueStateChangeReason() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _blueStateChangeReason;
+}
+
+void HiHatPedalElement::setBlueStateChangeReason(BlueStateChangeReason reason)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_blueStateChangeReason = reason;
 }
 
 bool HiHatPedalElement::isHalfOpen() const

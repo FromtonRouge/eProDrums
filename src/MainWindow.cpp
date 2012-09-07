@@ -1693,6 +1693,10 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		int currentControlPos = pElHihatPedal->getCurrentControlPos();
 		float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
 		bool bSecured = currentControlPos<=pElHihatPedal->getSecurityPosition();
+		if (bSecured)
+		{
+			pElHihatPedal->setBlue(false, HiHatPedalElement::IN_SECURED_ZONE);
+		}
 
 		// Half-open mode
 		if (pElHihatPedal->isHalfOpenModeEnabled())
@@ -1701,7 +1705,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			{
 				pElHihatPedal->setHalfOpenEnteringTime(0);
 				pElHihatPedal->setHalfOpen(false);
-				pElHihatPedal->setBlue(false);
 			}
 			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()==0)
 			{
@@ -1737,7 +1740,12 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					if (pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed())
 					{
-						pElHihatPedal->setBlue(true);
+						pElHihatPedal->setBlue(true, HiHatPedalElement::OPENING_MOVEMENT);
+					}
+					else
+					{
+						// Only change the reason to OPENING_MOVEMENT
+						pElHihatPedal->setBlueStateChangeReason(HiHatPedalElement::OPENING_MOVEMENT);
 					}
 				}
 				else if (pElHihatPedal->getCurrentControlSpeed() < 0)
@@ -1746,7 +1754,12 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getCloseSpeed())
 					{
 						// Hi Hat closing and the close speed is reached
-						pElHihatPedal->setBlue(false);
+						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);
+					}
+					else
+					{
+						// Only change the reason to CLOSING_MOVEMENT
+						pElHihatPedal->setBlueStateChangeReason(HiHatPedalElement::CLOSING_MOVEMENT);
 					}
 				}
 				else
@@ -1763,18 +1776,17 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			{
 				if (pElHihatPedal->getBlueStateEnteringTime()==0)
 				{
-					pElHihatPedal->setBlueStateEnteringTime(currentTime);
-				}
+					pElHihatPedal->setBlueStateEnteringTime(currentTime); }
 
 				if (currentTime-pElHihatPedal->getBlueStateEnteringTime() >= pElHihatPedal->getControlPosDelayTime())
 				{
-					pElHihatPedal->setBlue(true);
+					pElHihatPedal->setBlue(true, HiHatPedalElement::POSITION_THRESHOLD);
 				}
 			}
 			else if (!pElHihatPedal->isBlueDetectionBySpeed())
 			{
 				pElHihatPedal->setBlueStateEnteringTime(0);
-				pElHihatPedal->setBlue(false);
+				pElHihatPedal->setBlue(false, HiHatPedalElement::POSITION_THRESHOLD);
 			}
 		}
 
@@ -1862,19 +1874,24 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
 				else if (	pElHihatPedal->isBlueDetectionByAccent()
-						&& !pElHihatPedal->isHalfOpen()
-					   	&& currentControlPos > pElHihatPedal->getSecurityPosition())
+							&& !pElHihatPedal->isHalfOpen()
+					   		&& currentControlPos > pElHihatPedal->getSecurityPosition())
 				{
-					const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
-					LinearFunction::List::const_iterator it = functions.begin();
-					while (it!=functions.end())
+					// When blue detection by speed is activated 
+					// and if the blue state is false because of a closing movement we don't apply linear functions
+					if (!pElHihatPedal->isBlueDetectionBySpeed() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
 					{
-						const LinearFunction& f = *(it++);
-						if (f.canApply(currentControlPos) && currentMsg.getValue()>f(currentControlPos))
+						const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
+						LinearFunction::List::const_iterator it = functions.begin();
+						while (it!=functions.end())
 						{
-							// Change the yellow hi-hat to blue on accent
-							currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
-							break;
+							const LinearFunction& f = *(it++);
+							if (f.canApply(currentControlPos) && currentMsg.getValue()>f(currentControlPos))
+							{
+								// Change the yellow hi-hat to blue on accent
+								currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+								break;
+							}
 						}
 					}
 				}
