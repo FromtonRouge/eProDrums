@@ -192,47 +192,40 @@ const LinearFunction::List& DialogFunction::getFunctions()
 
 void DialogFunction::onTrackerPosChanged(const QPointF& point)
 {
-	boost::format fmtMsg("x=%.1f, y=%.1f");
-	const LinearFunction::List& functions = _pFunctionItemModel->getFunctions();
-	LinearFunction::List::const_iterator it = functions.begin();
-	while (it!=functions.end())
+	float x = point.x();
+	float y = 0.f;
+	if (LinearFunction::apply(_pFunctionItemModel->getFunctions(), x, y))
 	{
-		const LinearFunction& f = *(it++);
-		float x = point.x();
-		if (f.canApply(x))
+		if (!_pPlotMarker->isVisible())
 		{
-			if (!_pPlotMarker->isVisible())
-			{
-				_pPlotMarker->setVisible(true);
-			}
-
-			float y = f(x);
-			_pPlotMarker->setValue(point.x(), y);
-			Qt::Alignment alignment;
-			if (y>=(_pDescription->yMax-_pDescription->yMin)/2)
-			{
-				alignment = Qt::AlignBottom;
-			}
-			else
-			{
-				alignment = Qt::AlignTop;
-			}
-
-			if (x<=(_pDescription->xMax-_pDescription->xMin)/2)
-			{
-				alignment |= Qt::AlignRight;
-			}
-			else
-			{
-				alignment |= Qt::AlignLeft;
-			}
-
-			_pPlotMarker->setLabelAlignment(alignment);
-
-			QwtText label((fmtMsg%x%y).str().c_str());
-			_pPlotMarker->setLabel(label);
-			_pPlot->replot();
-			break;
+			_pPlotMarker->setVisible(true);
 		}
+		_pPlotMarker->setValue(x, y);
+
+		Qt::Alignment alignment;
+		if (y>=(_pDescription->yMax-_pDescription->yMin)/2)
+		{
+			alignment = Qt::AlignBottom;
+		}
+		else
+		{
+			alignment = Qt::AlignTop;
+		}
+
+		if (x<=(_pDescription->xMax-_pDescription->xMin)/2)
+		{
+			alignment |= Qt::AlignRight;
+		}
+		else
+		{
+			alignment |= Qt::AlignLeft;
+		}
+
+		_pPlotMarker->setLabelAlignment(alignment);
+
+		boost::format fmtMsg("x=%.1f, y=%.1f");
+		QwtText label((fmtMsg%x%y).str().c_str());
+		_pPlotMarker->setLabel(label);
+		_pPlot->replot();
 	}
 }
