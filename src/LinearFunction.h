@@ -58,6 +58,8 @@ struct LinearFunction
 
 	typedef std::vector<LinearFunction> List;
 
+	static bool apply(const LinearFunction::List& functions, float x, float& y);
+
 	LinearFunction(float x1=0.f, float x2=30.f, float y1=50.f, float y2=50.f):
 		_x1(x1), _x2(x2),
 	   	_y1(y1), _y2(y2),

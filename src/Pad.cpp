@@ -245,18 +245,12 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			{
 				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 				{
+					float y = 0.f;
 					int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
-					const LinearFunction::List& functions = getFlamFunctions();
-					LinearFunction::List::const_iterator it = functions.begin();
-					while (it!=functions.end())
+					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pNext->getValue() >= int(pCurrent->getValue()*y))
 					{
-						const LinearFunction& f = *(it++);
-						if (f.canApply(timeDiff) && pNext->getValue() >= int(pCurrent->getValue()*f(timeDiff)))
-						{
-							pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-							bDoGhostNoteTest = false;
-							break;
-						}
+						pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+						bDoGhostNoteTest = false;
 					}
 				}
 			}
@@ -274,17 +268,11 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 			{
+				float y = 0.f;
 				int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
-				const LinearFunction::List& functions = getFlamFunctions();
-				LinearFunction::List::const_iterator it = functions.begin();
-				while (it!=functions.end())
+				if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pNext->getValue() >= int(pCurrent->getValue()*y))
 				{
-					const LinearFunction& f = *(it++);
-					if (f.canApply(timeDiff) && pNext->getValue() >= int(pCurrent->getValue()*f(timeDiff)))
-					{
-						pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
-						break;
-					}
+					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 				}
 			}
 		}
@@ -297,22 +285,15 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			{
 				if (history.size()<2 || isFlamAllowed(history[1], history[0]))
 				{
+					float y = 0.f;
 					int timeDiff = rLast.getAbsTimeDiff(*pCurrent);
-					const LinearFunction::List& functions = getFlamFunctions();
-					LinearFunction::List::const_iterator it = functions.begin();
-					while (it!=functions.end())
+					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pCurrent->getValue() >= int(rLast.getValue()*y))
 					{
-						const LinearFunction& f = *(it++);
-						if (f.canApply(timeDiff) && pCurrent->getValue() >= int(rLast.getValue()*f(timeDiff)))
+						pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
+						if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
 						{
-							pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
-
-							if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
-							{
-								// If the previous hit was a ghost note, we send it for the flam here
-								messageToSend.push_back(rLast);
-							}
-							break;
+							// If the previous hit was a ghost note, we send it for the flam here
+							messageToSend.push_back(rLast);
 						}
 					}
 				}

@@ -1876,17 +1876,10 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// and if the blue state is false because of a closing movement we don't apply linear functions
 					if (!pElHihatPedal->isBlueDetectionBySpeed() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
 					{
-						const LinearFunction::List& functions = pElHihatPedal->getBlueAccentFunctions();
-						LinearFunction::List::const_iterator it = functions.begin();
-						while (it!=functions.end())
+						float y = 0.f;
+						if (LinearFunction::apply(pElHihatPedal->getBlueAccentFunctions(), currentControlPos, y) && currentMsg.getValue() > y)
 						{
-							const LinearFunction& f = *(it++);
-							if (f.canApply(currentControlPos) && currentMsg.getValue()>f(currentControlPos))
-							{
-								// Change the yellow hi-hat to blue on accent
-								currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
-								break;
-							}
+							currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 						}
 					}
 				}
@@ -1957,27 +1950,22 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				if (mutableCrashWithCrash && pPreviousCRASH2 && !pPreviousCRASH2->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousCRASH2, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithRide && pNextOrPreviousRIDE && currentMsg.isInTimeWindow(*pNextOrPreviousRIDE, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithSnare && pNextOrPreviousSNARE && currentMsg.isInTimeWindow(*pNextOrPreviousSNARE, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithTom2 && pNextOrPreviousTOM2 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM2, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else if (mutableCrashWithTom3 && pNextOrPreviousTOM3 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM3, cymbalsSimHitWindow))
 				{
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else
 				{
@@ -2006,7 +1994,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Previous was a mutable crash, if the mutable was not changed we have to change the CRASH2 to yellow
 					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
-					currentMsg.setValue(127);
 				}
 				else
 				{
@@ -2023,7 +2010,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow Crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
-					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2040,7 +2026,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow Crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
-					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2064,7 +2049,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
-					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{
@@ -2081,7 +2065,6 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				{
 					// Yellow crash
 					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
-					pNextAutoConvertCrash->setValue(127);
 				}
 				else
 				{

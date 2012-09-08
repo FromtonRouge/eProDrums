@@ -70,6 +70,7 @@ SOURCES += AddMidiNote.cpp \
            HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \
+		   LinearFunction.cpp \
            main.cpp \
            MainWindow.cpp \
            MidiMessage.cpp \
