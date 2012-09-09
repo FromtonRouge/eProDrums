@@ -219,7 +219,7 @@ MainWindow::MainWindow():
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 5000,
+			pGroup4->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 10000,
 						   	pElHihatPedal->getOpenSpeed(),
 							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
 							tr("Above this speed the hi-hat is converted to blue").toStdString())));

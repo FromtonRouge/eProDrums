@@ -24,17 +24,17 @@
 #include <map>
 
 Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
-	(Pad::SNARE, "Snare")
-	(Pad::HIHAT, "Hi-hat")
-	(Pad::HIHAT_PEDAL, "Hi-hat pedal")
-	(Pad::TOM1, "Tom 1")
-	(Pad::TOM2, "Tom 2")
-	(Pad::TOM3, "Tom 3")
-	(Pad::CRASH1, "Green to Yellow Crash")
-	(Pad::CRASH2, "Green Crash")
-	(Pad::CRASH3, "Yellow Crash")
-	(Pad::RIDE, "Ride")
-	(Pad::BASS_DRUM, "Bass Drum");
+	(SNARE, "Snare")
+	(HIHAT, "Hi-hat")
+	(HIHAT_PEDAL, "Hi-hat pedal")
+	(TOM1, "Tom 1")
+	(TOM2, "Tom 2")
+	(TOM3, "Tom 3")
+	(CRASH1, "Green to Yellow Crash")
+	(CRASH2, "Green Crash")
+	(CRASH3, "Yellow Crash")
+	(RIDE, "Ride")
+	(BASS_DRUM, "Bass Drum");
 
 std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(SNARE, "#FF7070")
@@ -130,14 +130,6 @@ void Pad::setMidiNotes(const MidiNotes& notes)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_midiNotes = notes;
-}
-
-Pad::MidiDescription Pad::getMidiDescription() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	Pad::MidiDescription result(_type);
-	result.midiNotes = _midiNotes;
-	return result;
 }
 
 Pad::Type Pad::getType() const

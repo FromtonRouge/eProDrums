@@ -109,7 +109,6 @@ public:
 	virtual ~Pad();
 
 public:
-	MidiDescription getMidiDescription() const;
 	void setMidiNotes(const MidiNotes& notes);
 	Type getType() const;
 	void setType(Type type);
