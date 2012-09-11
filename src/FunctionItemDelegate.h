@@ -39,7 +39,6 @@ public:
 	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex&) const
 	{
 		FunctionItemEditor* pEditor = new FunctionItemEditor(parent);
-		//connect(this, SIGNAL(midiNoteOn(int, int)), pEditor, SIGNAL(midiNoteOn(int, int)));
 		connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
 		return pEditor;
 	}

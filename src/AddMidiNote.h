@@ -22,20 +22,24 @@
 #pragma once
 
 #include "ui_AddMidiNote.h"
-#include <set>
+#include "Pad.h"
+#include "DrumNote.h"
+#include <boost/scoped_ptr.hpp>
+
+class DrumNoteItemModel;
+class DrumNoteItemDelegate;
+class QMenu;
+class QAction;
 
 class AddMidiNote : public QDialog, private Ui::AddMidiNote
 {
 	Q_OBJECT
 public:
-	typedef std::set<int> Notes;
-
-public:
-	AddMidiNote(const Notes& notes = Notes());
+	AddMidiNote(const Pad::MidiDescription& padDescription = Pad::MidiDescription());
 	virtual ~AddMidiNote();
 
-	void setNotes(const Notes& notes);
-	Notes getNotes() const;
+	void setPadDescription(const Pad::MidiDescription& padDescription);
+	DrumNotes getNotes() const;
 	void clear();
 	void showPrevNextButtons();
 	int getPrevNextState() const {return _prevNextState;}
@@ -44,12 +48,17 @@ public slots:
 	void onMidiNoteOn(int, int);
 
 protected slots:
-	void on_pushButtonAdd_clicked(bool checked=false);
-	void on_pushButtonDel_clicked(bool checked=false);
 	void on_pushButtonPrev_clicked(bool checked=false);
 	void on_pushButtonNext_clicked(bool checked=false);
+	void onCustomContextMenuRequested(const QPoint&);
+	void onActionAddTriggered(bool);
+	void onActionRemoveTriggered(bool);
 
 private:
-	Notes _notes;
+	boost::scoped_ptr<DrumNoteItemModel>	_pDrumNoteItemModel;
+	boost::scoped_ptr<DrumNoteItemDelegate> _pDrumNoteItemDelegate;
+	QMenu*									_pMenu;
+	QAction*								_pActionAdd;
+	QAction*								_pActionRemove;
 	int _prevNextState;
 };

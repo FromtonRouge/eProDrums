@@ -186,7 +186,7 @@ MainWindow::MainWindow():
 							tr("Under this position the hi-hat is always yellow").toStdString())));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue detection by accent", groupColors[1],
+		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue on edge accent", groupColors[1],
 					pElHihatPedal->isBlueDetectionByAccent(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
 		{
@@ -198,6 +198,11 @@ MainWindow::MainWindow():
 						   	pElHihatPedal->getBlueAccentFunctions(),
 							boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1),
 							tr("List of linear functions used to determine when to convert an accented hi-hat note to blue").toStdString())));
+
+			pGroup2->addChild(Parameter::Ptr(new Parameter("Override secured position",
+						   	pElHihatPedal->isBlueAccentOverride(),
+							boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1),
+						   	tr("If true, edge accented hits are converted to blue even under the secured yellow position").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
@@ -1313,6 +1318,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					{
 						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentFunctions(),
 								boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1));
+						pGroup2->getChildAt(1)->update(	pElHihatPedal->isBlueAccentOverride(),
+								boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1868,18 +1875,24 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					// Change the yellow hi-hat to blue if the pedal is blue
 					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
 				}
-				else if (	pElHihatPedal->isBlueDetectionByAccent()
-							&& !pElHihatPedal->isHalfOpen()
-					   		&& currentControlPos > pElHihatPedal->getSecurityPosition())
+				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
 				{
-					// When blue detection by speed is activated 
-					// and if the blue state is false because of a closing movement we don't apply linear functions
-					if (!pElHihatPedal->isBlueDetectionBySpeed() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
+					// Above security position ?
+					if (currentControlPos > pElHihatPedal->getSecurityPosition() || pElHihatPedal->isBlueAccentOverride())
 					{
-						float y = 0.f;
-						if (LinearFunction::apply(pElHihatPedal->getBlueAccentFunctions(), currentControlPos, y) && currentMsg.getValue() > y)
+						// Accented notes only detected on hi-hat edge (bow are alwyas yellow)
+						if (pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::EDGE))
 						{
-							currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+							// When blue detection by speed is activated 
+							// and if the blue state is false because of a closing movement we don't apply linear functions
+							if (!pElHihatPedal->isBlueDetectionBySpeed() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
+							{
+								float y = 0.f;
+								if (LinearFunction::apply(pElHihatPedal->getBlueAccentFunctions(), currentControlPos, y) && currentMsg.getValue() > y)
+								{
+									currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+								}
+							}
 						}
 					}
 				}

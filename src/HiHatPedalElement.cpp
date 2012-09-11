@@ -58,7 +58,8 @@ HiHatPedalElement::HiHatPedalElement():
 	_securityPosition(0),
 	_halfOpenMaximumPosition(0),
 	_halfOpenActivationTime(0),
-	_blueStateChangeReason(INITIAL_STATE)
+	_blueStateChangeReason(INITIAL_STATE),
+	_blueAccentOverride(false)
 {
 	LinearFunction::List functions;
 	functions.push_back(LinearFunction(0, 48, 127, 127));
@@ -118,6 +119,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
 		_blueStateChangeReason = rOther._blueStateChangeReason;
 		_blueAccentFunctions = rOther._blueAccentFunctions;
+		_blueAccentOverride = rOther._blueAccentOverride;
 	}
 	return *this;
 }
@@ -220,6 +222,18 @@ HiHatPedalElement::BlueStateChangeReason HiHatPedalElement::getBlueStateChangeRe
 {
 	Mutex::scoped_lock lock(_mutex);
 	return _blueStateChangeReason;
+}
+
+void HiHatPedalElement::setBlueAccentOverride(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_blueAccentOverride = value;
+}
+
+bool HiHatPedalElement::isBlueAccentOverride() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_blueAccentOverride);
 }
 
 void HiHatPedalElement::setBlueStateChangeReason(BlueStateChangeReason reason)

@@ -25,6 +25,9 @@ HEADERS += AddMidiNote.h \
            DialogFunction.h \
            DrumKitItemDelegate.h \
            DrumKitItemModel.h \
+           DrumNoteItemModel.h \
+           DrumNoteItemDelegate.h \
+           DrumNoteItemEditor.h \
            DrumKitMidiMap.h \
            EProPlot.h \
            EProPlotCurve.h \
@@ -60,6 +63,7 @@ FORMS += AddMidiNote.ui \
 SOURCES += AddMidiNote.cpp \
            DialogAbout.cpp \
            DialogFunction.cpp \
+           DrumNoteItemEditor.cpp \
            EProPlot.cpp \
            EProPlotCurve.cpp \
            EProPlotData.cpp \

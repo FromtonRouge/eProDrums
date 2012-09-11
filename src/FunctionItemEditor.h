@@ -26,7 +26,7 @@
 class QDoubleSpinBox;
 
 /**
- * Function item delegate.
+ * Function item editor.
  */
 class FunctionItemEditor : public QWidget
 {

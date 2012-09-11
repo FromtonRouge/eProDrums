@@ -120,12 +120,12 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 		// Clear the dialog first and set pad info
 		dlg.clear();
 		dlg.setWindowTitle(Pad::getName(padDescription.type).c_str());
-		dlg.setNotes(padDescription.midiNotes);
+		dlg.setPadDescription(padDescription);
 
 		if (dlg.exec())
 		{
 			// Get the result
-			padDescription.midiNotes = dlg.getNotes();
+			padDescription.drumNotes = dlg.getNotes();
 
 			// Save the result in the data model
 			QVariant variant;

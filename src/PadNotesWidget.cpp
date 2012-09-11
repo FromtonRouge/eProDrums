@@ -35,42 +35,42 @@ PadNotesWidget::~PadNotesWidget()
 
 void PadNotesWidget::on_pushButtonAdd_clicked(bool)
 {
-	AddMidiNote dlg(_padDescription.midiNotes);
+	AddMidiNote dlg(_padDescription);
 	dlg.setWindowTitle(Pad::getName(_padDescription.type).c_str());
 	connect(this, SIGNAL(midiNoteOn(int, int)), &dlg, SLOT(onMidiNoteOn(int, int)));
 
 	if (dlg.exec())
 	{
-		_padDescription.midiNotes = dlg.getNotes();
-		setMidiNotes(_padDescription.midiNotes);
+		_padDescription.drumNotes = dlg.getNotes();
+		setDrumNotes(_padDescription.drumNotes);
 		emit editFinished(this);
 	}
 }
 
 void PadNotesWidget::addMidiNote(int note)
 {
-	if (_padDescription.midiNotes.find(note)==_padDescription.midiNotes.end())
+	if (_padDescription.drumNotes.findMidiNote(note)==_padDescription.drumNotes.endMidiNote())
 	{
-		_padDescription.midiNotes.insert(note);
+		_padDescription.drumNotes.insert(DrumNote(note));
 		listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
 	}
 }
 
-void PadNotesWidget::setMidiNotes(const MidiNotes& notes)
+void PadNotesWidget::setDrumNotes(const DrumNotes& notes)
 {
 	listWidgetNotes->clear();
-	MidiNotes::const_iterator it = notes.begin();
-	while (it!=notes.end())
+	DrumNotes::IteratorMidiNote it = notes.beginMidiNote();
+	while (it!=notes.endMidiNote())
 	{
-		int note = *(it++);
-		listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
+		const DrumNote& drumNote = *(it++);
+		listWidgetNotes->addItem(boost::lexical_cast<std::string>(drumNote.midiNote).c_str());
 	}
 }
 
 void PadNotesWidget::setPadDescription(const Pad::MidiDescription& description)
 {
 	_padDescription = description;
-	setMidiNotes(_padDescription.midiNotes);
+	setDrumNotes(_padDescription.drumNotes);
 }
 
 void PadNotesWidget::on_pushButtonRemove_clicked(bool)
@@ -86,7 +86,7 @@ void PadNotesWidget::on_pushButtonRemove_clicked(bool)
 		if (pCurrent)
 		{
 			int note = boost::lexical_cast<int>(pCurrent->text().toStdString());
-			_padDescription.midiNotes.erase(note);
+			_padDescription.drumNotes.eraseMidiNote(note);
 
 			emit editFinished(this);
 		}

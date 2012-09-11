@@ -92,5 +92,3 @@ private:
 	int					_outputNote; ///< By default the output note is the original note.
 	Clock::time_point	_tReceiveTime; ///< receive time set at construction time.
 };
-
-typedef std::set<int> MidiNotes;

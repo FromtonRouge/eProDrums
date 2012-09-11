@@ -22,6 +22,7 @@
 #pragma once
 
 #include "MidiMessage.h"
+#include "DrumNote.h"
 #include "Parameter.h"
 
 #include <boost/archive/xml_oarchive.hpp>
@@ -31,6 +32,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread/recursive_mutex.hpp>
+
+#include <vector>
 
 /**
  * Note: Thread safe
@@ -56,8 +59,6 @@ public:
 		BASS_DRUM,
 		TYPE_COUNT
 	};
-	static Parameter::DictEnums DICT_NAMES;
-	static std::map<int, std::string> DICT_COLORS;
 
 	enum DefaultOutputNote
 	{
@@ -81,19 +82,23 @@ public:
 	{
 		MidiDescription(Type type = SNARE):type(type) {}
 		Type			type;
-		MidiNotes		midiNotes;
+		DrumNotes		drumNotes;
 
 	private:
 		friend class boost::serialization::access;
 		template<class Archive> void serialize(Archive & ar, const unsigned int)
 		{
 			ar  & BOOST_SERIALIZATION_NVP(type);
-			ar  & BOOST_SERIALIZATION_NVP(midiNotes);
+			ar  & BOOST_SERIALIZATION_NVP(drumNotes);
 		}
 	};
 
 protected:
 	typedef boost::recursive_mutex Mutex;
+
+public:
+	static Parameter::DictEnums			DICT_NAMES;
+	static std::map<int, std::string>	DICT_COLORS;
 
 public:
 	static std::string getName(Type type);
@@ -109,12 +114,13 @@ public:
 	virtual ~Pad();
 
 public:
-	void setMidiNotes(const MidiNotes& notes);
+	void setDrumNotes(const DrumNotes& notes);
 	Type getType() const;
 	void setType(Type type);
 	void setTypeFlam(const Parameter::Value& value);
 	Type getTypeFlam() const;
-	bool isA(int note) const;
+	bool isA(int midiNote) const;
+	bool isA(int midiNote, DrumNote::HitZone hitZone) const;
 	int getDefaultOutputNote() const;
 	int getGhostVelocityLimit() const;
 	void setGhostVelocityLimit(const Parameter::Value& velocity);
@@ -140,7 +146,7 @@ protected:
 	mutable Mutex		_mutex;
 
 private:
-	MidiNotes			_midiNotes;
+	DrumNotes			_drumNotes;
 
 	// Archived data
 	Type				_type;

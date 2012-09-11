@@ -7,51 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>338</width>
-    <height>237</height>
+    <height>284</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Add Midi Note</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0" colspan="2">
-    <widget class="QListWidget" name="listWidgetNotes"/>
-   </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="pushButtonAdd">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Add manually</string>
-     </property>
-     <property name="icon">
-      <iconset resource="EProDrums.qrc">
-       <normaloff>:/Add.png</normaloff>:/Add.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="pushButtonDel">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Del</string>
-     </property>
-     <property name="icon">
-      <iconset resource="EProDrums.qrc">
-       <normaloff>:/Remove.png</normaloff>:/Remove.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="2">
+   <item row="2" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QPushButton" name="pushButtonPrev">
@@ -85,6 +48,9 @@
       <string>Please hit a pad or add a note manually</string>
      </property>
     </widget>
+   </item>
+   <item row="1" column="0" colspan="2">
+    <widget class="QTableView" name="tableViewNotes"/>
    </item>
   </layout>
  </widget>

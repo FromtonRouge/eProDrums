@@ -77,7 +77,7 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 		DrumKitMidiMap::Description::const_iterator it = std::find_if(desc.begin(), desc.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->getType());
 		if (it!=desc.end())
 		{
-			pPad->setMidiNotes(it->midiNotes);
+			pPad->setDrumNotes(it->drumNotes);
 		}
 	}
 }

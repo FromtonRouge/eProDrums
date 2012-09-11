@@ -26,7 +26,7 @@
 #include "ui_SettingsDlg.h"
 
 #include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
+#include <boost/scoped_ptr.hpp>
 
 #include <vector>
 
@@ -75,7 +75,7 @@ private:
 
 private:
 	Settings*								_pSettings;
-	boost::shared_ptr<DrumKitItemModel>		_pDrumKitItemModel;
-	boost::shared_ptr<DrumKitItemDelegate>	_pDrumKitItemDelegate;
+	boost::scoped_ptr<DrumKitItemModel>		_pDrumKitItemModel;
+	boost::scoped_ptr<DrumKitItemDelegate>	_pDrumKitItemDelegate;
 	boost::signals2::connection				_connectionToSettings;
 };

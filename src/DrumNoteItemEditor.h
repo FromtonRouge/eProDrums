@@ -22,33 +22,38 @@
 #pragma once
 
 #include "Pad.h"
-#include "ui_PadNotesWidget.h"
 
 #include <QtGui/QWidget>
+#include <QtCore/QModelIndex>
 
-class PadNotesWidget : public QWidget, private Ui::PadNotesWidget
+class QStackedWidget;
+class QComboBox;
+class QSpinBox;
+
+/**
+ * DrumNote item editor.
+ */
+class DrumNoteItemEditor : public QWidget
 {
 	Q_OBJECT
 
-public:
-	PadNotesWidget(QWidget* pParent);
-	virtual ~PadNotesWidget();
-
-	void setPadDescription(const Pad::MidiDescription& description);
-	const Pad::MidiDescription& getPadDescription() const {return _padDescription;}
-
 signals:
-	void midiNoteOn(int msgNote, int msgVelocity);
 	void editFinished(QWidget*);
 
+public:
+	DrumNoteItemEditor(Pad::Type type, QWidget* pParent=NULL);
+	virtual ~DrumNoteItemEditor();
+
+	void setData(const QModelIndex& index);
+	QVariant getData(const QModelIndex& index) const;
+
 private slots:
-	void on_pushButtonAdd_clicked(bool checked=false);
-	void on_pushButtonRemove_clicked(bool checked=false);
+	void onCurrentIndexChanged(int);
+	void onValueChanged(int);
 
 private:
-	void addMidiNote(int note);
-	void setDrumNotes(const DrumNotes& notes);
-
-private:
-	Pad::MidiDescription _padDescription;
+	QStackedWidget*	_pStackedWidget;
+	QComboBox*		_pComboBox;
+	QSpinBox*		_pSpinBox;
+	Pad::Type		_type;
 };

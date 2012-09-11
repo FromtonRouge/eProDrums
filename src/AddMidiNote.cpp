@@ -20,92 +20,97 @@
 // ============================================================ 
 
 #include "AddMidiNote.h"
+#include "DrumNoteItemModel.h"
+#include "DrumNoteItemDelegate.h"
 #include <QtGui/QGridLayout>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QSpinBox>
+#include <QtGui/QTableWidgetItem>
+#include <QtGui/QMenu>
 #include <boost/lexical_cast.hpp>
 
-AddMidiNote::AddMidiNote(const Notes& notes):_prevNextState(0)
+AddMidiNote::AddMidiNote(const Pad::MidiDescription& padDescription):
+	_prevNextState(0),
+	_pDrumNoteItemModel(new DrumNoteItemModel()),
+	_pDrumNoteItemDelegate(new DrumNoteItemDelegate(padDescription.type))
 {
 	setupUi(this);
+
+	_pMenu = new QMenu(this);
+	_pActionAdd = _pMenu->addAction(tr("Add"));
+	connect(_pActionAdd, SIGNAL(triggered(bool)), this, SLOT(onActionAddTriggered(bool)));
+	_pActionRemove = _pMenu->addAction(tr("Remove"));
+	connect(_pActionRemove, SIGNAL(triggered(bool)), this, SLOT(onActionRemoveTriggered(bool)));
+
+	connect(tableViewNotes, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(onCustomContextMenuRequested(const QPoint&)));
+	tableViewNotes->setContextMenuPolicy(Qt::CustomContextMenu);
+
+	tableViewNotes->verticalHeader()->hide();
+	tableViewNotes->horizontalHeader()->setStretchLastSection(true);
+	tableViewNotes->setModel(_pDrumNoteItemModel.get());
+	tableViewNotes->setItemDelegate(_pDrumNoteItemDelegate.get());
+
+	setPadDescription(padDescription);
+
 	pushButtonPrev->hide();
 	pushButtonNext->hide();
-	setNotes(notes);
 }
 
 AddMidiNote::~AddMidiNote()
 {
 }
 
-AddMidiNote::Notes AddMidiNote::getNotes() const
+void AddMidiNote::onCustomContextMenuRequested(const QPoint&)
 {
-	return _notes;
+	QItemSelectionModel* pItemSelectionModel = tableViewNotes->selectionModel();
+	if (pItemSelectionModel)
+	{
+		QModelIndexList selected = pItemSelectionModel->selectedIndexes();
+		_pActionAdd->setEnabled(selected.empty());
+		_pActionRemove->setEnabled(!selected.empty());
+	}
+
+	_pMenu->exec(QCursor::pos());
+}
+
+void AddMidiNote::onActionAddTriggered(bool)
+{
+	int row = _pDrumNoteItemModel->add();
+	tableViewNotes->openPersistentEditor(_pDrumNoteItemModel->index(row, 1));
+}
+
+void AddMidiNote::onActionRemoveTriggered(bool)
+{
+	QItemSelectionModel* pItemSelectionModel = tableViewNotes->selectionModel();
+	if (pItemSelectionModel)
+	{
+		QModelIndexList selected = pItemSelectionModel->selectedIndexes();
+		while (!selected.empty())
+		{
+			_pDrumNoteItemModel->removeRow(selected[0].row());
+			selected = pItemSelectionModel->selectedIndexes();
+		}
+	}
+}
+
+DrumNotes AddMidiNote::getNotes() const
+{
+	return _pDrumNoteItemModel->getDrumNotes();
 }
 
 void AddMidiNote::onMidiNoteOn(int note, int velocity)
 {
 	if (velocity)
 	{
-		if (_notes.find(note) == _notes.end())
-		{
-			listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
-			_notes.insert(note);
-		}
-	}
-}
-
-void AddMidiNote::on_pushButtonAdd_clicked(bool)
-{
-	QDialog dlg(this);
-	dlg.setWindowTitle("Add note manually");
-
-	QGridLayout layout(&dlg);
-	QSpinBox spinBox(&dlg);
-	spinBox.setMaximum(127);
-	QLabel label(&dlg);
-	label.setText("Midi note");
-	layout.addWidget(&label, 0, 0);
-	layout.addWidget(&spinBox, 0, 1);
-	QDialogButtonBox buttonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel);
-	layout.addWidget(&buttonBox, 1, 1);
-
-	connect(&buttonBox, SIGNAL(accepted()), &dlg, SLOT(accept()));
-	connect(&buttonBox, SIGNAL(rejected()), &dlg, SLOT(reject()));
-
-	if (dlg.exec())
-	{
-		int note = spinBox.value();
-		if (_notes.find(note) == _notes.end())
-		{
-			listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
-		}
-		_notes.insert(note);
-	}
-}
-
-void AddMidiNote::on_pushButtonDel_clicked(bool)
-{
-	if (listWidgetNotes->count())
-	{
-		QListWidgetItem* pCurrent = listWidgetNotes->takeItem(listWidgetNotes->currentRow());
-		if (!pCurrent)
-		{
-			pCurrent = listWidgetNotes->takeItem(0);
-		}
-		
-		if (pCurrent)
-		{
-			int note = boost::lexical_cast<int>(pCurrent->text().toStdString());
-			_notes.erase(note);
-		}
+		int row = _pDrumNoteItemModel->add(note);
+		tableViewNotes->openPersistentEditor(_pDrumNoteItemModel->index(row, 1));
 	}
 }
 
 void AddMidiNote::clear()
 {
 	_prevNextState = 0;
-	listWidgetNotes->clear();
-	_notes.clear();
+	_pDrumNoteItemModel->removeRows(0, _pDrumNoteItemModel->rowCount());
 	buttonBox->setFocus(Qt::OtherFocusReason);
 }
 
@@ -127,13 +132,13 @@ void AddMidiNote::on_pushButtonNext_clicked(bool)
 	accept();
 }
 
-void AddMidiNote::setNotes(const Notes& notes)
+void AddMidiNote::setPadDescription(const Pad::MidiDescription& padDescription)
 {
-	_notes = notes;
-	Notes::const_iterator it = _notes.begin();
-	while (it!=_notes.end())
+	_pDrumNoteItemDelegate->setType(padDescription.type);
+	_pDrumNoteItemModel->setDrumNotes(padDescription.drumNotes);
+	for(int i=0;i<_pDrumNoteItemModel->rowCount();++i)
 	{
-		int note = *(it++);
-		listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
+		tableViewNotes->openPersistentEditor(_pDrumNoteItemModel->index(i, 1));
 	}
+	tableViewNotes->resizeColumnToContents(0);
 }

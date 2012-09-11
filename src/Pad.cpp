@@ -102,7 +102,7 @@ Pad& Pad::operator=(const Pad& rOther)
 	Mutex::scoped_lock lock(_mutex);
 	if (this!=&rOther)
 	{
-		_midiNotes = rOther._midiNotes;
+		_drumNotes = rOther._drumNotes;
 		_type = rOther._type;
 		_typeFlam = rOther._typeFlam;
 		_defaultOutputNote = rOther._defaultOutputNote;
@@ -126,10 +126,10 @@ std::string Pad::getColor() const
 	return DICT_COLORS[_type];
 }
 
-void Pad::setMidiNotes(const MidiNotes& notes)
+void Pad::setDrumNotes(const DrumNotes& notes)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_midiNotes = notes;
+	_drumNotes = notes;
 }
 
 Pad::Type Pad::getType() const
@@ -156,10 +156,17 @@ Pad::Type Pad::getTypeFlam() const
 	return static_cast<Type>(boost::get<int>(_typeFlam));
 }
 
-bool Pad::isA(int note) const
+bool Pad::isA(int midiNote) const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return _midiNotes.find(note)!=_midiNotes.end();
+	return _drumNotes.findMidiNote(midiNote)!=_drumNotes.endMidiNote();
+}
+
+bool Pad::isA(int midiNote, DrumNote::HitZone hitZone) const
+{
+	Mutex::scoped_lock lock(_mutex);
+	DrumNotes::IteratorMidiNote it = _drumNotes.findMidiNote(midiNote);
+	return it!=_drumNotes.endMidiNote() && (it->hitZone == hitZone);
 }
 
 int Pad::getFlamCancelDuringRoll() const
