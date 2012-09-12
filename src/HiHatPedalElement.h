@@ -144,6 +144,8 @@ public:
 	void setBlueAccentFunctions(const Parameter::Value& value);
 	void setBlueAccentOverride(const Parameter::Value& value);
 	bool isBlueAccentOverride() const;
+	void setBowAlwaysYellow(const Parameter::Value& value);
+	bool isBowAlwaysYellow() const;
 
 private:
 	bool	_isBlue;
@@ -169,12 +171,15 @@ private:
 	Parameter::Value	_isBlueDetectionByPosition;
 	Parameter::Value	_isBlueDetectionBySpeed;
 	Parameter::Value	_isHalfOpenModeEnabled;
+	Parameter::Value	_isFootCancel;
+	Parameter::Value	_isFootCancelAfterPedalHit;
+	Parameter::Value	_isCancelHitWhileOpen;
+	Parameter::Value	_isBlueAccentOverride;
+	Parameter::Value	_isBowAlwaysYellow;
 	Parameter::Value	_controlPosThreshold;
 	Parameter::Value	_controlPosDelayTime;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
-	Parameter::Value	_isFootCancel;
-	Parameter::Value	_isFootCancelAfterPedalHit;
 	Parameter::Value	_footCancelClosingSpeed;
 	Parameter::Value	_footCancelPos;
 	Parameter::Value	_footCancelPosDiff;
@@ -182,14 +187,12 @@ private:
 	Parameter::Value	_footCancelVelocity;
 	Parameter::Value	_footCancelAfterPedalHitMaskTime;
 	Parameter::Value	_footCancelAfterPedalHitVelocity;
-	Parameter::Value	_isCancelHitWhileOpen;
 	Parameter::Value	_cancelOpenHitThreshold;
 	Parameter::Value	_cancelOpenHitVelocity;
 	Parameter::Value	_securityPosition;
 	Parameter::Value	_halfOpenMaximumPosition;
 	Parameter::Value	_halfOpenActivationTime;
 	Parameter::Value	_blueAccentFunctions;
-	Parameter::Value	_blueAccentOverride;
 
 	OnFootCancelActivated						_onFootCancelActivated;
 	OnFootCancelMaskTimeChanged					_onFootCancelMaskTimeChanged;
@@ -210,12 +213,15 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_isHalfOpenModeEnabled);
+		ar  & BOOST_SERIALIZATION_NVP(_isFootCancel);
+		ar  & BOOST_SERIALIZATION_NVP(_isFootCancelAfterPedalHit);
+		ar  & BOOST_SERIALIZATION_NVP(_isCancelHitWhileOpen);
+		ar  & BOOST_SERIALIZATION_NVP(_isBlueAccentOverride);
+		ar  & BOOST_SERIALIZATION_NVP(_isBowAlwaysYellow);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosDelayTime);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
-		ar  & BOOST_SERIALIZATION_NVP(_isFootCancel);
-		ar  & BOOST_SERIALIZATION_NVP(_isFootCancelAfterPedalHit);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);
@@ -223,14 +229,12 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelAfterPedalHitMaskTime);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelAfterPedalHitVelocity);
-		ar  & BOOST_SERIALIZATION_NVP(_isCancelHitWhileOpen);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitThreshold);
 		ar  & BOOST_SERIALIZATION_NVP(_cancelOpenHitVelocity);
 		ar  & BOOST_SERIALIZATION_NVP(_securityPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenMaximumPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_halfOpenActivationTime);
 		ar  & BOOST_SERIALIZATION_NVP(_blueAccentFunctions);
-		ar  & BOOST_SERIALIZATION_NVP(_blueAccentOverride);
 	}
 };
 

@@ -36,33 +36,35 @@ HiHatPedalElement::HiHatPedalElement():
 	_isBlueDetectionByPosition(false),
 	_isBlueDetectionBySpeed(false),
 	_isHalfOpenModeEnabled(false),
+	_isFootCancel(false),
+	_isFootCancelAfterPedalHit(false),
+	_isBlueAccentOverride(false),
+	_isBowAlwaysYellow(false),
+	_isCancelHitWhileOpen(false),
 	_controlPosThreshold(127),
 	_controlPosDelayTime(0),
 	_openSpeed(330),
 	_closeSpeed(-200),
-	_isFootCancel(false),
-	_isFootCancelAfterPedalHit(false),
 	_footCancelClosingSpeed(-1500),
 	_footCancelPos(90),
 	_footCancelPosDiff(5),
 	_footCancelMaskTime(30),
-	_footCancelVelocity(35),
+	_footCancelVelocity(42),
 	_footCancelAfterPedalHitMaskTime(20),
 	_footCancelAfterPedalHitVelocity(25),
 	_footCancelTimeLimit(0),
 	_halfOpenEnteringTime(0),
 	_blueStateEnteringTime(0),
-	_isCancelHitWhileOpen(false),
 	_cancelOpenHitThreshold(0),
 	_cancelOpenHitVelocity(0),
 	_securityPosition(0),
-	_halfOpenMaximumPosition(0),
-	_halfOpenActivationTime(0),
-	_blueStateChangeReason(INITIAL_STATE),
-	_blueAccentOverride(false)
+	_halfOpenMaximumPosition(65),
+	_halfOpenActivationTime(50),
+	_blueStateChangeReason(INITIAL_STATE)
 {
 	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 48, 127, 127));
+	functions.push_back(LinearFunction(0, 45, 127, 127));
+	functions.push_back(LinearFunction(45, 48, 90, 80));
 	functions.push_back(LinearFunction(48, 60, 80, 80));
 	functions.push_back(LinearFunction(60, 127, 80, 80));
 	_blueAccentFunctions = functions;
@@ -98,12 +100,15 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_isBlueDetectionByPosition = rOther._isBlueDetectionByPosition;
 		_isBlueDetectionBySpeed = rOther._isBlueDetectionBySpeed;
 		_isHalfOpenModeEnabled = rOther._isHalfOpenModeEnabled;
+		_isFootCancel = rOther._isFootCancel;
+		_isFootCancelAfterPedalHit = rOther._isFootCancelAfterPedalHit;
+		_isCancelHitWhileOpen = rOther._isCancelHitWhileOpen;
+		_isBlueAccentOverride = rOther._isBlueAccentOverride;
+		_isBowAlwaysYellow = rOther._isBowAlwaysYellow;
 		_controlPosThreshold = rOther._controlPosThreshold;
 		_controlPosDelayTime = rOther._controlPosDelayTime;
 		_openSpeed = rOther._openSpeed;
 		_closeSpeed = rOther._closeSpeed;
-		_isFootCancel = rOther._isFootCancel;
-		_isFootCancelAfterPedalHit = rOther._isFootCancelAfterPedalHit;
 		_footCancelClosingSpeed = rOther._footCancelClosingSpeed;
 		_footCancelPos = rOther._footCancelPos;
 		_footCancelPosDiff = rOther._footCancelPosDiff;
@@ -111,7 +116,6 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_footCancelVelocity = rOther._footCancelVelocity;
 		_footCancelAfterPedalHitMaskTime = rOther._footCancelAfterPedalHitMaskTime;
 		_footCancelAfterPedalHitVelocity = rOther._footCancelAfterPedalHitVelocity;
-		_isCancelHitWhileOpen = rOther._isCancelHitWhileOpen;
 		_cancelOpenHitThreshold = rOther._cancelOpenHitThreshold;
 		_cancelOpenHitVelocity = rOther._cancelOpenHitVelocity;
 		_securityPosition = rOther._securityPosition;
@@ -119,7 +123,6 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_halfOpenActivationTime = rOther._halfOpenActivationTime;
 		_blueStateChangeReason = rOther._blueStateChangeReason;
 		_blueAccentFunctions = rOther._blueAccentFunctions;
-		_blueAccentOverride = rOther._blueAccentOverride;
 	}
 	return *this;
 }
@@ -227,13 +230,25 @@ HiHatPedalElement::BlueStateChangeReason HiHatPedalElement::getBlueStateChangeRe
 void HiHatPedalElement::setBlueAccentOverride(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_blueAccentOverride = value;
+	_isBlueAccentOverride = value;
 }
 
 bool HiHatPedalElement::isBlueAccentOverride() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_blueAccentOverride);
+	return boost::get<bool>(_isBlueAccentOverride);
+}
+
+void HiHatPedalElement::setBowAlwaysYellow(const Parameter::Value& value)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isBowAlwaysYellow = value;
+}
+
+bool HiHatPedalElement::isBowAlwaysYellow() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return boost::get<bool>(_isBowAlwaysYellow);
 }
 
 void HiHatPedalElement::setBlueStateChangeReason(BlueStateChangeReason reason)

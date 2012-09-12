@@ -184,6 +184,10 @@ MainWindow::MainWindow():
 							pElHihatPedal->getSecurityPosition(),
 							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
 							tr("Under this position the hi-hat is always yellow").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Bow hits always yellow",
+						   	pElHihatPedal->isBowAlwaysYellow(),
+							boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1),
+						   	tr("If checked, bow hits are always yellow").toStdString())));
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue on edge accent", groupColors[1],
@@ -202,7 +206,7 @@ MainWindow::MainWindow():
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Override secured position",
 						   	pElHihatPedal->isBlueAccentOverride(),
 							boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1),
-						   	tr("If true, edge accented hits are converted to blue even under the secured yellow position").toStdString())));
+						   	tr("If checked, edge accented hits are converted to blue even under the secured yellow position").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
@@ -1310,6 +1314,8 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 					{
 						pGroup1->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
 								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
+						pGroup1->getChildAt(1)->update(	pElHihatPedal->isBowAlwaysYellow(),
+								boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1));
 					}
 
 					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
@@ -1872,8 +1878,11 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 				if (pElHihatPedal->isBlue())
 				{
-					// Change the yellow hi-hat to blue if the pedal is blue
-					currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+					if (!pElHihatPedal->isBowAlwaysYellow() || !pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::BOW))
+					{
+						// Change the yellow hi-hat to blue if the pedal is blue
+						currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+					}
 				}
 				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
 				{
