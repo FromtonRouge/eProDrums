@@ -246,7 +246,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 				{
 					float y = 0.f;
 					int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
-					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pNext->getValue() >= int(pCurrent->getValue()*y))
+					int nextValue = pNext->getValue();
+					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 					{
 						pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 						bDoGhostNoteTest = false;
@@ -269,7 +270,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 			{
 				float y = 0.f;
 				int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
-				if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pNext->getValue() >= int(pCurrent->getValue()*y))
+				int nextValue = pNext->getValue();
+				if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 				{
 					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
 				}
@@ -286,7 +288,8 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 				{
 					float y = 0.f;
 					int timeDiff = rLast.getAbsTimeDiff(*pCurrent);
-					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && pCurrent->getValue() >= int(rLast.getValue()*y))
+					int currentValue = pCurrent->getValue();
+					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (currentValue==127 || currentValue >= int(rLast.getValue()*y)))
 					{
 						pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
 						if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
