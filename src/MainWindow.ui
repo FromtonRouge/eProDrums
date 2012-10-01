@@ -36,7 +36,7 @@
          <x>0</x>
          <y>0</y>
          <width>840</width>
-         <height>209</height>
+         <height>255</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
@@ -101,7 +101,7 @@
     </sizepolicy>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetVerticalTitleBar</set>
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetVerticalTitleBar</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::TopDockWidgetArea</set>
@@ -182,7 +182,7 @@
     <bool>true</bool>
    </property>
    <property name="features">
-    <set>QDockWidget::NoDockWidgetFeatures</set>
+    <set>QDockWidget::DockWidgetFloatable</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::TopDockWidgetArea</set>
@@ -260,7 +260,7 @@
     </sizepolicy>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetVerticalTitleBar</set>
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetVerticalTitleBar</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::BottomDockWidgetArea</set>
@@ -361,7 +361,7 @@
                <x>0</x>
                <y>0</y>
                <width>105</width>
-               <height>241</height>
+               <height>194</height>
               </rect>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
