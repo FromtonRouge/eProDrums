@@ -30,6 +30,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/signals2.hpp>
 
+#include <utility>
 #include <vector>
 #include <map>
 #include <string>
@@ -39,6 +40,7 @@
  */
 struct Parameter : public boost::enable_shared_from_this<Parameter>
 {
+	typedef std::pair<bool, bool> InfiniteExtremities;
 	typedef boost::shared_ptr<Parameter> Ptr;
 	typedef std::vector<Ptr> List;
 	typedef std::map<int, std::string> DictEnums;
@@ -54,7 +56,8 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		_bEnabled(bEnabled),
 		_value(_bEnabled),
 		_color(color),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
 	}
@@ -72,7 +75,8 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		maximum(maximum),
 		_value(value),
 		_dictEnums(dictEnums),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
    	}
@@ -88,7 +92,8 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		minimum(minimum),
 		maximum(maximum),
 		_value(value),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
    	}
@@ -100,7 +105,8 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		label(szLabel),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
    	}
@@ -112,7 +118,8 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		label(szLabel),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
 	}
@@ -126,11 +133,11 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 		_pFunctionDescription(pDescription),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription)
+		_szDescription(szDescription),
+		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
    	}
-
 
 	size_t getIndex() const
 	{
@@ -174,7 +181,6 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	const QColor& getColor() const {return _color;}
 	void setColor(const QColor& color) {_color=color;}
 	const Value& getValue() const {return _value;}
-	Value& getValue() {return _value;}
 	void setValue(const Value& value) {_value = value; if (!_onValueChanged.empty())_onValueChanged(_value);}
 	bool isConnected() const {return !_onValueChanged.empty();}
 	void update(const Value& value, const OnValueChanged::slot_function_type& slot) {connect(slot); setValue(value);}
@@ -186,6 +192,12 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	const DictEnums& getEnums() const {return _dictEnums;}
 	bool hasEnums() const {return !_dictEnums.empty();}
 	const LinearFunction::Description::Ptr& getFunctionDescription() const {return _pFunctionDescription;}
+
+	/**
+	 * Only for int and float.
+	 */
+	void setInfiniteExtremities(const InfiniteExtremities& extremities) {_infiniteExtremities = extremities;}
+	const InfiniteExtremities& getInfiniteExtremities() const {return _infiniteExtremities;}
 
 public:
 	std::string label;
@@ -203,5 +215,6 @@ private:
 	Value								_value;
 	DictEnums							_dictEnums;
 	OnValueChanged						_onValueChanged;
+	InfiniteExtremities					_infiniteExtremities;
 };
 

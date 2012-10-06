@@ -32,6 +32,10 @@
 #include <QtGui/QComboBox>
 #include <QtGui/QPushButton>
 
+#include <limits>
+#undef min
+#undef max
+
 const float SLIDER_FACTOR(1000);
 
 ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
@@ -132,7 +136,24 @@ void ParamItemEditor::onSpinBoxValueChanged(int value)
 	_pSlider->setValue(value);
 	_pSlider->blockSignals(false);
 
+	const Parameter::InfiniteExtremities& extremities = _pData->getInfiniteExtremities();
+	if (extremities.first && value==_pSpinBox->minimum())
+	{
+		_pSpinBox->setEnabled(false);
+		value = std::numeric_limits<int>::min();
+	}
+	else if (extremities.second && value==_pSpinBox->maximum())
+	{
+		_pSpinBox->setEnabled(false);
+		value = std::numeric_limits<int>::max();
+	}
+	else
+	{
+		_pSpinBox->setEnabled(true);
+	}
+
 	_pData->setValue(value);
+
 	emit editFinished(this);
 }
 
@@ -142,7 +163,24 @@ void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
 	_pDoubleSlider->setValue(value*SLIDER_FACTOR);
 	_pDoubleSlider->blockSignals(false);
 	
+	const Parameter::InfiniteExtremities& extremities = _pData->getInfiniteExtremities();
+	if (extremities.first && value==_pDoubleSpinBox->minimum())
+	{
+		_pDoubleSpinBox->setEnabled(false);
+		value = std::numeric_limits<float>::min();
+	}
+	else if (extremities.second && value==_pDoubleSpinBox->maximum())
+	{
+		_pDoubleSpinBox->setEnabled(false);
+		value = std::numeric_limits<float>::max();
+	}
+	else
+	{
+		_pDoubleSpinBox->setEnabled(true);
+	}
+
 	_pData->setValue(float(value));
+
 	emit editFinished(this);
 }
 

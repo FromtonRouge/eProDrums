@@ -230,11 +230,13 @@ MainWindow::MainWindow():
 					pElHihatPedal->isBlueDetectionBySpeed(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
+			Parameter::Ptr pOpenSpeed(new Parameter("Open speed (unit/s)", 0, 5000,
+						pElHihatPedal->getOpenSpeed(),
+						boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
+						tr("Above this speed the hi-hat is converted to blue").toStdString()));
+			pOpenSpeed->setInfiniteExtremities(Parameter::InfiniteExtremities(false, true));
 
-			pGroup4->addChild(Parameter::Ptr(new Parameter("Open speed (unit/s)", 0, 10000,
-						   	pElHihatPedal->getOpenSpeed(),
-							boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
-							tr("Above this speed the hi-hat is converted to blue").toStdString())));
+			pGroup4->addChild(pOpenSpeed);
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
