@@ -50,11 +50,11 @@
 #include <boost/algorithm/string/trim.hpp>
 namespace fs = boost::filesystem;
 
-#include <iostream>
-#include <algorithm>
 #include <fstream>
 #include <exception>
-#include <cassert>
+#include <algorithm>
+#include <limits>
+#include <iostream>
 
 BOOST_CLASS_EXPORT(HiHatPedalElement); 
 
@@ -62,6 +62,9 @@ std::string MainWindow::APPLICATION_NAME("eProDrums");
 std::string MainWindow::APPLICATION_VERSION("dev");
 
 Q_DECLARE_METATYPE(Slot::Ptr)
+
+#undef max
+#undef min
 
 void MainWindow::toLog(const std::string& szText)
 {
@@ -733,40 +736,47 @@ void MainWindow::midiThread()
 					int deltaPosition = _lastHiHatMsgControl.getValue() - currentMsg.getValue();
 					float deltaTimeInS = float(currentMsg.getTimestamp()-_lastHiHatMsgControl.getTimestamp())/1000;
 
-					// If there is an existing delta in position and if the last message got the same
-					// timestamp as the current, we need a default deltaTimeInS of 1 ms
+					// Speed computation
+					const float MAX_FLOAT(std::numeric_limits<float>::max());
+					const float MIN_FLOAT(std::numeric_limits<float>::min());
 					if (deltaPosition!=0 && deltaTimeInS==0.0f)
 					{
-						deltaTimeInS = 1.0f;
+						currentMsg.hiHatSpeed = (deltaPosition>0)?MAX_FLOAT:MIN_FLOAT;
 					}
-
-					if (deltaTimeInS!=0.0f)
+					else
 					{
 						currentMsg.hiHatSpeed = float(deltaPosition)/deltaTimeInS;
+					}
 
-						// Acceleration computation
-						int deltaSpeed = currentMsg.hiHatSpeed - p->getCurrentControlSpeed();
+					// Acceleration computation
+					int deltaSpeed = currentMsg.hiHatSpeed - p->getCurrentControlSpeed();
+					if (deltaSpeed!=0 && deltaTimeInS==0.0f)
+					{
+						currentMsg.hiHatAcceleration = (deltaSpeed>0)?MAX_FLOAT:MIN_FLOAT;
+					}
+					else
+					{
 						currentMsg.hiHatAcceleration = float(deltaSpeed)/deltaTimeInS;
-						p->setCurrentControlAcceleration(currentMsg.hiHatAcceleration);
+					}
+					p->setCurrentControlAcceleration(currentMsg.hiHatAcceleration);
 
-						// Current speed
-						HiHatPedalElement::MovingState movingState = p->setCurrentControlSpeed(currentMsg.hiHatSpeed);
-						switch (movingState)
+					// Current speed
+					HiHatPedalElement::MovingState movingState = p->setCurrentControlSpeed(currentMsg.hiHatSpeed);
+					switch (movingState)
+					{
+					case HiHatPedalElement::MS_START_CLOSE:
 						{
-						case HiHatPedalElement::MS_START_CLOSE:
-							{
-								emit hiHatStartMoving(movingState, p->getPositionOnCloseBegin(), _lastHiHatMsgControl.getTimestamp());
-								break;
-							}
-						case HiHatPedalElement::MS_START_OPEN:
-							{
-								emit hiHatStartMoving(movingState, p->getPositionOnOpenBegin(), _lastHiHatMsgControl.getTimestamp());
-								break;
-							}
-						default:
-							{
-								break;
-							}
+							emit hiHatStartMoving(movingState, p->getPositionOnCloseBegin(), _lastHiHatMsgControl.getTimestamp());
+							break;
+						}
+					case HiHatPedalElement::MS_START_OPEN:
+						{
+							emit hiHatStartMoving(movingState, p->getPositionOnOpenBegin(), _lastHiHatMsgControl.getTimestamp());
+							break;
+						}
+					default:
+						{
+							break;
 						}
 					}
 				}
