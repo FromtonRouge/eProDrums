@@ -38,8 +38,7 @@ class DrumKitItemModel : public QAbstractTableModel
 
 public:
 	DrumKitItemModel(QObject* pParent=NULL):
-		QAbstractTableModel(pParent),
-		_pDrumKit(NULL)
+		QAbstractTableModel(pParent)
    	{
    	}
 
@@ -59,44 +58,57 @@ public:
 			case 0:
 				return QString("Pad name");
 			case 1:
-				return QString("Midi notes");
+				return QString("Color");
+			case 2:
+				return QString("Output note");
+			case 3:
+				return QString("Input notes");
 			}
 		}
 		return QVariant();
 	}
 
-	virtual bool setData( const QModelIndex& index, const QVariant& value, int role = Qt::EditRole )
+	virtual bool setData( const QModelIndex& idx, const QVariant& value, int role = Qt::EditRole )
 	{
-		if (!_pDrumKit)
-		{
-			return false;
-		}
-
+		bool bResult = false;
 		if (role==Qt::EditRole)
 		{
-			if (!value.isNull() && qVariantCanConvert<Pad::MidiDescription>(value))
+			DrumKitMidiMap::Description& rDescription = _drumKit.getDescription();
+			const Pad::MidiDescription& description = value.value<Pad::MidiDescription>();
+			switch (idx.column())
 			{
-				DrumKitMidiMap::Description& rDescription = _pDrumKit->getDescription();
-				const Pad::MidiDescription& description = value.value<Pad::MidiDescription>();
-				rDescription[index.row()] = description;
-				emit dataChanged(index, this->index(index.row(), 1));
-				return true;
-			}
-			else
-			{
-				return false;
+			case 1:
+				{
+					rDescription.pads[idx.row()].color = description.color;
+					bResult = true;
+					break;
+				}
+			case 2:
+				{
+					rDescription.pads[idx.row()].outputNote = description.outputNote;
+					bResult = true;
+					break;
+				}
+			case 3:
+				{
+					rDescription.pads[idx.row()].inputNotes = description.inputNotes;
+					bResult = true;
+					break;
+				}
 			}
 		}
-		return false;
+
+		if (bResult)
+		{
+			emit dataChanged(index(idx.row(), 0), index(idx.row(), columnCount()-1));
+		}
+
+		return bResult;
 	}
 
 	virtual int rowCount(const QModelIndex& = QModelIndex()) const
 	{
-		if (!_pDrumKit)
-		{
-			return 0;
-		}
-		return _pDrumKit->getDescription().size();
+		return _drumKit.getDescription().pads.size();
 	}
 
 	virtual Qt::ItemFlags flags( const QModelIndex& index ) const
@@ -106,45 +118,47 @@ public:
 		case 0:
 			return Qt::ItemIsEnabled|Qt::ItemIsSelectable;
 		case 1:
+		case 2:
+		case 3:
 			return Qt::ItemIsEnabled|Qt::ItemIsSelectable|Qt::ItemIsEditable;
 		}
 		return Qt::ItemIsEnabled|Qt::ItemIsSelectable;
 	}
 
-	virtual int columnCount(const QModelIndex&) const
+	virtual int columnCount(const QModelIndex& parent= QModelIndex()) const
 	{
-	   	return 2;
+		Q_UNUSED(parent);
+	   	return 4;
 	}
 
 	virtual QVariant data(const QModelIndex& index, int role=Qt::DisplayRole) const
 	{
-		if (!_pDrumKit)
-		{
-			return QVariant();
-		}
-
-		const DrumKitMidiMap::Description& description = _pDrumKit->getDescription();
+		const DrumKitMidiMap::Description& description = _drumKit.getDescription();
 		switch (role)
 		{
 		case Qt::DisplayRole:
 			{
-				if (index.column()==0)
+				QVariant variant;
+				switch (index.column())
 				{
-					QVariant variant;
-					variant.setValue(description[index.row()]);
-					return variant;
+				case 2:
+					{
+						variant = description.pads[index.row()].outputNote;
+						break;
+					}
+				default:
+					{
+						variant.setValue(description.pads[index.row()]);
+						break;
+					}
 				}
-				break;
+				return variant;
 			}
 		case Qt::EditRole:
 			{
-				if (index.column()==1)
-				{
-					QVariant variant;
-					variant.setValue(description[index.row()]);
-					return variant;
-				}
-				break;
+				QVariant variant;
+				variant.setValue(description.pads[index.row()]);
+				return variant;
 			}
 		default:
 			{
@@ -154,7 +168,9 @@ public:
 		return QVariant();
 	}
 
-	void setDrumKit(DrumKitMidiMap* pDrumKit)
+	const DrumKitMidiMap& getDrumKit() const {return _drumKit;}
+
+	void setDrumKit(const DrumKitMidiMap& drumKit)
 	{
 		if (rowCount())
 		{
@@ -162,28 +178,24 @@ public:
 			endRemoveRows();
 		}
 
-		_pDrumKit = pDrumKit;
+		_drumKit = drumKit;
 
-		const DrumKitMidiMap::Description& description = _pDrumKit->getDescription();
-		if (!description.empty())
+		const DrumKitMidiMap::Description& description = _drumKit.getDescription();
+		if (!description.pads.empty())
 		{
-			beginInsertRows(QModelIndex(), 0, description.size()-1);
-			for (size_t i=0; i<description.size(); ++i)
+			beginInsertRows(QModelIndex(), 0, description.pads.size()-1);
+			for (size_t i=0; i<description.pads.size(); ++i)
 			{
-				// Index for label
-				createIndex(i, 0);
-
-				// Index for the widget
-				const QModelIndex& index = createIndex(i, 1);
-
 				QVariant variant;
-				variant.setValue(description[i]);
-				setData(index, variant);
+				variant.setValue(description.pads[i]);
+				setData(createIndex(i, 1), variant);
+				setData(createIndex(i, 2), variant);
+				setData(createIndex(i, 3), variant);
 			}
 			endInsertRows();
 		}
 	}
 
 private:
-	DrumKitMidiMap* _pDrumKit;
+	DrumKitMidiMap _drumKit;
 };

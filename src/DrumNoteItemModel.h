@@ -75,7 +75,10 @@ public:
 					break;
 				}
 			}
-			emit dataChanged(index(idx.row(), 0), index(idx.row(), 1));
+
+			// Update the line
+			emit dataChanged(index(idx.row(), 0), index(idx.row(), columnCount()-1));
+
 			return true;
 		}
 		return false;
@@ -97,8 +100,9 @@ public:
 		return Qt::ItemIsEnabled|Qt::ItemIsSelectable;
 	}
 
-	virtual int columnCount(const QModelIndex&) const
+	virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
 	{
+		Q_UNUSED(parent);
 	   	return 2;
 	}
 
@@ -169,7 +173,9 @@ public:
 			}
 			_drumNotes._container.push_back(DrumNote(midiNote));
 			endInsertRows();
-			emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, 1));
+
+			// Update the line
+			emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, columnCount()-1));
 		}
 		else
 		{
@@ -178,7 +184,9 @@ public:
 				beginInsertRows(QModelIndex(), _drumNotes._container.size(), _drumNotes._container.size());
 				_drumNotes._container.push_back(DrumNote(midiNote));
 				endInsertRows();
-				emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, 1));
+
+				// Update the line
+				emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, columnCount()-1));
 			}
 		}
 		return rowCount()-1;
@@ -192,7 +200,9 @@ public:
 			_drumNotes.eraseMidiNote(_drumNotes._container[i].midiNote);
 		}
 		endRemoveRows();
-		emit dataChanged(index(0, 0), index(rowCount()-1, 1));
+
+		// Update all lines
+		emit dataChanged(index(0, 0), index(rowCount()-1, columnCount()-1));
 		return true;
 	}
 
@@ -210,7 +220,9 @@ public:
 			beginInsertRows(QModelIndex(), 0, drumNotes._container.size()-1);
 			_drumNotes = drumNotes;
 			endInsertRows();
-			emit dataChanged(index(0, 0), index(rowCount()-1, 1));
+
+			// Update all lines
+			emit dataChanged(index(0, 0), index(rowCount()-1, columnCount()-1));
 		}
 	}
 

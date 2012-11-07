@@ -1300,6 +1300,213 @@ Slot::Ptr MainWindow::createDefaultSlot()
     return pDefaultSlot;
 }
 
+void MainWindow::updateCurrentSlot()
+{
+	const Slot::Ptr& pCurrentSlot = getCurrentSlot();
+	if (!pCurrentSlot.get())
+	{
+		return;
+	}
+
+	const Pad::List& pads = pCurrentSlot->getPads();
+	const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
+
+	{
+		QLayoutItem* pLayoutItem = gridLayoutHiHat->itemAtPosition(0,0);
+		if (pLayoutItem)
+		{
+			TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
+
+			// Modifying data
+			const Parameter::Ptr& pRoot = pTreeView->getRoot();
+			const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
+			{
+				pGroup1->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
+						boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
+				pGroup1->getChildAt(1)->update(	pElHihatPedal->isBowAlwaysYellow(),
+						boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
+			pGroup2->update(	pElHihatPedal->isBlueDetectionByAccent(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1));
+			{
+				pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentFunctions(),
+						boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1));
+				pGroup2->getChildAt(1)->update(	pElHihatPedal->isBlueAccentOverride(),
+						boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
+			pGroup3->update(	pElHihatPedal->isBlueDetectionByPosition(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1));
+			{
+				pGroup3->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
+						boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1));
+
+				pGroup3->getChildAt(1)->update(	pElHihatPedal->getControlPosDelayTime(),
+						boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
+			pGroup4->update(	pElHihatPedal->isBlueDetectionBySpeed(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
+			{
+				pGroup4->getChildAt(0)->update(	pElHihatPedal->getOpenSpeed(),
+						boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
+
+				pGroup4->getChildAt(1)->update(	pElHihatPedal->getCloseSpeed(),
+						boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr pGroup5 = pRoot->getChildAt(4);
+			pGroup5->update(pElHihatPedal->isHalfOpenModeEnabled(),
+					boost::bind(&HiHatPedalElement::setHalfOpenModeEnabled, pElHihatPedal, _1));
+			{
+
+				pGroup5->getChildAt(0)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+						boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
+
+				pGroup5->getChildAt(1)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+						boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr& pGroup6 = pRoot->getChildAt(5);
+			{
+				pGroup6->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
+						boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1));
+
+				pGroup6->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
+
+				pGroup6->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
+
+				pGroup6->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
+
+				pGroup6->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
+
+				pGroup6->getChildAt(5)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
+			}
+
+			// Update view
+			pTreeView->update();
+		}
+	}
+
+	{
+		QLayoutItem* pLayoutItem = gridLayoutFootSplashCancel->itemAtPosition(0,0);
+		if (pLayoutItem)
+		{
+			TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
+			const Parameter::Ptr& pRoot = pTreeView->getRoot();
+			const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
+
+			pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
+			pGroup1->update(	pElHihatPedal->isFootCancel(),
+					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1));
+			{
+				pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
+						boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
+				pGroup1->getChildAt(1)->update(	pElHihatPedal->getFootCancelPos(),
+						boost::bind(&HiHatPedalElement::setFootCancelPos, pElHihatPedal, _1));
+				pGroup1->getChildAt(2)->update(	pElHihatPedal->getFootCancelPosDiff(),
+						boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
+				pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelMaskTime(),
+						boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
+				pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
+
+				pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelVelocity(),
+						boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
+				pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
+			}
+
+			const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
+			HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
+			pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
+			pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
+					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
+			{
+				pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
+						boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
+				pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
+
+				pGroup2->getChildAt(1)->update(	pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
+						boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1));
+				pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
+			}
+
+			const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
+			pGroup3->update(	pElHihatPedal->isCancelHitWhileOpen(),
+					boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1));
+			{
+				pGroup3->getChildAt(0)->update(	pElHihatPedal->getCancelOpenHitThreshold(),
+						boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1));
+				pGroup3->getChildAt(1)->update(	pElHihatPedal->getCancelOpenHitVelocity(),
+						boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1));
+			}
+
+			pTreeView->update();
+		}
+	}
+
+	{
+		QLayoutItem* pLayoutItem = gridLayoutFlams->itemAtPosition(0,0);
+		if (pLayoutItem)
+		{
+			TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
+			const Parameter::Ptr& pRoot = pTreeView->getRoot();
+			size_t count = pRoot->getChildrenCount();
+			size_t indexPad = 0;
+			for (size_t i=0; i<count; ++i, ++indexPad)
+			{
+				Parameter::Ptr pGroup1 = pRoot->getChildAt(i);
+				Pad::Ptr pPad = pads[indexPad];
+				if (pPad->getType()==Pad::HIHAT_PEDAL)
+				{
+					pPad = pads[++indexPad];
+				}
+
+				pGroup1->setColor(QColor(pPad->getColor().c_str()));
+				pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
+						boost::bind(&Pad::setTypeFlam, pPad, _1));
+
+				pGroup1->getChildAt(1)->update(	pPad->getFlamFunctions(),
+						boost::bind(&Pad::setFlamFunctions, pPad, _1));
+
+				pGroup1->getChildAt(2)->update(	pPad->getFlamCancelDuringRoll(),
+						boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
+			}
+
+			pTreeView->update();
+		}
+	}
+
+	{
+		QLayoutItem* pLayoutItem = gridLayoutGhostNotes->itemAtPosition(0,0);
+		if (pLayoutItem)
+		{
+			TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
+			const Parameter::Ptr& pRoot = pTreeView->getRoot();
+			const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
+			size_t id = 0;
+			Pad::List::const_iterator it = pads.begin();
+			while (it!=pads.end())
+			{
+				const Pad::Ptr& pPad = *(it++);
+
+				const Parameter::Ptr& pParameter = pGroup1->getChildAt(id++);
+				pParameter->setColor(QColor(pPad->getColor().c_str()));
+				pParameter->update(	pPad->getGhostVelocityLimit(), boost::bind(&Pad::setGhostVelocityLimit, pPad, _1));
+			}
+			pTreeView->update();
+		}
+	}
+}
+
 void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 {
     const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
@@ -1310,200 +1517,7 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
         _currentSlot = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == pSelected->text().toStdString());
         if (_currentSlot != _userSettings.configSlots.end())
         {
-			const Slot::Ptr& pCurrentSlot = getCurrentSlot();
-			const Pad::List& pads = pCurrentSlot->getPads();
-			const HiHatPedalElement::Ptr& pElHihatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(pads[Pad::HIHAT_PEDAL]);
-
-            {
-				QLayoutItem* pLayoutItem = gridLayoutHiHat->itemAtPosition(0,0);
-				if (pLayoutItem)
-				{
-					TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
-
-					// Modifying data
-					const Parameter::Ptr& pRoot = pTreeView->getRoot();
-					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
-					{
-						pGroup1->getChildAt(0)->update(	pElHihatPedal->getSecurityPosition(),
-								boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1));
-						pGroup1->getChildAt(1)->update(	pElHihatPedal->isBowAlwaysYellow(),
-								boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1));
-					}
-
-					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					pGroup2->update(	pElHihatPedal->isBlueDetectionByAccent(),
-							boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1));
-					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getBlueAccentFunctions(),
-								boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1));
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->isBlueAccentOverride(),
-								boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1));
-					}
-
-					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
-					pGroup3->update(	pElHihatPedal->isBlueDetectionByPosition(),
-							boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1));
-					{
-						pGroup3->getChildAt(0)->update(	pElHihatPedal->getControlPosThreshold(),
-								boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1));
-
-						pGroup3->getChildAt(1)->update(	pElHihatPedal->getControlPosDelayTime(),
-								boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1));
-					}
-					
-					const Parameter::Ptr& pGroup4 = pRoot->getChildAt(3);
-					pGroup4->update(	pElHihatPedal->isBlueDetectionBySpeed(),
-							boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1));
-					{
-						pGroup4->getChildAt(0)->update(	pElHihatPedal->getOpenSpeed(),
-								boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1));
-
-						pGroup4->getChildAt(1)->update(	pElHihatPedal->getCloseSpeed(),
-								boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
-					}
-
-					const Parameter::Ptr pGroup5 = pRoot->getChildAt(4);
-					pGroup5->update(pElHihatPedal->isHalfOpenModeEnabled(),
-							boost::bind(&HiHatPedalElement::setHalfOpenModeEnabled, pElHihatPedal, _1));
-					{
-
-						pGroup5->getChildAt(0)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
-								boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
-
-						pGroup5->getChildAt(1)->update(	pElHihatPedal->getHalfOpenActivationTime(),
-								boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
-					}
-
-					const Parameter::Ptr& pGroup6 = pRoot->getChildAt(5);
-					{
-						pGroup6->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
-								boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1));
-
-						pGroup6->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
-								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
-
-						pGroup6->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
-								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
-
-						pGroup6->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
-								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
-
-						pGroup6->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
-								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
-
-						pGroup6->getChildAt(5)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
-								boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
-					}
-
-					// Update view
-					pTreeView->update();
-				}
-			}
-
-			{
-				QLayoutItem* pLayoutItem = gridLayoutFootSplashCancel->itemAtPosition(0,0);
-				if (pLayoutItem)
-				{
-					TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
-					const Parameter::Ptr& pRoot = pTreeView->getRoot();
-					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
-
-					pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
-					pGroup1->update(	pElHihatPedal->isFootCancel(),
-										boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1));
-					{
-						pGroup1->getChildAt(0)->update(	pElHihatPedal->getFootCancelClosingSpeed(),
-														boost::bind(&HiHatPedalElement::setFootCancelClosingSpeed, pElHihatPedal, _1));
-						pGroup1->getChildAt(1)->update(	pElHihatPedal->getFootCancelPos(),
-														boost::bind(&HiHatPedalElement::setFootCancelPos, pElHihatPedal, _1));
-						pGroup1->getChildAt(2)->update(	pElHihatPedal->getFootCancelPosDiff(),
-														boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
-						pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelMaskTime(),
-														boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
-
-						pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelVelocity(),
-														boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
-					}
-
-					const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-					HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
-					pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
-					pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
-										boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
-					{
-						pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
-														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
-						
-						pGroup2->getChildAt(1)->update(	pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
-														boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1));
-						pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
-					}
-
-					const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
-					pGroup3->update(	pElHihatPedal->isCancelHitWhileOpen(),
-										boost::bind(&HiHatPedalElement::setCancelHitWhileOpen, pElHihatPedal, _1));
-					{
-						pGroup3->getChildAt(0)->update(	pElHihatPedal->getCancelOpenHitThreshold(),
-														boost::bind(&HiHatPedalElement::setCancelOpenHitThreshold, pElHihatPedal, _1));
-						pGroup3->getChildAt(1)->update(	pElHihatPedal->getCancelOpenHitVelocity(),
-														boost::bind(&HiHatPedalElement::setCancelOpenHitVelocity, pElHihatPedal, _1));
-					}
-
-					pTreeView->update();
-				}
-			}
-
-			{
-				QLayoutItem* pLayoutItem = gridLayoutFlams->itemAtPosition(0,0);
-				if (pLayoutItem)
-				{
-					TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
-					const Parameter::Ptr& pRoot = pTreeView->getRoot();
-					size_t count = pRoot->getChildrenCount();
-					for (size_t i=0; i<count; ++i)
-					{
-						Parameter::Ptr pGroup1 = pRoot->getChildAt(i);
-						Pad::Ptr pPad = pads[i];
-						if (pPad->getType()==Pad::HIHAT_PEDAL)
-						{
-							pPad = pads[++i];
-						}
-
-						pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
-								boost::bind(&Pad::setTypeFlam, pPad, _1));
-
-						pGroup1->getChildAt(1)->update(	pPad->getFlamFunctions(),
-								boost::bind(&Pad::setFlamFunctions, pPad, _1));
-
-						pGroup1->getChildAt(2)->update(	pPad->getFlamCancelDuringRoll(),
-								boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
-					}
-
-					pTreeView->update();
-				}
-			}
-
-			{
-				QLayoutItem* pLayoutItem = gridLayoutGhostNotes->itemAtPosition(0,0);
-				if (pLayoutItem)
-				{
-					TreeViewParameters* pTreeView = dynamic_cast<TreeViewParameters*>(pLayoutItem->widget());
-					const Parameter::Ptr& pRoot = pTreeView->getRoot();
-					const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
-					size_t id = 0;
-					Pad::List::const_iterator it = pads.begin();
-					while (it!=pads.end())
-					{
-						const Pad::Ptr& pPad = *(it++);
-						pGroup1->getChildAt(id++)->update(	pPad->getGhostVelocityLimit(),
-															boost::bind(&Pad::setGhostVelocityLimit, pPad, _1));
-					}
-					pTreeView->update();
-				}
-			}
+			updateCurrentSlot();
 
 			// Hi Hat Curve default states
 			on_tabWidget_currentChanged(tabWidget->currentIndex());
@@ -2247,7 +2261,10 @@ void MainWindow::on_actionSettings_triggered()
 {
 	SettingsDlg settings(_pSettings.get());
 	connect(this, SIGNAL(midiNoteOn(int,int)), &settings, SIGNAL(midiNoteOn(int,int)));
-	settings.exec();
+	if (settings.exec())
+	{
+		updateCurrentSlot();
+	}
 }
 
 void MainWindow::onRedrawPeriodChanged(int value)

@@ -121,7 +121,9 @@ public:
 					break;
 				}
 			}
-			emit dataChanged(index(0, 1), index(rowCount(), 6));
+
+			// Update the line
+			emit dataChanged(index(idx.row(), 0), index(idx.row(), columnCount()-1));
 			return true;
 		}
 		return false;
@@ -158,8 +160,9 @@ public:
 		return Qt::ItemIsEnabled;
 	}
 
-	virtual int columnCount(const QModelIndex&) const
+	virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
 	{
+		Q_UNUSED(parent);
 		return 7;
 	}
 
@@ -260,7 +263,8 @@ public:
 		_functions.push_back(newFunc);
 		endInsertRows();
 
-		emit dataChanged(index(rowCount()-1, 1), index(rowCount()-1, 6));
+		// Update the line
+		emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, columnCount()-1));
 		return rowCount()-1;
 	}
 
@@ -272,7 +276,8 @@ public:
 		_functions.erase(_functions.begin()+row);
 		endRemoveRows();
 
-		emit dataChanged(index(0, 1), index(rowCount()-1, 6));
+		// Update the line
+		emit dataChanged(index(rowCount()-1, 0), index(rowCount()-1, columnCount()-1));
 		return true;
 	}
 

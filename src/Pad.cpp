@@ -50,6 +50,7 @@ std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(BASS_DRUM, "#FCCB42");
 
 Pad::Pad():
+	_color(DICT_COLORS[SNARE]),
 	_type(SNARE),
 	_typeFlam(SNARE),
 	_defaultOutputNote(0),
@@ -71,6 +72,7 @@ Pad::Pad(Type type, int defaultMidiNote):
 	_isFlamActivated(false),
 	_flamCancelDuringRoll(100)
 {
+	_color = DICT_COLORS[_type];
 	LinearFunction::List functions;
 	functions.push_back(LinearFunction(0, 45, 1.0f, 1.0f));
 	functions.push_back(LinearFunction(45, 80, 1.15f, 1.20f));
@@ -82,7 +84,7 @@ std::string Pad::getName(Type type)
 	return DICT_NAMES[type];
 }
 
-std::string Pad::getColor(Type type)
+std::string Pad::getDefaultColor(Type type)
 {
 	return DICT_COLORS[type];
 }
@@ -103,6 +105,7 @@ Pad& Pad::operator=(const Pad& rOther)
 	if (this!=&rOther)
 	{
 		_drumNotes = rOther._drumNotes;
+		_color = rOther._color;
 		_type = rOther._type;
 		_typeFlam = rOther._typeFlam;
 		_defaultOutputNote = rOther._defaultOutputNote;
@@ -120,16 +123,22 @@ std::string Pad::getName() const
 	return DICT_NAMES[_type];
 }
 
-std::string Pad::getColor() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return DICT_COLORS[_type];
-}
-
-void Pad::setDrumNotes(const DrumNotes& notes)
+void Pad::setInputNotes(const DrumNotes& notes)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_drumNotes = notes;
+}
+
+void Pad::setColor(const std::string& color)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_color = color;
+}
+
+std::string Pad::getColor() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _color;
 }
 
 Pad::Type Pad::getType() const
@@ -179,6 +188,12 @@ void Pad::setFlamCancelDuringRoll(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_flamCancelDuringRoll = value;
+}
+
+void Pad::setDefaultOutputNote(int outputNote)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_defaultOutputNote = outputNote;
 }
 
 int Pad::getDefaultOutputNote() const

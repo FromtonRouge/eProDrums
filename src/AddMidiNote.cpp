@@ -135,7 +135,7 @@ void AddMidiNote::on_pushButtonNext_clicked(bool)
 void AddMidiNote::setPadDescription(const Pad::MidiDescription& padDescription)
 {
 	_pDrumNoteItemDelegate->setType(padDescription.type);
-	_pDrumNoteItemModel->setDrumNotes(padDescription.drumNotes);
+	_pDrumNoteItemModel->setDrumNotes(padDescription.inputNotes);
 	for(int i=0;i<_pDrumNoteItemModel->rowCount();++i)
 	{
 		tableViewNotes->openPersistentEditor(_pDrumNoteItemModel->index(i, 1));

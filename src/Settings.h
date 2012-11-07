@@ -84,5 +84,5 @@ private:
 	OnRedrawPeriodChanged		_onRedrawPeriodChanged;
 	OnCurveWindowLengthChanged	_onCurveWindowLengthChanged;
 	QSettings					_qSettings;				///< Core settings.
-	DrumKitMidiMap				_drumKitMidiMap;			///< DrumKitMidiMap midi settings.
+	DrumKitMidiMap				_drumKitMidiMap;		///< DrumKitMidiMap midi settings.
 };

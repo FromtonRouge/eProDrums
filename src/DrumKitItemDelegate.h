@@ -22,10 +22,11 @@
 #pragma once
 
 #include "Pad.h"
-#include "PadNotesWidget.h"
 #include "DrumKitItemModel.h"
+#include "DrumKitItemEditor.h"
 #include <QtGui/QStyledItemDelegate>
 #include <QtGui/QPainter>
+#include <QtGui/QSpinBox>
 
 #ifndef Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
 #define Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
@@ -38,6 +39,7 @@ Q_DECLARE_METATYPE(Pad::MidiDescription)
 class DrumKitItemDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
+
 signals:
 	void midiNoteOn(int, int);
 
@@ -58,67 +60,131 @@ public:
 
 	virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 	{
-		if (index.column()==0)
+		switch (index.column())
 		{
-			const Pad::MidiDescription& description = index.data().value<Pad::MidiDescription>();
+		case 0:
+			{
+				const Pad::MidiDescription& description = index.data().value<Pad::MidiDescription>();
 
-			painter->save();
-			QRectF rect = option.rect;
-			QColor color(Pad::getColor(description.type).c_str());
-			const QColor& lighterColor = color.lighter(130);
-			painter->fillRect(rect, lighterColor);
+				painter->save();
+				QRectF rect = option.rect;
+				QColor color(description.color.c_str());
+				const QColor& lighterColor = color.lighter(130);
+				painter->fillRect(rect, lighterColor);
 
-			// Centering vertically
-			QSize sizeData = sizeHint(option, index);
-			int offset((rect.height()-sizeData.height())/2);
-			QPointF point = rect.bottomLeft();
-			rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
+				// Centering vertically
+				QSize sizeData = sizeHint(option, index);
+				int offset((rect.height()-sizeData.height())/2);
+				QPointF point = rect.bottomLeft();
+				rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
 
-			// Horizontal indent
-			rect.moveLeft(point.x()+INDENT);			// Relative to up-left corner of the treeview
-			rect.setWidth(rect.width()-INDENT);
+				// Horizontal indent
+				rect.moveLeft(point.x()+INDENT);			// Relative to up-left corner of the treeview
+				rect.setWidth(rect.width()-INDENT);
 
-			painter->drawText(rect, Qt::AlignLeft, Pad::getName(description.type).c_str());
-			painter->restore();
-		}
-		else
-		{
-			QStyledItemDelegate::paint(painter, option, index);
+				painter->drawText(rect, Qt::AlignLeft, Pad::getName(description.type).c_str());
+				painter->restore();
+				break;
+			}
+
+		case 1:
+			{
+				painter->save();
+				const Pad::MidiDescription& description = index.data().value<Pad::MidiDescription>();
+				painter->fillRect(option.rect, QColor(description.color.c_str()));
+				painter->restore();
+				break;
+			}
+
+		default:
+			{
+				QStyledItemDelegate::paint(painter, option, index);
+				break;
+			}
 		}
 	}
 
-	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem &, const QModelIndex&) const
+	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 	{
-		PadNotesWidget* pEditor = new PadNotesWidget(parent);
-		connect(this, SIGNAL(midiNoteOn(int, int)), pEditor, SIGNAL(midiNoteOn(int, int)));
-		connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
-		return pEditor;
-	}
+		switch (index.column())
+		{
+		case 1:
+		case 2:
+			{
+				DrumKitItemEditor* pEditor = new DrumKitItemEditor(parent, index);
+				connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
+				return pEditor;
+			}
+		case 3:
+			{
+				PadNotesWidget* pEditor = new PadNotesWidget(parent);
+				connect(this, SIGNAL(midiNoteOn(int, int)), pEditor, SIGNAL(midiNoteOn(int, int)));
+				connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
+				return pEditor;
+			}
+		default:
+			{
+				break;
+			}
+		}
 
-	virtual void updateEditorGeometry( QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex & index ) const
-	{
-		QStyledItemDelegate::updateEditorGeometry(editor, option, index);
+		return QStyledItemDelegate::createEditor(parent, option, index);
 	}
 
 	virtual void setEditorData(QWidget* pEditor, const QModelIndex& index) const
 	{
-		PadNotesWidget* p = dynamic_cast<PadNotesWidget*>(pEditor);
-		const QVariant& variant = index.data(Qt::EditRole);
-		if (!variant.isNull() && qVariantCanConvert<Pad::MidiDescription>(variant))
+		switch (index.column())
 		{
-			const Pad::MidiDescription& description = variant.value<Pad::MidiDescription>();
-			p->setPadDescription(description);
+		case 1:
+		case 2:
+			{
+				DrumKitItemEditor* p = static_cast<DrumKitItemEditor*>(pEditor);
+				p->setPadDescription(index.data(Qt::EditRole).value<Pad::MidiDescription>());
+				break;
+			}
+
+		case 3:
+			{
+				PadNotesWidget* p = static_cast<PadNotesWidget*>(pEditor);
+				p->setPadDescription(index.data(Qt::EditRole).value<Pad::MidiDescription>());
+				break;
+			}
+		default:
+			{
+				QStyledItemDelegate::setEditorData(pEditor, index);
+				break;
+			}
 		}
 	}
 
 	virtual void setModelData(QWidget* p1, QAbstractItemModel* p2, const QModelIndex& index ) const
 	{
-		PadNotesWidget* pEditor = dynamic_cast<PadNotesWidget*>(p1);
-		const Pad::MidiDescription& padDescription = pEditor->getPadDescription();
 		DrumKitItemModel* pModel = dynamic_cast<DrumKitItemModel*>(p2);
-		QVariant variant;
-		variant.setValue(padDescription);
-		pModel->setData(index, variant);
+		switch (index.column())
+		{
+		case 1:
+		case 2:
+			{
+				DrumKitItemEditor* pEditor = static_cast<DrumKitItemEditor*>(p1);
+				QVariant variant;
+				variant.setValue(pEditor->getPadDescription());
+				pModel->setData(index, variant);
+				break;
+			}
+		case 3:
+			{
+				PadNotesWidget* pEditor = static_cast<PadNotesWidget*>(p1);
+				QVariant variant;
+				variant.setValue(pEditor->getPadDescription());
+				pModel->setData(index, variant);
+				break;
+			}
+		default:
+			{
+				QStyledItemDelegate::setModelData(p1, p2, index);
+				break;
+			}
+		}
 	}
 
 private:

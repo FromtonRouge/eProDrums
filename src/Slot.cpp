@@ -69,15 +69,18 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 {
 	Mutex::scoped_lock lock(_mutex);
 	const DrumKitMidiMap::Description& desc = pDrumKit->getDescription();
+	const DrumKitMidiMap::Description::Pads& pads = desc.pads;
 
 	Pad::List::iterator it = _pads.begin();
 	while (it!=_pads.end())
 	{
 		const Pad::Ptr& pPad = *(it++);
-		DrumKitMidiMap::Description::const_iterator it = std::find_if(desc.begin(), desc.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->getType());
-		if (it!=desc.end())
+		DrumKitMidiMap::Description::Pads::const_iterator it = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->getType());
+		if (it!=pads.end())
 		{
-			pPad->setDrumNotes(it->drumNotes);
+			pPad->setColor(it->color);
+			pPad->setInputNotes(it->inputNotes);
+			pPad->setDefaultOutputNote(it->outputNote);
 		}
 	}
 }

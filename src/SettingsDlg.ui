@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>636</width>
-    <height>481</height>
+    <width>722</width>
+    <height>432</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,8 +37,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>456</width>
-        <height>434</height>
+        <width>542</width>
+        <height>385</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
@@ -65,14 +65,14 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="2">
+           <item row="0" column="3">
             <widget class="QLineEdit" name="lineEditPath">
              <property name="readOnly">
               <bool>true</bool>
              </property>
             </widget>
            </item>
-           <item row="1" column="0" colspan="4">
+           <item row="1" column="0" colspan="5">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QLabel" name="label">
@@ -100,7 +100,7 @@
              </item>
             </layout>
            </item>
-           <item row="2" column="0" colspan="4">
+           <item row="3" column="0" colspan="5">
             <widget class="QTableView" name="tableViewDrumKit"/>
            </item>
            <item row="0" column="1">
@@ -108,6 +108,39 @@
              <property name="text">
               <string>Save</string>
              </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QRadioButton" name="radioButtonRightHanded">
+             <property name="text">
+              <string>Right Handed</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+             <attribute name="buttonGroup">
+              <string>buttonGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QRadioButton" name="radioButtonLeftHanded">
+             <property name="text">
+              <string>Left Handed</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string>buttonGroup</string>
+             </attribute>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QRadioButton" name="radioButtonCustom">
+             <property name="text">
+              <string>Custom</string>
+             </property>
+             <attribute name="buttonGroup">
+              <string>buttonGroup</string>
+             </attribute>
             </widget>
            </item>
           </layout>
@@ -237,4 +270,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup"/>
+ </buttongroups>
 </ui>

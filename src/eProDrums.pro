@@ -25,6 +25,7 @@ HEADERS += AddMidiNote.h \
            DialogFunction.h \
            DrumKitItemDelegate.h \
            DrumKitItemModel.h \
+           DrumKitItemEditor.h \
            DrumNoteItemModel.h \
            DrumNoteItemDelegate.h \
            DrumNoteItemEditor.h \

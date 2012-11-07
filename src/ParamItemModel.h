@@ -172,8 +172,9 @@ public:
 		return Qt::ItemIsEnabled|Qt::ItemIsSelectable;
 	}
 
-	virtual int columnCount(const QModelIndex&) const
+	virtual int columnCount(const QModelIndex& parent = QModelIndex()) const
 	{
+		Q_UNUSED(parent);
 		return 2;
 	}
 
@@ -223,12 +224,11 @@ public:
 		// Emit signals for each cell on the editor column only
 		for (int i=0; i<rowCount(); ++i)
 		{
-			const QModelIndex& parentIndex = index(i, 1);
-			emit dataChanged(parentIndex, parentIndex);
+			const QModelIndex& parentIndex = index(i, 0);
+			emit dataChanged(index(i, 0), index(i, columnCount()-1));
 			for (int j=0; j<rowCount(parentIndex); ++j)
 			{
-				const QModelIndex& idx = index(j, 1, parentIndex);
-				emit dataChanged(idx, idx);
+				emit dataChanged(index(j, 1, parentIndex), index(j, columnCount()-1, parentIndex));
 			}
 		}
 	}

@@ -113,9 +113,10 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 
 	DrumKitMidiMap* pDrumKit = _pSettings->getDrumKitMidiMap();
 	DrumKitMidiMap::Description& rDescription = pDrumKit->getDescription();
-	for (size_t i=0;i<rDescription.size();)
+	DrumKitMidiMap::Description::Pads& rPads = rDescription.pads;
+	for (size_t i=0;i<rPads.size();)
 	{
-		Pad::MidiDescription& padDescription = rDescription[i];
+		Pad::MidiDescription& padDescription = rPads[i];
 
 		// Clear the dialog first and set pad info
 		dlg.clear();
@@ -125,12 +126,12 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 		if (dlg.exec())
 		{
 			// Get the result
-			padDescription.drumNotes = dlg.getNotes();
+			padDescription.inputNotes = dlg.getNotes();
 
 			// Save the result in the data model
 			QVariant variant;
 			variant.setValue(padDescription);
-			_pDrumKitItemModel->setData(_pDrumKitItemModel->index(i, 1), variant);
+			_pDrumKitItemModel->setData(_pDrumKitItemModel->index(i, 3), variant);
 
 			// Go to the next or previous pad
 			int state = dlg.getPrevNextState();
@@ -181,25 +182,54 @@ void SettingsDlg::on_pushButtonSave_clicked(bool)
 void SettingsDlg::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const fs::path& pathConfig)
 {
 	spinBoxCC->setValue(pDrumKit->getHiHatControlCC());
-	_pDrumKitItemModel->setDrumKit(pDrumKit);
+	_pDrumKitItemModel->setDrumKit(*pDrumKit);
 
 	// Open persistent editor
 	for (int i=0; i<_pDrumKitItemModel->rowCount(); ++i)
 	{
-		tableViewDrumKit->openPersistentEditor(_pDrumKitItemModel->index(i, 1));
+		tableViewDrumKit->openPersistentEditor(_pDrumKitItemModel->index(i, 3));
 	}
 
 	tableViewDrumKit->resizeColumnToContents(0);
-	lineEditPath->setText(pathConfig.generic_string().c_str());
-}
+	tableViewDrumKit->resizeColumnToContents(1);
+	tableViewDrumKit->resizeColumnToContents(2);
+	tableViewDrumKit->resizeRowsToContents();
+	if (!pathConfig.empty())
+	{
+		lineEditPath->setText(pathConfig.generic_string().c_str());
+	}
 
-void SettingsDlg::on_spinBoxCC_valueChanged(int value)
-{
-	_pSettings->getDrumKitMidiMap()->setHiHatControlCC(value);
+	switch (pDrumKit->getSelectedId())
+	{
+	case 0:
+		{
+			radioButtonRightHanded->setChecked(true);
+			break;
+		}
+	case 1:
+		{
+			radioButtonLeftHanded->setChecked(true);
+			break;
+		}
+	case 2:
+		{
+			radioButtonCustom->setChecked(true);
+			break;
+		}
+	default:
+		{
+			break;
+		}
+	}
 }
 
 void SettingsDlg::accept()
 {
+	// Accept settings
+	DrumKitMidiMap drumKitMidiMap(_pDrumKitItemModel->getDrumKit());
+	drumKitMidiMap.setHiHatControlCC(spinBoxCC->value());
+	_pSettings->setDrumKitMidiMap(drumKitMidiMap);
+
 	if (fs::exists(_pSettings->getDrumKitConfigPath()))
 	{
 		// Be sure to save the drum map before leaving
@@ -227,4 +257,49 @@ void SettingsDlg::on_spinBoxRefreshPeriod_valueChanged(int value)
 void SettingsDlg::on_spinBoxCurveWindowLength_valueChanged(int value)
 {
 	_pSettings->setCurveWindowLength(value);
+}
+
+void SettingsDlg::on_radioButtonRightHanded_toggled(bool checked)
+{
+	if (checked)
+	{
+		DrumKitMidiMap* pDrumKit = _pSettings->getDrumKitMidiMap();
+		pDrumKit->select(0);
+		onDrumKitLoaded(pDrumKit);
+	}
+}
+
+void SettingsDlg::on_radioButtonLeftHanded_toggled(bool checked)
+{
+	if (checked)
+	{
+		DrumKitMidiMap* pDrumKit = _pSettings->getDrumKitMidiMap();
+		pDrumKit->select(1);
+		onDrumKitLoaded(pDrumKit);
+	}
+}
+
+void SettingsDlg::on_radioButtonCustom_toggled(bool checked)
+{
+	if (checked)
+	{
+		DrumKitMidiMap* pDrumKit = _pSettings->getDrumKitMidiMap();
+		pDrumKit->select(2);
+		onDrumKitLoaded(pDrumKit);
+	}
+
+	// Open persistent editor
+	for (int i=0; i<_pDrumKitItemModel->rowCount(); ++i)
+	{
+		if (checked)
+		{
+			tableViewDrumKit->openPersistentEditor(_pDrumKitItemModel->index(i, 1));
+			tableViewDrumKit->openPersistentEditor(_pDrumKitItemModel->index(i, 2));
+		}
+		else
+		{
+			tableViewDrumKit->closePersistentEditor(_pDrumKitItemModel->index(i, 1));
+			tableViewDrumKit->closePersistentEditor(_pDrumKitItemModel->index(i, 2));
+		}
+	}
 }

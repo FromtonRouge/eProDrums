@@ -26,6 +26,7 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <QtCore/QObject>
 
 #include <vector>
 
@@ -35,43 +36,92 @@
 class DrumKitMidiMap
 {
 public:
-	typedef std::vector<Pad::MidiDescription> Description;
+
+	/**
+	 * TODO: Find a better name...
+	 */
+	struct Description
+	{
+		typedef std::vector<Description> List;
+		typedef std::vector<Pad::MidiDescription> Pads;
+		std::string	name;
+		Pads		pads;
+
+		Description(const std::string& szName = std::string("default")):name(szName)
+		{
+			pads.push_back(Pad::MidiDescription(Pad::SNARE, Pad::NOTE_SNARE, Pad::getDefaultColor(Pad::SNARE)));
+			pads.push_back(Pad::MidiDescription(Pad::HIHAT, Pad::NOTE_HIHAT, Pad::getDefaultColor(Pad::HIHAT)));
+			pads.push_back(Pad::MidiDescription(Pad::HIHAT_PEDAL, Pad::NOTE_HIHAT_PEDAL, Pad::getDefaultColor(Pad::HIHAT_PEDAL)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM1, Pad::NOTE_TOM1, Pad::getDefaultColor(Pad::TOM1)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM2, Pad::NOTE_TOM2, Pad::getDefaultColor(Pad::TOM2)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM3, Pad::NOTE_TOM3, Pad::getDefaultColor(Pad::TOM3)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH1, Pad::NOTE_CRASH1, Pad::getDefaultColor(Pad::CRASH1)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH2, Pad::NOTE_CRASH2, Pad::getDefaultColor(Pad::CRASH2)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH3, Pad::NOTE_CRASH3, Pad::getDefaultColor(Pad::CRASH3)));
+			pads.push_back(Pad::MidiDescription(Pad::RIDE, Pad::NOTE_RIDE, Pad::getDefaultColor(Pad::RIDE)));
+			pads.push_back(Pad::MidiDescription(Pad::BASS_DRUM, Pad::NOTE_BASS_DRUM, Pad::getDefaultColor(Pad::BASS_DRUM)));
+		}
+
+	private:
+		friend class boost::serialization::access;
+		template<class Archive> void serialize(Archive & ar, const unsigned int)
+		{
+			ar  & BOOST_SERIALIZATION_NVP(name);
+			ar  & BOOST_SERIALIZATION_NVP(pads);
+		}
+	};
 
 public:
-	DrumKitMidiMap():_hiHatControlCC(4)
-	{
-		_description.push_back(Pad::MidiDescription(Pad::SNARE));
-		_description.push_back(Pad::MidiDescription(Pad::HIHAT));
-		_description.push_back(Pad::MidiDescription(Pad::HIHAT_PEDAL));
-		_description.push_back(Pad::MidiDescription(Pad::TOM1));
-		_description.push_back(Pad::MidiDescription(Pad::TOM2));
-		_description.push_back(Pad::MidiDescription(Pad::TOM3));
-		_description.push_back(Pad::MidiDescription(Pad::CRASH1));
-		_description.push_back(Pad::MidiDescription(Pad::CRASH2));
-		_description.push_back(Pad::MidiDescription(Pad::CRASH3));
-		_description.push_back(Pad::MidiDescription(Pad::RIDE));
-		_description.push_back(Pad::MidiDescription(Pad::BASS_DRUM));
-	}
+	DrumKitMidiMap():
+		_hiHatControlCC(4),
+		_selectedId(0)
+   	{
+		Description rightHanded(QObject::tr("Right Handed").toStdString());
+		_descriptions.push_back(rightHanded);
+
+		Description leftHanded(QObject::tr("Left Handed").toStdString());
+		leftHanded.pads.clear();
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::SNARE, 41, Pad::getDefaultColor(Pad::TOM3)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::HIHAT, 51, Pad::getDefaultColor(Pad::RIDE)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::HIHAT_PEDAL, 44, Pad::getDefaultColor(Pad::HIHAT_PEDAL)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::TOM1, 45, Pad::getDefaultColor(Pad::TOM2)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::TOM2, 48, Pad::getDefaultColor(Pad::TOM1)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::TOM3, 38, Pad::getDefaultColor(Pad::SNARE)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::CRASH1, 49, Pad::getDefaultColor(Pad::SNARE)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::CRASH2, 52, Pad::getDefaultColor(Pad::SNARE)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::CRASH3, 53, Pad::getDefaultColor(Pad::RIDE)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::RIDE, 22, Pad::getDefaultColor(Pad::HIHAT)));
+		leftHanded.pads.push_back(Pad::MidiDescription(Pad::BASS_DRUM, 33, Pad::getDefaultColor(Pad::BASS_DRUM)));
+		_descriptions.push_back(leftHanded);
+
+		Description custom(QObject::tr("Custom").toStdString());
+		_descriptions.push_back(custom);
+   	}
 
 	virtual ~DrumKitMidiMap() {}
 
-	const Description& getDescription() const {return _description;}
-	Description& getDescription() {return _description;}
+	const Description& getDescription() const {return _descriptions[_selectedId];}
+	Description& getDescription() {return _descriptions[_selectedId];}
 
 	unsigned short getHiHatControlCC() const {return _hiHatControlCC;}
 	void setHiHatControlCC(unsigned short note) {_hiHatControlCC = note;}
+	void select(size_t i) {_selectedId = i;}
+	size_t getSelectedId() const {return _selectedId;}
 
 private:
-	unsigned short _hiHatControlCC;
-	Description    _description;
+	unsigned short		_hiHatControlCC;
+	Description::List   _descriptions;
+	size_t				_selectedId;
 
 private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		ar  & BOOST_SERIALIZATION_NVP(_hiHatControlCC);
-		ar  & BOOST_SERIALIZATION_NVP(_description);
+		ar  & BOOST_SERIALIZATION_NVP(_descriptions);
+		ar  & BOOST_SERIALIZATION_NVP(_selectedId);
 	}
 };
 
 BOOST_CLASS_VERSION(DrumKitMidiMap, 0)
+BOOST_CLASS_VERSION(DrumKitMidiMap::Description, 0)

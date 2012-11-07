@@ -41,17 +41,17 @@ void PadNotesWidget::on_pushButtonAdd_clicked(bool)
 
 	if (dlg.exec())
 	{
-		_padDescription.drumNotes = dlg.getNotes();
-		setDrumNotes(_padDescription.drumNotes);
+		_padDescription.inputNotes = dlg.getNotes();
+		setDrumNotes(_padDescription.inputNotes);
 		emit editFinished(this);
 	}
 }
 
 void PadNotesWidget::addMidiNote(int note)
 {
-	if (_padDescription.drumNotes.findMidiNote(note)==_padDescription.drumNotes.endMidiNote())
+	if (_padDescription.inputNotes.findMidiNote(note)==_padDescription.inputNotes.endMidiNote())
 	{
-		_padDescription.drumNotes.insert(DrumNote(note));
+		_padDescription.inputNotes.insert(DrumNote(note));
 		listWidgetNotes->addItem(boost::lexical_cast<std::string>(note).c_str());
 	}
 }
@@ -70,7 +70,7 @@ void PadNotesWidget::setDrumNotes(const DrumNotes& notes)
 void PadNotesWidget::setPadDescription(const Pad::MidiDescription& description)
 {
 	_padDescription = description;
-	setDrumNotes(_padDescription.drumNotes);
+	setDrumNotes(_padDescription.inputNotes);
 }
 
 void PadNotesWidget::on_pushButtonRemove_clicked(bool)
@@ -86,7 +86,7 @@ void PadNotesWidget::on_pushButtonRemove_clicked(bool)
 		if (pCurrent)
 		{
 			int note = boost::lexical_cast<int>(pCurrent->text().toStdString());
-			_padDescription.drumNotes.eraseMidiNote(note);
+			_padDescription.inputNotes.eraseMidiNote(note);
 
 			emit editFinished(this);
 		}

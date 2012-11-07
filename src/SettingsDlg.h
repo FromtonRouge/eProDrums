@@ -58,20 +58,22 @@ public:
 
 	virtual void accept();
 
-private slots:
+private Q_SLOTS:
 
 	void on_treeWidget_itemSelectionChanged();
 	void on_stackedWidget_currentChanged(int);
 	void on_pushButtonSetupDrumKit_clicked(bool checked=false);
 	void on_pushButtonOpen_clicked(bool checked=false);
 	void on_pushButtonSave_clicked(bool checked=false);
-	void on_spinBoxCC_valueChanged(int value);
 	void on_spinBoxRefreshPeriod_valueChanged(int value);
 	void on_spinBoxCurveWindowLength_valueChanged(int value);
+	void on_radioButtonRightHanded_toggled(bool checked);
+	void on_radioButtonLeftHanded_toggled(bool checked);
+	void on_radioButtonCustom_toggled(bool checked);
 
 private:
 
-	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path& pathConfig);
+	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path& pathConfig = boost::filesystem::path());
 
 private:
 	Settings*								_pSettings;

@@ -80,16 +80,23 @@ public:
 	 */
 	struct MidiDescription
 	{
-		MidiDescription(Type type = SNARE):type(type) {}
+		MidiDescription(Type type = SNARE, int outputNote=0, const std::string& color = std::string()):
+			type(type),
+		   	outputNote(outputNote),
+		   	color(color) {}
 		Type			type;
-		DrumNotes		drumNotes;
+		std::string		color;
+		DrumNotes		inputNotes;
+		int				outputNote;
 
 	private:
 		friend class boost::serialization::access;
 		template<class Archive> void serialize(Archive & ar, const unsigned int)
 		{
 			ar  & BOOST_SERIALIZATION_NVP(type);
-			ar  & BOOST_SERIALIZATION_NVP(drumNotes);
+			ar  & BOOST_SERIALIZATION_NVP(color);
+			ar  & BOOST_SERIALIZATION_NVP(outputNote);
+			ar  & BOOST_SERIALIZATION_NVP(inputNotes);
 		}
 	};
 
@@ -102,7 +109,7 @@ public:
 
 public:
 	static std::string getName(Type type);
-	static std::string getColor(Type type);
+	static std::string getDefaultColor(Type type);
 
 public:
 	Pad();
@@ -114,13 +121,16 @@ public:
 	virtual ~Pad();
 
 public:
-	void setDrumNotes(const DrumNotes& notes);
+	void setInputNotes(const DrumNotes& notes);
+	void setColor(const std::string& color);
+	std::string getColor() const;
 	Type getType() const;
 	void setType(Type type);
 	void setTypeFlam(const Parameter::Value& value);
 	Type getTypeFlam() const;
 	bool isA(int midiNote) const;
 	bool isA(int midiNote, DrumNote::HitZone hitZone) const;
+	void setDefaultOutputNote(int outputNote);
 	int getDefaultOutputNote() const;
 	int getGhostVelocityLimit() const;
 	void setGhostVelocityLimit(const Parameter::Value& velocity);
@@ -131,7 +141,6 @@ public:
 	int getFlamCancelDuringRoll() const;
 	void setFlamCancelDuringRoll(const Parameter::Value& value);
 	std::string getName() const;
-	std::string getColor() const;
 
 	/**
 	 * Compute flams, ghosts on current and next midi message.
@@ -147,6 +156,7 @@ protected:
 
 private:
 	DrumNotes			_drumNotes;
+	std::string			_color;
 
 	// Archived data
 	Type				_type;

@@ -163,6 +163,8 @@ private:
 
 	void toLog(const std::string&);
 
+	void updateCurrentSlot();
+
 private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;
 

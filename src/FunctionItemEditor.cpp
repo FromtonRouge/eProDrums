@@ -30,6 +30,7 @@ FunctionItemEditor::FunctionItemEditor(QWidget* pParent):QWidget(pParent)
 	_pDoubleSpinBox->setMaximum(127);
 	_pDoubleSpinBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onValueChanged(double)));
+
 	QHBoxLayout* pLayout = new QHBoxLayout;
 	pLayout->setContentsMargins(0,0,0,0);
 	pLayout->addWidget(_pDoubleSpinBox);

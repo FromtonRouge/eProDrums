@@ -32,13 +32,6 @@ Settings::Settings():
 {
 	// Load the drum kit midi configuration
 	loadDrumKitMidiMap(getDrumKitConfigPath());
-
-	// Load pad settings
-	const fs::path& pathPadConfig = getUserSettingsFile();
-	if (fs::exists(pathPadConfig))
-	{
-		// _padSettings
-	}
 }
 
 Settings::~Settings()
