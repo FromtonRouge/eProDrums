@@ -49,17 +49,30 @@ public:
 
 		Description(const std::string& szName = std::string("default")):name(szName)
 		{
-			pads.push_back(Pad::MidiDescription(Pad::SNARE, Pad::NOTE_SNARE, Pad::getDefaultColor(Pad::SNARE)));
-			pads.push_back(Pad::MidiDescription(Pad::HIHAT, Pad::NOTE_HIHAT, Pad::getDefaultColor(Pad::HIHAT)));
-			pads.push_back(Pad::MidiDescription(Pad::HIHAT_PEDAL, Pad::NOTE_HIHAT_PEDAL, Pad::getDefaultColor(Pad::HIHAT_PEDAL)));
-			pads.push_back(Pad::MidiDescription(Pad::TOM1, Pad::NOTE_TOM1, Pad::getDefaultColor(Pad::TOM1)));
-			pads.push_back(Pad::MidiDescription(Pad::TOM2, Pad::NOTE_TOM2, Pad::getDefaultColor(Pad::TOM2)));
-			pads.push_back(Pad::MidiDescription(Pad::TOM3, Pad::NOTE_TOM3, Pad::getDefaultColor(Pad::TOM3)));
-			pads.push_back(Pad::MidiDescription(Pad::CRASH1, Pad::NOTE_CRASH1, Pad::getDefaultColor(Pad::CRASH1)));
-			pads.push_back(Pad::MidiDescription(Pad::CRASH2, Pad::NOTE_CRASH2, Pad::getDefaultColor(Pad::CRASH2)));
-			pads.push_back(Pad::MidiDescription(Pad::CRASH3, Pad::NOTE_CRASH3, Pad::getDefaultColor(Pad::CRASH3)));
-			pads.push_back(Pad::MidiDescription(Pad::RIDE, Pad::NOTE_RIDE, Pad::getDefaultColor(Pad::RIDE)));
-			pads.push_back(Pad::MidiDescription(Pad::BASS_DRUM, Pad::NOTE_BASS_DRUM, Pad::getDefaultColor(Pad::BASS_DRUM)));
+			/**
+			 * From MadCatz midi pro manual.
+			 *		38, 31, 34, 37, 39, 40 Snare Red Pad
+			 *		48, 50 Hi-tom Yellow Pad
+			 *		45, 47 Low-tom Blue Pad
+			 *		41, 43 Floor-tom Green Pad
+			 *		22, 26, 42, 46, 54 Hi-Hat Cymbal Yellow Cymbal
+			 *		51, 53, 56, 59 Ride Cymbal Blue Cymbal
+			 *		49, 52, 55, 57 Crash Cymbal Green Cymbal
+			 *		33, 35, 36 Kick Pedal Kick Pedal
+			 *		44 Hi-Hat Pedal Hi-Hat Pedal
+			 *		CC#4 (Foot controller) Hi-Hat Pedal Position Allows Hi-Hat pedal to be held closed
+			 */
+			pads.push_back(Pad::MidiDescription(Pad::SNARE, 38, Pad::getDefaultColor(Pad::SNARE)));
+			pads.push_back(Pad::MidiDescription(Pad::HIHAT, 22, Pad::getDefaultColor(Pad::HIHAT)));
+			pads.push_back(Pad::MidiDescription(Pad::HIHAT_PEDAL, 44, Pad::getDefaultColor(Pad::HIHAT_PEDAL)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM1, 48, Pad::getDefaultColor(Pad::TOM1)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM2, 45, Pad::getDefaultColor(Pad::TOM2)));
+			pads.push_back(Pad::MidiDescription(Pad::TOM3, 41, Pad::getDefaultColor(Pad::TOM3)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH1, 49, Pad::getDefaultColor(Pad::CRASH1)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH2, 52, Pad::getDefaultColor(Pad::CRASH2)));
+			pads.push_back(Pad::MidiDescription(Pad::CRASH3, 26, Pad::getDefaultColor(Pad::CRASH3)));
+			pads.push_back(Pad::MidiDescription(Pad::RIDE, 51, Pad::getDefaultColor(Pad::RIDE)));
+			pads.push_back(Pad::MidiDescription(Pad::BASS_DRUM, 33, Pad::getDefaultColor(Pad::BASS_DRUM)));
 		}
 
 	private:

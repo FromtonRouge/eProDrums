@@ -39,6 +39,7 @@ HEADERS += AddMidiNote.h \
 		   FunctionItemDelegate.h \
 		   FunctionItemEditor.h \
 		   FunctionItemModel.h \
+		   GraphSubWindow.h \
            HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
@@ -72,6 +73,7 @@ SOURCES += AddMidiNote.cpp \
            EProPlotMarker.cpp \
            EProPlotZoomer.cpp \
 		   FunctionItemEditor.cpp \
+		   GraphSubWindow.cpp \
            HiHatPedalCurve.cpp \
            HiHatPedalElement.cpp \
            HiHatPositionCurve.cpp \

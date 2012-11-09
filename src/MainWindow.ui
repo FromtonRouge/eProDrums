@@ -44,7 +44,7 @@
          <number>0</number>
         </property>
         <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayoutPlot"/>
+         <widget class="QMdiArea" name="mdiArea"/>
         </item>
        </layout>
       </widget>

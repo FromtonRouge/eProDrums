@@ -27,21 +27,10 @@
 
 #include "Pad.h"
 #include "HiHatPedalElement.h"
-
-#include "EProPlot.h"
-#include "EProPlotMarker.h"
-#include "EProPlotZoomer.h"
 #include "HiHatPositionCurve.h"
-#include "HiHatPedalCurve.h"
 
-#include "qwt_symbol.h"
-#include "qwt_scale_div.h"
-#include "qwt_legend_item.h"
-
-#include <QtCore/QTimer>
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
-#include <QtGui/QGridLayout>
 
 #include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
@@ -77,9 +66,7 @@ MainWindow::MainWindow():
     _midiOutHandle(NULL),
     _bConnected(false),
 	_currentSlot(_userSettings.configSlots.end()),
-	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0),
-	_bRedrawState(true),
-	_redrawPeriod(25)
+	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
 	setupUi(this);
 	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
@@ -89,52 +76,13 @@ MainWindow::MainWindow():
 	std::cout.rdbuf(&_streamBuffer);
 	connect(this, SIGNAL(sLog(const QString&)), textEditLog, SLOT(append(const QString&)));
 
-	// Timer used to redraw plots
-	_pRedrawTimer = new QTimer(this);
-	connect(_pRedrawTimer, SIGNAL(timeout()), this, SLOT(onRedrawCurves()));
-
-	// Plot
-    _pPlot = new EProPlot(this);
-    gridLayoutPlot->addWidget(_pPlot, 0,0);
-
-    // Plot zoomer
-    _pPlotZoomer = new EProPlotZoomer(_pPlot->canvas());
-	connect(_pPlotZoomer, SIGNAL(inRectSelection(bool)), this, SLOT(onRectSelection(bool)));
-	connect(_pPlotZoomer, SIGNAL(leftMouseClicked(const QPoint&)), this, SLOT(onLeftMouseClicked(const QPoint&)));
-	_pPlotZoomer->setEnabled(true);
-
-    // Curve CC#4
-    QColor qBlue(100, 150, 255);
-
-	QColor qHiHatAccel(245, 0, 150);
-	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
-	_curveHiHatAcceleration = new EProPlotCurve("Hi Hat Acceleration", qHiHatAccel, 1, _pPlot);
-	_curveHiHatAcceleration->setMarkerInformationOutlineColor(QColor(Qt::white));
-	_curveHiHatAcceleration->getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
-	_curveHiHatAcceleration->setStyle(EProPlotCurve::Lines);
-	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatAccel, qHiHatAccel, QSize(2,2)));
-
-	_curves[Pad::NOTE_SNARE] = new EProPlotCurve("Snare", QColor(255, 0, 0), 2, _pPlot);
-	_curves[Pad::NOTE_HIHAT] = new EProPlotCurve("Hi Hat", QColor(255, 255, 0), 2, _pPlot);
-	_curves[Pad::NOTE_HIHAT_PEDAL] = new HiHatPedalCurve(_pPlot);
-	_curves[Pad::NOTE_TOM1] = new EProPlotCurve("Tom 1", QColor(255, 255, 0), 2, _pPlot);
-	_curves[Pad::NOTE_TOM2] = new EProPlotCurve("Tom 2", qBlue, 2, _pPlot);
-	_curves[Pad::NOTE_TOM3] = new EProPlotCurve("Tom 3", QColor(0, 255, 0), 2, _pPlot);
-	_curves[Pad::NOTE_CRASH1] = new EProPlotCurve("Green Crash", QColor(0, 255, 0), 2, _pPlot);
-	_curves[Pad::NOTE_CRASH2] = _curves[Pad::NOTE_CRASH1];
-	_curves[Pad::NOTE_CRASH3] = new EProPlotCurve("Yellow Crash", QColor(255, 255, 0), 2, _pPlot);
-	_curves[Pad::NOTE_RIDE] = new EProPlotCurve("Ride", qBlue, 2, _pPlot);
-	_curves[Pad::NOTE_BASS_DRUM] = new EProPlotCurve("Bass Drum", QColor(255, 200, 100), 2, _pPlot);
-
-    _pPlot->showAll();
-
-	// By default we hide the hh accel
-	setCurveVisibility(_curveHiHatAcceleration, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
-
-    connect(this, SIGNAL(hiHatStartMoving(int, int, int)), this, SLOT(onHiHatStartMoving(int, int, int)));
-    connect(this, SIGNAL(hiHatState(int)), this, SLOT(onHiHatState(int)));
-    connect(this, SIGNAL(footCancelStarted(int, int, int)), this, SLOT(onFootCancelStarted(int, int, int)));
-    connect(this, SIGNAL(updatePlot(int, int, int, int, int, float, float)), this, SLOT(onUpdatePlot(int, int, int, int, int, float, float)));
+	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
+    connect(this, SIGNAL(hiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
+    connect(this, SIGNAL(hiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
+    connect(this, SIGNAL(footCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
+    connect(this, SIGNAL(updatePlot(int, int, int, int, int, float, float)), _pGrapSubWindow, SLOT(onUpdatePlot(int, int, int, int, int, float, float)));
+	mdiArea->addSubWindow(_pGrapSubWindow);
+	_pGrapSubWindow->showMaximized();
 
 	// Buffer and Calibration offset
 	lineEditCalibrationOffset->setToolTip("Rock Band calibration offset to apply on both video and audio settings.\nIt's an offset, you have to add this value to your existing settings");
@@ -307,7 +255,7 @@ MainWindow::MainWindow():
 					pElHihatPedal->isFootCancel(),
 					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1),
 					tr("A hi-hat mask window is created if conditions below are met").toStdString()));
-		pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
+		pElHihatPedal->connectFootCancelActivated(boost::bind(&GraphSubWindow::onFootCancelActivated, _pGrapSubWindow, _1));
 		{
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Control speed (unit/s)", HiHatPedalElement::MIN_FOOT_SPEED, 0,
 							pElHihatPedal->getFootCancelClosingSpeed(),
@@ -325,13 +273,13 @@ MainWindow::MainWindow():
 							pElHihatPedal->getFootCancelMaskTime(),
 							boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1),
 							tr("Time length of the mask window (ms)").toStdString())));
-			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
+			pElHihatPedal->connectFootCancelMaskTime(boost::bind(&GraphSubWindow::onFootCancelMaskTime, _pGrapSubWindow, _1));
 
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
 							pElHihatPedal->getFootCancelVelocity(),
 							boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1),
 							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
-			pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
+			pElHihatPedal->connectFootCancelVelocity(boost::bind(&GraphSubWindow::onFootCancelVelocity, _pGrapSubWindow, _1));
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Foot splash cancel after a pedal hit", groupColors[1],
@@ -339,20 +287,19 @@ MainWindow::MainWindow():
 					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1),
 					tr("A hi-hat mask window is created when a hi-hat pedal hit is detected").toStdString()));
 
-		HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
-		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
+		pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitActivated, _pGrapSubWindow, _1));
 		{
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Mask time (ms)", 0, 200,
 							pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
 							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1),
 							tr("Time length of the mask window (ms)").toStdString())));
-			pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
+			pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitMaskTime, _pGrapSubWindow, _1));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Velocity to ignore (unit)", 0, 127,
 							pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
 							boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1),
 							tr("Height of the mask window. All hi-hat hits under this velocity are ignored").toStdString())));
-			pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
+			pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitVelocity, _pGrapSubWindow, _1));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Cancel while open", groupColors[2],
@@ -517,10 +464,10 @@ MainWindow::MainWindow():
     }
 
 	// Settings connections
-	_pSettings->connectRedrawPeriodChanged(boost::bind(&MainWindow::onRedrawPeriodChanged, this, _1));
-	_pSettings->connectCurveWindowLengthChanged(boost::bind(&MainWindow::onCurveWindowLengthChanged, this, _1));
-	onRedrawPeriodChanged(_pSettings->getRedrawPeriod());
-	onCurveWindowLengthChanged(_pSettings->getCurveWindowLength());
+	_pSettings->connectRedrawPeriodChanged(boost::bind(&GraphSubWindow::onRedrawPeriodChanged, _pGrapSubWindow, _1));
+	_pSettings->connectCurveWindowLengthChanged(boost::bind(&GraphSubWindow::onCurveWindowLengthChanged, _pGrapSubWindow, _1));
+	_pGrapSubWindow->onRedrawPeriodChanged(_pSettings->getRedrawPeriod());
+	_pGrapSubWindow->onCurveWindowLengthChanged(_pSettings->getCurveWindowLength());
 }
 
 MainWindow::~MainWindow()
@@ -820,8 +767,8 @@ void MainWindow::midiThread()
 void MainWindow::on_pushButtonStart_clicked(bool)
 {
 	// Clearing plots
-	clearPlots();
-	_pPlot->replot();
+	_pGrapSubWindow->clearPlots();
+	_pGrapSubWindow->replot();
 
     _bConnected = false;
     UINT midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
@@ -1044,18 +991,7 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 			spinBoxBuffer->setValue(_userSettings.bufferLength);
 
 			// Set curve visibility
-			setCurveVisibility(_curveHiHatPosition, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_CONTROL));
-			setCurveVisibility(_curveHiHatAcceleration, _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
-			setCurveVisibility(_curves[Pad::NOTE_HIHAT], _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT));
-			setCurveVisibility(_curves[Pad::NOTE_HIHAT_PEDAL], _userSettings.isCurveVisible(UserSettings::CURVE_HIHAT_PEDAL));
-			setCurveVisibility(_curves[Pad::NOTE_CRASH1], _userSettings.isCurveVisible(UserSettings::CURVE_CRASH));
-			setCurveVisibility(_curves[Pad::NOTE_CRASH3], _userSettings.isCurveVisible(UserSettings::CURVE_YELLOW_CRASH));
-			setCurveVisibility(_curves[Pad::NOTE_RIDE], _userSettings.isCurveVisible(UserSettings::CURVE_RIDE));
-			setCurveVisibility(_curves[Pad::NOTE_TOM1], _userSettings.isCurveVisible(UserSettings::CURVE_TOM1));
-			setCurveVisibility(_curves[Pad::NOTE_TOM2], _userSettings.isCurveVisible(UserSettings::CURVE_TOM2));
-			setCurveVisibility(_curves[Pad::NOTE_TOM3], _userSettings.isCurveVisible(UserSettings::CURVE_TOM3));
-			setCurveVisibility(_curves[Pad::NOTE_SNARE], _userSettings.isCurveVisible(UserSettings::CURVE_SNARE));
-			setCurveVisibility(_curves[Pad::NOTE_BASS_DRUM], _userSettings.isCurveVisible(UserSettings::CURVE_BASS_PEDAL));
+			_pGrapSubWindow->loadCurveVisibility();
         }
     }
     catch (const std::exception& e)
@@ -1072,19 +1008,7 @@ void MainWindow::saveUserSettings(const std::string& szFilePath)
 {
     try
     {
-		// On save we udpate all curve visibility
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_CONTROL, _curveHiHatPosition->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_ACCELERATION, _curveHiHatAcceleration->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT, _curves[Pad::NOTE_HIHAT]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_HIHAT_PEDAL, _curves[Pad::NOTE_HIHAT_PEDAL]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_CRASH, _curves[Pad::NOTE_CRASH1]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_YELLOW_CRASH, _curves[Pad::NOTE_CRASH3]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_RIDE, _curves[Pad::NOTE_RIDE]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM1, _curves[Pad::NOTE_TOM1]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM2, _curves[Pad::NOTE_TOM2]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_TOM3, _curves[Pad::NOTE_TOM3]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_SNARE, _curves[Pad::NOTE_SNARE]->isVisible());
-		_userSettings.setCurveVisibility(UserSettings::CURVE_BASS_PEDAL, _curves[Pad::NOTE_BASS_DRUM]->isVisible());
+		_pGrapSubWindow->saveCurveVisibility();
 
         fs::path pathConfig(szFilePath);
         std::ofstream ofs(pathConfig.generic_string().c_str());
@@ -1405,7 +1329,7 @@ void MainWindow::updateCurrentSlot()
 			const Parameter::Ptr& pRoot = pTreeView->getRoot();
 			const Parameter::Ptr& pGroup1 = pRoot->getChildAt(0);
 
-			pElHihatPedal->connectFootCancelActivated(boost::bind(&HiHatPositionCurve::activateFootCancel, _curveHiHatPosition, _1));
+			pElHihatPedal->connectFootCancelActivated(boost::bind(&GraphSubWindow::onFootCancelActivated, _pGrapSubWindow, _1));
 			pGroup1->update(	pElHihatPedal->isFootCancel(),
 					boost::bind(&HiHatPedalElement::setFootCancel, pElHihatPedal, _1));
 			{
@@ -1417,26 +1341,25 @@ void MainWindow::updateCurrentSlot()
 						boost::bind(&HiHatPedalElement::setFootCancelPosDiff, pElHihatPedal, _1));
 				pGroup1->getChildAt(3)->update(	pElHihatPedal->getFootCancelMaskTime(),
 						boost::bind(&HiHatPedalElement::setFootCancelMaskTime, pElHihatPedal, _1));
-				pElHihatPedal->connectFootCancelMaskTime(boost::bind(&HiHatPositionCurve::setFootCancelMaskTime, _curveHiHatPosition, _1));
+				pElHihatPedal->connectFootCancelMaskTime(boost::bind(&GraphSubWindow::onFootCancelMaskTime, _pGrapSubWindow, _1));
 
 				pGroup1->getChildAt(4)->update(	pElHihatPedal->getFootCancelVelocity(),
 						boost::bind(&HiHatPedalElement::setFootCancelVelocity, pElHihatPedal, _1));
-				pElHihatPedal->connectFootCancelVelocity(boost::bind(&HiHatPositionCurve::setFootCancelMaskVelocity, _curveHiHatPosition, _1));
+				pElHihatPedal->connectFootCancelVelocity(boost::bind(&GraphSubWindow::onFootCancelVelocity, _pGrapSubWindow, _1));
 			}
 
 			const Parameter::Ptr& pGroup2 = pRoot->getChildAt(1);
-			HiHatPedalCurve* pPedalCurve = dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL]);
-			pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&HiHatPedalCurve::activateMask, pPedalCurve, _1));
+			pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitActivated, _pGrapSubWindow, _1));
 			pGroup2->update(	pElHihatPedal->isFootCancelAfterPedalHit(),
 					boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHit, pElHihatPedal, _1));
 			{
 				pGroup2->getChildAt(0)->update(	pElHihatPedal->getFootCancelAfterPedalHitMaskTime(),
 						boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitMaskTime, pElHihatPedal, _1));
-				pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&HiHatPedalCurve::setFootCancelMaskTime, pPedalCurve, _1));
+				pElHihatPedal->connectFootCancelAfterPedalHitMaskTime(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitMaskTime, _pGrapSubWindow, _1));
 
 				pGroup2->getChildAt(1)->update(	pElHihatPedal->getFootCancelAfterPedalHitVelocity(),
 						boost::bind(&HiHatPedalElement::setFootCancelAfterPedalHitVelocity, pElHihatPedal, _1));
-				pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&HiHatPedalCurve::setFootCancelMaskVelocity, pPedalCurve, _1));
+				pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitVelocity, _pGrapSubWindow, _1));
 			}
 
 			const Parameter::Ptr& pGroup3 = pRoot->getChildAt(2);
@@ -1602,68 +1525,6 @@ void MainWindow::on_actionAbout_triggered()
 	fmtMsg%APPLICATION_NAME%APPLICATION_VERSION;
 	DialogAbout dlgAbout(this, fmtMsg.str(), "FromtonRouge");
 	dlgAbout.exec();
-}
-
-void MainWindow::clearPlots()
-{
-	_pPlotZoomer->moveWindow(0, 5*1000);
-
-	_curveHiHatPosition->showMarkers(false);
-	_curveHiHatAcceleration->showMarkers(false);
-
-	_pPlot->clear();
-}
-
-void MainWindow::onUpdatePlot(int msgType, int, int msgNote, int msgVelocity, int timestamp, float hiHatControlSpeed, float hiHatAcceleration)
-{
-	int plotTimeWindow = 5*1000;
-	if (timestamp>plotTimeWindow)
-	{
-		_pPlotZoomer->moveWindow(timestamp-plotTimeWindow, plotTimeWindow);
-	}
-	else
-	{
-		_pPlotZoomer->moveWindow(0, plotTimeWindow);
-	}
-
-    // CC#4
-    if (msgType == 11)
-    {
-		int hiHatLevel(127-msgVelocity);
-		boost::any userData(std::make_pair(hiHatControlSpeed, hiHatAcceleration));
-		_curveHiHatPosition->add(QPointF(timestamp, hiHatLevel), userData);
-		_curveHiHatAcceleration->add(QPointF(timestamp, hiHatAcceleration*(127.f/HiHatPedalElement::MAX_ALLOWED_ACCELERATION)));
-		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_HIHAT_CONTROL))
-		{
-			std::cout << (boost::format("%d (unit), %.3f (unit/s), %.3f (unit/ss)")%hiHatLevel%hiHatControlSpeed%hiHatAcceleration) << std::endl;
-		}
-    }
-    else if (msgType == 9)
-    {
-		EProPlotCurve::Dict::iterator it = _curves.find(msgNote);
-		if (it!=_curves.end())
-		{
-			it->second->add(QPointF(timestamp, msgVelocity));
-		}
-    }
-
-	// Redraw order, plots are redrawn after an idle time
-	if (_bRedrawState)
-	{
-		_pRedrawTimer->start(_redrawPeriod);
-	}
-}
-
-void MainWindow::onRectSelection(bool bState)
-{
-	if (bState)
-	{
-		statusBar()->showMessage("[Ctrl + Left Click] to zoom");
-	}
-	else
-	{
-		statusBar()->showMessage("");
-	}
 }
 
 void MainWindow::on_groupBoxLogs_toggled(bool checked)
@@ -2137,104 +1998,22 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	}
 }
 
-void MainWindow::onLeftMouseClicked(const QPoint& pos)
-{
-	int index = _curveHiHatPosition->updateMarkers(pos);
-	if (index>=0)
-	{
-		int position(_curveHiHatPosition->y(index));
-		std::pair<float, float> speedAndAccel = boost::any_cast< std::pair<float, float> >(_curveHiHatPosition->getUserData(index));
-
-		boost::format fmtControl("%d (unit), %.3f (unit/s), %.3f (unit/s²)");
-		_curveHiHatPosition->setMarkerInformationLabel((fmtControl%position%speedAndAccel.first%speedAndAccel.second).str());
-	}
-
-	index = _curveHiHatAcceleration->updateMarkers(pos);
-	if (index>=0)
-	{
-		float accel = _curveHiHatAcceleration->y(index)*float(HiHatPedalElement::MAX_ALLOWED_ACCELERATION)/127;
-		
-		boost::format fmtAccel("%.3f (unit/s²)");
-		_curveHiHatAcceleration->setMarkerInformationLabel((fmtAccel%accel).str());
-	}
-
-	EProPlotCurve::Dict::iterator it = _curves.begin();
-	while (it!=_curves.end())
-	{
-		EProPlotCurve::Dict::value_type& v = *(it++);
-		EProPlotCurve* pCurve = v.second;
-		index = pCurve->updateMarkers(pos);
-		if (index>=0)
-		{
-			pCurve->setMarkerInformationLabel((boost::format("%d")%pCurve->y(index)).str());
-		}
-	}
-
-	_pPlot->replot();
-}
-
-void MainWindow::setCurveVisibility(EProPlotCurve* pCurve, bool state)
-{
-	QwtLegend* pLegend = _pPlot->legend();
-	QwtLegendItem* pLegendItem = dynamic_cast<QwtLegendItem*>(pLegend->find(pCurve));
-	pCurve->setVisible(state);
-	pLegendItem->setChecked(state);
-}
-
-void MainWindow::onRedrawCurves()
-{
-	_pRedrawTimer->stop();
-	_pPlot->replot();
-}
-
-void MainWindow::onHiHatStartMoving(int movingState, int pos, int timestamp)
-{
-	switch (movingState)
-	{
-	case HiHatPedalElement::MS_START_OPEN:
-		{
-			_curveHiHatPosition->addOpenInfo(QPointF(timestamp, pos));
-			break;
-		}
-	case HiHatPedalElement::MS_START_CLOSE:
-		{
-			_curveHiHatPosition->addCloseInfo(QPointF(timestamp, pos));
-			break;
-		}
-	default:
-		{
-			break;
-		}
-	}
-}
-
-void MainWindow::onHiHatState(int state)
-{
-	HiHatPositionCurve::HiHatState hhState= static_cast<HiHatPositionCurve::HiHatState>(state);
-	_curveHiHatPosition->setHiHatState(hhState);
-}
-
-void MainWindow::onFootCancelStarted(int startTime, int maskLength, int velocity)
-{
-	_curveHiHatPosition->addFootCancelInfo(startTime, maskLength, velocity);
-}
-
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
 	switch(index)
 	{
 	case 0:
 		{
-			_curveHiHatPosition->showHiHatLayers(true);
-			_curveHiHatPosition->showFootCancelLayers(false);
-			dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL])->showMaskLayer(false);
+			_pGrapSubWindow->showHiHatLayers(true);
+			_pGrapSubWindow->showFootCancelLayers(false);
+			_pGrapSubWindow->showHiHatPedalMaskLayer(false);
 			break;
 		}
 	case 1:
 		{
-			_curveHiHatPosition->showHiHatLayers(false);
-			_curveHiHatPosition->showFootCancelLayers(true);
-			dynamic_cast<HiHatPedalCurve*>(_curves[Pad::NOTE_HIHAT_PEDAL])->showMaskLayer(true);
+			_pGrapSubWindow->showHiHatLayers(false);
+			_pGrapSubWindow->showFootCancelLayers(true);
+			_pGrapSubWindow->showHiHatPedalMaskLayer(true);
 			break;
 		}
 	default:
@@ -2242,19 +2021,6 @@ void MainWindow::on_tabWidget_currentChanged(int index)
 			break;
 		}
 	}
-}
-
-void MainWindow::showEvent(QShowEvent* pEvent)
-{
-	_pRedrawTimer->start(_redrawPeriod);
-	_bRedrawState = true;
-	QMainWindow::showEvent(pEvent);
-}
-
-void MainWindow::hideEvent(QHideEvent* pEvent)
-{
-	_bRedrawState = false;
-	QMainWindow::hideEvent(pEvent);
 }
 
 void MainWindow::on_actionSettings_triggered()
@@ -2265,17 +2031,4 @@ void MainWindow::on_actionSettings_triggered()
 	{
 		updateCurrentSlot();
 	}
-}
-
-void MainWindow::onRedrawPeriodChanged(int value)
-{
-	_redrawPeriod = value;
-}
-
-void MainWindow::onCurveWindowLengthChanged(int value)
-{
-	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	int timeWindowInMs = value*1000;
-	int maxValue = pScaleDiv->interval().maxValue();
-	_pPlotZoomer->moveWindow(maxValue-timeWindowInMs,timeWindowInMs, true, false);
 }

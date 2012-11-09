@@ -24,11 +24,10 @@
 #include "MidiMessage.h"
 #include "Pad.h"
 #include "StreamSink.h"
-#include "EProPlotCurve.h"
+#include "GraphSubWindow.h"
+#include "UserSettings.h"
 
 #include "ui_MainWindow.h"
-
-#include "UserSettings.h"
 
 #include <QtGui/QMainWindow>
 
@@ -41,11 +40,6 @@
 
 #include <list>
 
-class EProPlot;
-class HiHatPositionCurve;
-class EProPlotZoomer;
-class QwtPlotItem;
-class QTimer;
 class Settings;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
@@ -68,9 +62,6 @@ public:
     void notify() {_condition.notify_all();}
     void addIncomingMidiMessage(const MidiMessage& midiMessage);
 	const UserSettings& getConfig() const {return _userSettings;}
-
-	void onRedrawPeriodChanged(int value);
-	void onCurveWindowLengthChanged(int value);
 
 signals:
 	void hiHatState(int state);
@@ -115,18 +106,7 @@ private slots:
     void on_menuEdit_aboutToShow();
 	void on_tabWidget_currentChanged(int index);
 
-	void onFootCancelStarted(int timestamp, int maskLength, int velocity);
-	void onHiHatState(int state);
-	void onHiHatStartMoving(int movingState, int pos, int timestamp);
-	void onRedrawCurves();
-	void onRectSelection(bool);
-	void onLeftMouseClicked(const QPoint&);
-    void onUpdatePlot(int, int, int, int, int, float, float);
-
 private:
-	virtual void showEvent(QShowEvent* pEvent);
-	virtual void hideEvent(QHideEvent* pEvent);
-
     void midiThread();
     void stop();
 	void computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistory& lastMsgSent);
@@ -142,9 +122,6 @@ private:
     MidiMessage* getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType = 9);
 
 	std::string createNewSlotName(const std::string& szBaseName = std::string("slot")) const;
-
-	void clearPlots();
-	void setCurveVisibility(EProPlotCurve* pCurve, bool state);
 
 	Slot::Ptr getCurrentSlot() const
 	{
@@ -178,22 +155,10 @@ private:
     bool				_bConnected;
     MidiMessage::List	_midiMessages;
 	MidiMessage			_lastHiHatMsgControl;
+	int					_calibrationOffset;
 
 	// Thread etc...
     boost::condition					_condition;
     boost::shared_ptr<boost::thread>	_midiThread;
-
-	// Curves
-    EProPlot*			_pPlot;
-    HiHatPositionCurve*	_curveHiHatPosition;
-    EProPlotCurve*		_curveHiHatAcceleration;
-	EProPlotCurve::Dict	_curves;
-
-    // Plot pickers
-    EProPlotZoomer*	_pPlotZoomer;
-	QTimer*			_pRedrawTimer;
-	bool			_bRedrawState;
-	int				_redrawPeriod;
-	int				_calibrationOffset;
-
+	GraphSubWindow*		_pGrapSubWindow;
 };
