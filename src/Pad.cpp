@@ -30,14 +30,14 @@ Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
 	(TOM1, "Tom 1")
 	(TOM2, "Tom 2")
 	(TOM3, "Tom 3")
-	(CRASH1, "Green to Yellow Crash")
-	(CRASH2, "Green Crash")
-	(CRASH3, "Yellow Crash")
+	(CRASH1, "Color change Crash")
+	(CRASH2, "Crash")
+	(CRASH3, "Alternate Crash")
 	(RIDE, "Ride")
 	(BASS_DRUM, "Bass Drum");
 
 std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
-	(SNARE, "#FF7070")
+	(SNARE, "#FF6060")
 	(HIHAT, "#FFFD70")
 	(HIHAT_PEDAL, "#FFFFFF")
 	(TOM1, "#FFFD70")
@@ -264,7 +264,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int nextValue = pNext->getValue();
 					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 					{
-						pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+						pNext->changeNoteTo(pFlamElement.get());
 						bDoGhostNoteTest = false;
 					}
 				}
@@ -288,7 +288,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 				int nextValue = pNext->getValue();
 				if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 				{
-					pNext->changeOutputNote(pFlamElement->getDefaultOutputNote());
+					pNext->changeNoteTo(pFlamElement.get());
 				}
 			}
 		}
@@ -306,7 +306,7 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 					int currentValue = pCurrent->getValue();
 					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (currentValue==127 || currentValue >= int(rLast.getValue()*y)))
 					{
-						pCurrent->changeOutputNote(pFlamElement->getDefaultOutputNote());
+						pCurrent->changeNoteTo(pFlamElement.get());
 						if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
 						{
 							// If the previous hit was a ghost note, we send it for the flam here

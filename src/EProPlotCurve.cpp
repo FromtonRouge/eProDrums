@@ -34,6 +34,7 @@ EProPlotCurve::EProPlotCurve(const std::string& szName, const QColor& color, int
 {
 	setStyle(Sticks);
 	attach(pPlot);
+
 	QPen pen(color);
 	pen.setWidth(width);
 	setPen(pen);
@@ -119,4 +120,13 @@ void EProPlotCurve::setVisible(bool state)
 {
 	showMarkers(state);
 	QwtPlotCurve::setVisible(state);
+}
+
+void EProPlotCurve::setColor(const QColor& color)
+{
+	QPen pen(pen());
+	pen.setColor(color);
+	setPen(pen);
+
+	_pMarkerInformation->setColor(color);
 }

@@ -22,11 +22,15 @@
 #include <QtGui/QMdiSubWindow>
 
 #include "EProPlotCurve.h"
+#include "MidiMessage.h"
+
+#include <boost/filesystem.hpp>
 
 class EProPlot;
 class EProPlotZoomer;
 class HiHatPositionCurve;
 class QTimer;
+class DrumKitMidiMap;
 struct UserSettings;
 
 /**
@@ -59,9 +63,10 @@ public:
 	void onFootCancelAfterPedalHitActivated(bool state);
 	void onFootCancelAfterPedalHitMaskTime(int value);
 	void onFootCancelAfterPedalHitVelocity(int value);
+	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path&);
 
 public Q_SLOTS:
-    void onUpdatePlot(int, int, int, int, int, float, float);
+    void onUpdatePlot(const MidiMessage&);
 	void onLeftMouseClicked(const QPoint&);
 	void onRedrawCurves();
 	void onHiHatStartMoving(int movingState, int pos, int timestamp);

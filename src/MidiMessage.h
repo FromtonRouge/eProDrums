@@ -26,9 +26,10 @@
 #include <list>
 #include <vector>
 #include <deque>
-#include <set>
 
 #include <windows.h>
+
+class Pad;
 
 class MidiMessage
 {
@@ -48,7 +49,16 @@ public:
 	typedef std::vector<History> DictHistory;
 
 public:
-	MidiMessage(const Clock::time_point& time = Clock::time_point(), DWORD_PTR dwParam1=0, DWORD_PTR dwParam2=0): _tReceiveTime(time), _dwParam1(dwParam1), _dwParam2(dwParam2), _ignore(NOT_IGNORED), _alreadyModified(false), hiHatSpeed(0), hiHatAcceleration(0), _outputNote(0)
+	MidiMessage(const Clock::time_point& time = Clock::time_point(), DWORD_PTR dwParam1=0, DWORD_PTR dwParam2=0):
+	   	_tReceiveTime(time),
+	   	_dwParam1(dwParam1),
+	   	_dwParam2(dwParam2),
+	   	_ignore(NOT_IGNORED),
+	   	_alreadyModified(false),
+	   	hiHatSpeed(0),
+	   	hiHatAcceleration(0),
+		padType(0),
+	   	_outputNote(0)
    	{
 		_outputNote = getOriginalNote();
 	}
@@ -60,7 +70,8 @@ public:
 	int getChannel() const { return ((_dwParam1 & 0x0000000F) >> 0)+1;}
 	int getOriginalNote() const { return (_dwParam1 & 0x0000FF00) >> 8;}
 	int getOutputNote() const {return _outputNote;}
-	void changeOutputNote(int note, bool bChangeModifiedState=true);
+	void changeNoteTo(Pad* pPad, bool bChangeModifiedState=true);
+	void changeNoteTo(int note, bool bChangeModifiedState=true);
 	int getValue() const { return (_dwParam1 & 0x00FF0000) >> 16;}
 	void setValue(char value);
 	int getTimestamp() const {return _dwParam2;}
@@ -81,8 +92,9 @@ public:
 	int getAbsTimeDiff(const MidiMessage& otherMessage) const;
 
 public:
-	float hiHatSpeed;
-	float hiHatAcceleration;
+	float	hiHatSpeed;
+	float	hiHatAcceleration;
+	int		padType;
 
 private:
 	DWORD_PTR			_dwParam1;

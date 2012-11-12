@@ -48,7 +48,7 @@ SettingsDlg::SettingsDlg(Settings* pSettings, QWidget* pParent):QDialog(pParent)
 	}
 	
 	// boost connections
-	_connectionToSettings = _pSettings->connectDrumKitMidiMapLoaded(boost::bind(&SettingsDlg::onDrumKitLoaded, this, _1, _2));
+	_connectionToSettings = _pSettings->signalKitDefined.connect(boost::bind(&SettingsDlg::onDrumKitLoaded, this, _1, _2));
 
 	// Qt connections
 	connect(this, SIGNAL(midiNoteOn(int, int)), _pDrumKitItemDelegate.get(), SIGNAL(midiNoteOn(int, int)));

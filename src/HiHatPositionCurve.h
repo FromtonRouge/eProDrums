@@ -22,6 +22,7 @@
 #pragma once
 
 #include "EProPlotCurve.h"
+#include <QtGui/QColor>
 
 class QwtPlotIntervalCurve;
 class QwtPlotHistogram;
@@ -58,6 +59,9 @@ public:
 	void addFootCancelInfo(int startTime, int maskLength, int velocity);
 	void setFootCancelMaskTime(int maskLength);
 	void setFootCancelMaskVelocity(int velocity);
+
+	void setClosedColor(const QColor& color);
+	void setOpenedColor(const QColor& color);
 
 private:
 	void updateHiHatLayers();

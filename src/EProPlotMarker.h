@@ -34,6 +34,6 @@ public:
 	virtual ~EProPlotMarker();
 
 	void setOutlineColor(const QColor& qColorOutline);
-
 	void move(double x, double y);
+	void setColor(const QColor& color);
 };

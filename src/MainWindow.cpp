@@ -51,6 +51,7 @@ std::string MainWindow::APPLICATION_NAME("eProDrums");
 std::string MainWindow::APPLICATION_VERSION("dev");
 
 Q_DECLARE_METATYPE(Slot::Ptr)
+Q_DECLARE_METATYPE(MidiMessage)
 
 #undef max
 #undef min
@@ -68,6 +69,8 @@ MainWindow::MainWindow():
 	_currentSlot(_userSettings.configSlots.end()),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
+	qRegisterMetaType<MidiMessage>();
+
 	setupUi(this);
 	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
 
@@ -77,10 +80,11 @@ MainWindow::MainWindow():
 	connect(this, SIGNAL(sLog(const QString&)), textEditLog, SLOT(append(const QString&)));
 
 	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
+	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));
     connect(this, SIGNAL(hiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
     connect(this, SIGNAL(hiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
     connect(this, SIGNAL(footCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
-    connect(this, SIGNAL(updatePlot(int, int, int, int, int, float, float)), _pGrapSubWindow, SLOT(onUpdatePlot(int, int, int, int, int, float, float)));
+    connect(this, SIGNAL(updatePlot(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
 	mdiArea->addSubWindow(_pGrapSubWindow);
 	_pGrapSubWindow->showMaximized();
 
@@ -464,8 +468,8 @@ MainWindow::MainWindow():
     }
 
 	// Settings connections
-	_pSettings->connectRedrawPeriodChanged(boost::bind(&GraphSubWindow::onRedrawPeriodChanged, _pGrapSubWindow, _1));
-	_pSettings->connectCurveWindowLengthChanged(boost::bind(&GraphSubWindow::onCurveWindowLengthChanged, _pGrapSubWindow, _1));
+	_pSettings->signalRedrawPeriodChanged.connect(boost::bind(&GraphSubWindow::onRedrawPeriodChanged, _pGrapSubWindow, _1));
+	_pSettings->signalCurveWindowLengthChanged.connect(boost::bind(&GraphSubWindow::onCurveWindowLengthChanged, _pGrapSubWindow, _1));
 	_pGrapSubWindow->onRedrawPeriodChanged(_pSettings->getRedrawPeriod());
 	_pGrapSubWindow->onCurveWindowLengthChanged(_pSettings->getCurveWindowLength());
 }
@@ -499,11 +503,11 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 					// Update the timestamp of the last CC#4 to the same timestamp of the current note
 					_lastHiHatMsgControl.setTimestamp(midiMessage.getTimestamp());
 					const MidiMessage& m = _lastHiHatMsgControl;
-					emit updatePlot(m.getMsgType(), m.getChannel(), m.getOutputNote(), m.getValue(), m.getTimestamp(), m.hiHatSpeed, m.hiHatAcceleration);
+					emit updatePlot(m);
 				}
 			}
 
-			emit updatePlot(midiMessage.getMsgType(), midiMessage.getChannel(), midiMessage.getOutputNote(), midiMessage.getValue(), midiMessage.getTimestamp(), midiMessage.hiHatSpeed, midiMessage.hiHatAcceleration);
+			emit updatePlot(midiMessage);
 		}
 		else
 		{
@@ -546,7 +550,8 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 			const Pad::Ptr& pPad = *(it++);
 			if (pPad->isA(midiMessage.getOriginalNote()))
 			{
-				midiMessage.changeOutputNote(pPad->getDefaultOutputNote(), false);
+				midiMessage.changeNoteTo(pPad.get(), false);
+				midiMessage.padType = pPad->getType();
 				bAddThisMidiMessage = true;
 				break;
 			}
@@ -554,7 +559,7 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 	}
 	else if (midiMessage.isControllerMsg() && midiMessage.getOriginalNote() == _pSettings->getDrumKitMidiMap()->getHiHatControlCC())
 	{
-		midiMessage.changeOutputNote(4, false);
+		midiMessage.changeNoteTo(4, false);
 		bAddThisMidiMessage = true;
 	}
 
@@ -576,7 +581,7 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 	}
 }
 
-void CALLBACK MidiInProc(
+void CALLBACK midiInProc(
         HMIDIIN,  
         UINT wMsg,        
         DWORD_PTR dwInstance, 
@@ -632,7 +637,7 @@ void MainWindow::midiThread()
 
     while (true)
     {
-		// Data to protect between MidiInProc, midiThread and Qt:
+		// Data to protect between midiInProc, midiThread and Qt:
 		//	-	_userSettings
 		//	-	_midiMessages
 		//	-	_clock
@@ -772,7 +777,7 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 
     _bConnected = false;
     UINT midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
-    MMRESULT res = midiInOpen(&_midiInHandle, midiInId, (DWORD_PTR)MidiInProc, (DWORD_PTR)this, CALLBACK_FUNCTION);
+    MMRESULT res = midiInOpen(&_midiInHandle, midiInId, (DWORD_PTR)midiInProc, (DWORD_PTR)this, CALLBACK_FUNCTION);
     if (res!=MMSYSERR_NOERROR)
     {
         QMessageBox::critical(this, "Error", "Cannot open MIDI IN");
@@ -967,7 +972,7 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 				const Slot::Ptr& pSlot = *(it++);
 
 				// Connection between global settings and the slot
-				_pSettings->connectDrumKitMidiMapLoaded(boost::bind(&Slot::onDrumKitLoaded, pSlot, _1, _2));
+				_pSettings->signalKitDefined.connect(boost::bind(&Slot::onDrumKitLoaded, pSlot, _1, _2));
 
 				// Add the item in the list widget
 				QListWidgetItem* pNewItem = new QListWidgetItem(pSlot->getName().c_str());
@@ -1218,7 +1223,7 @@ Slot::Ptr MainWindow::createDefaultSlot()
     const Pad::Ptr& pElBassDrum = Pad::Ptr(new Pad(Pad::BASS_DRUM, Pad::NOTE_BASS_DRUM)); 
     pDefaultSlot->getPads().push_back(pElBassDrum);
 
-	_pSettings->connectDrumKitMidiMapLoaded(boost::bind(&Slot::onDrumKitLoaded, pDefaultSlot, _1, _2));
+	_pSettings->signalKitDefined.connect(boost::bind(&Slot::onDrumKitLoaded, pDefaultSlot, _1, _2));
 	_pSettings->reloadDrumKitMidiMap();
 
     return pDefaultSlot;
@@ -1733,9 +1738,9 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 	if (currentMsg.isNoteOnMsg() && !currentMsg.isAlreadyModified())
 	{
-		switch (currentMsg.getOutputNote())
+		switch (currentMsg.padType)
 		{
-		case Pad::NOTE_HIHAT_PEDAL:
+		case Pad::HIHAT_PEDAL:
 			{
 				if (bHasNextMidiMessage && pElHihatPedal->isFootCancelAfterPedalHit())
 				{
@@ -1749,7 +1754,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_HIHAT:
+		case Pad::HIHAT:
 			{
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
 				if ( pElHihatPedal->isCancelHitWhileOpen()
@@ -1768,7 +1773,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					if (!pElHihatPedal->isBowAlwaysYellow() || !pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::BOW))
 					{
 						// Change the yellow hi-hat to blue if the pedal is blue
-						currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+						currentMsg.changeNoteTo(pElRide.get());
 					}
 				}
 				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
@@ -1786,7 +1791,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 								float y = 0.f;
 								if (LinearFunction::apply(pElHihatPedal->getBlueAccentFunctions(), currentControlPos, y) && currentMsg.getValue() > y)
 								{
-									currentMsg.changeOutputNote(pElRide->getDefaultOutputNote());
+									currentMsg.changeNoteTo(pElRide.get());
 								}
 							}
 						}
@@ -1814,7 +1819,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_CRASH1:
+		case Pad::CRASH1:
 			{
 				// For the crash 2 we only get the previous
 				MidiMessage* pPreviousCRASH2 = NULL;
@@ -1858,23 +1863,23 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 				if (mutableCrashWithCrash && pPreviousCRASH2 && !pPreviousCRASH2->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousCRASH2, cymbalsSimHitWindow))
 				{
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else if (mutableCrashWithRide && pNextOrPreviousRIDE && currentMsg.isInTimeWindow(*pNextOrPreviousRIDE, cymbalsSimHitWindow))
 				{
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else if (mutableCrashWithSnare && pNextOrPreviousSNARE && currentMsg.isInTimeWindow(*pNextOrPreviousSNARE, cymbalsSimHitWindow))
 				{
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else if (mutableCrashWithTom2 && pNextOrPreviousTOM2 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM2, cymbalsSimHitWindow))
 				{
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else if (mutableCrashWithTom3 && pNextOrPreviousTOM3 && currentMsg.isInTimeWindow(*pNextOrPreviousTOM3, cymbalsSimHitWindow))
 				{
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1884,14 +1889,14 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_CRASH3:
+		case Pad::CRASH3:
 			{
 				// Flam and ghost
 				sendMidiMessages(pElCrash3->applyFlamAndGhost(getCurrentSlot()->getPads(), lastMsgSent, &currentMsg, getNextMessage(pElCrash3)), true);
 				break;
 			}
 
-		case Pad::NOTE_CRASH2:
+		case Pad::CRASH2:
 			{
 				MidiMessage* pPreviousAutoConvertCrash = NULL;
 				if (!lastMsgSent[Pad::CRASH1].empty())
@@ -1902,7 +1907,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				if (mutableCrashWithCrash && pPreviousAutoConvertCrash && !pPreviousAutoConvertCrash->isAlreadyModified() && currentMsg.isInTimeWindow(*pPreviousAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Previous was a mutable crash, if the mutable was not changed we have to change the CRASH2 to yellow
-					currentMsg.changeOutputNote(pElHihat->getDefaultOutputNote());
+					currentMsg.changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1912,13 +1917,13 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_RIDE:
+		case Pad::RIDE:
 			{
 				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
 				if (mutableCrashWithRide && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow Crash
-					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1928,13 +1933,13 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_SNARE:
+		case Pad::SNARE:
 			{
 				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
 				if (mutableCrashWithSnare && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow Crash
-					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1944,20 +1949,20 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_TOM1:
+		case Pad::TOM1:
 			{
 				// Flam and ghost
 				sendMidiMessages(pElTom1->applyFlamAndGhost(getCurrentSlot()->getPads(), lastMsgSent, &currentMsg, getNextMessage(pElTom1)), true);
 				break;
 			}
 
-		case Pad::NOTE_TOM2:
+		case Pad::TOM2:
 			{
 				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
 				if (mutableCrashWithTom2 && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow crash
-					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1967,13 +1972,13 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_TOM3:
+		case Pad::TOM3:
 			{
 				MidiMessage* pNextAutoConvertCrash = getNextMessage(pElCrash1);
 				if (mutableCrashWithTom3 && pNextAutoConvertCrash && currentMsg.isInTimeWindow(*pNextAutoConvertCrash, cymbalsSimHitWindow))
 				{
 					// Yellow crash
-					pNextAutoConvertCrash->changeOutputNote(pElHihat->getDefaultOutputNote());
+					pNextAutoConvertCrash->changeNoteTo(pElHihat.get());
 				}
 				else
 				{
@@ -1983,7 +1988,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				break;
 			}
 
-		case Pad::NOTE_BASS_DRUM:
+		case Pad::BASS_DRUM:
 			{
 				// Flam and ghost
 				sendMidiMessages(pElBassDrum->applyFlamAndGhost(getCurrentSlot()->getPads(), lastMsgSent, &currentMsg, getNextMessage(pElBassDrum)), true);

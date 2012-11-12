@@ -53,36 +53,37 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	_pLayerFootCanceMaskTime->attach(pPlot);
 
 	_pLayerStateSecured = new QwtPlotIntervalCurve("Hi Hat secured");
-	QColor secured(255, 255, 150);
-	secured.setAlpha(170);
-	_pLayerStateSecured->setBrush(secured);
+
+	QColor securedColor(255, 255, 150);
+	securedColor.setAlpha(170);
+	_pLayerStateSecured->setBrush(securedColor);
     _pLayerStateSecured->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateSecured->setData(new EProPlotIntervalData());
 	_pLayerStateSecured->setItemAttribute(Legend, false);
 	_pLayerStateSecured->attach(pPlot);
 
 	_pLayerStateClosed = new QwtPlotIntervalCurve("Hi Hat closed");
-	QColor yellow(255, 255, 150);
-	yellow.setAlpha(150);
-	_pLayerStateClosed->setBrush(yellow);
+	QColor closedColor(255, 255, 150);
+	closedColor.setAlpha(150);
+	_pLayerStateClosed->setBrush(closedColor);
     _pLayerStateClosed->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateClosed->setData(new EProPlotIntervalData());
 	_pLayerStateClosed->setItemAttribute(Legend, false);
 	_pLayerStateClosed->attach(pPlot);
 	
 	_pLayerStateHalfOpen = new QwtPlotIntervalCurve("Hi Hat half open");
-	QColor green(150, 255, 150);
-	green.setAlpha(150);
-	_pLayerStateHalfOpen->setBrush(green);
+	QColor halfOpenColor(150, 255, 150);
+	halfOpenColor.setAlpha(150);
+	_pLayerStateHalfOpen->setBrush(halfOpenColor);
     _pLayerStateHalfOpen->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateHalfOpen->setData(new EProPlotIntervalData());
 	_pLayerStateHalfOpen->setItemAttribute(Legend, false);
 	_pLayerStateHalfOpen->attach(pPlot);
 	
 	_pLayerStateOpen = new QwtPlotIntervalCurve("Hi Hat open");
-    QColor blue(100, 150, 255);
-	blue.setAlpha(150);
-	_pLayerStateOpen->setBrush(blue);
+    QColor openColor(100, 150, 255);
+	openColor.setAlpha(150);
+	_pLayerStateOpen->setBrush(openColor);
     _pLayerStateOpen->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateOpen->setData(new EProPlotIntervalData());
 	_pLayerStateOpen->setItemAttribute(Legend, false);
@@ -100,6 +101,24 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 
 HiHatPositionCurve::~HiHatPositionCurve()
 {
+}
+
+void HiHatPositionCurve::setClosedColor(const QColor& color)
+{
+	QColor securedColor(color);
+	securedColor.setAlpha(170);
+	_pLayerStateSecured->setBrush(securedColor);
+
+	QColor closedColor(color);
+	closedColor.setAlpha(150);
+	_pLayerStateClosed->setBrush(closedColor);
+}
+
+void HiHatPositionCurve::setOpenedColor(const QColor& color)
+{
+    QColor openColor(color);
+	openColor.setAlpha(150);
+	_pLayerStateOpen->setBrush(openColor);
 }
 
 void HiHatPositionCurve::addOpenInfo(const QPointF& point)

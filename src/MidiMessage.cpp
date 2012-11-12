@@ -20,6 +20,7 @@
 // ============================================================ 
 
 #include "MidiMessage.h"
+#include "Pad.h"
 #include <boost/format.hpp>
 
 std::string MidiMessage::str() const
@@ -59,7 +60,14 @@ bool MidiMessage::isInTimeWindow(const MidiMessage& otherMessage, int timeWindow
 	return timeWindow!=0 && (getAbsTimeDiff(otherMessage) <= timeWindow);
 }
 
-void MidiMessage::changeOutputNote(int note, bool bChangeModifiedState)
+void MidiMessage::changeNoteTo(Pad* pPad, bool bChangeModifiedState)
+{
+	padType = pPad->getType();
+	_outputNote = pPad->getDefaultOutputNote();
+	_alreadyModified = bChangeModifiedState;
+}
+
+void MidiMessage::changeNoteTo(int note, bool bChangeModifiedState)
 {
 	_outputNote = note;
 	_alreadyModified = bChangeModifiedState;

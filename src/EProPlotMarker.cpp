@@ -36,6 +36,12 @@ EProPlotMarker::~EProPlotMarker()
 {
 }
 
+void EProPlotMarker::setColor(const QColor& color)
+{
+	setLinePen(QPen(color, 0, Qt::DashDotLine));
+	const_cast<QwtSymbol*>(symbol())->setColor(color);
+}
+
 void EProPlotMarker::move(double x, double y)
 {
 	setValue(x, y);

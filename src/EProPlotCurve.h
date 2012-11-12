@@ -73,6 +73,7 @@ public:
 	void setMarkerInformationOutlineColor(const QColor& qColorOutline);
 
 	virtual void setVisible(bool state);
+	void setColor(const QColor& color);
 
 private:
 	EProPlotMarker* _pMarkerInformation;

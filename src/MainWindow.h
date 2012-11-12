@@ -31,14 +31,12 @@
 
 #include <QtGui/QMainWindow>
 
-#include <windows.h>
-
 #include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/iostreams/stream_buffer.hpp> 
 
-#include <list>
+#include <windows.h>
 
 class Settings;
 
@@ -68,7 +66,7 @@ signals:
     void hiHatPedalControl(int value);
 	void hiHatStartMoving(int movingState, int pos, int timestamp);
 	void footCancelStarted(int timestamp, int maskLength, int velocity);
-    void updatePlot(int msgType, int msgChannel, int msgNote, int msgVelocity, int timestamp, float , float);
+    void updatePlot(const MidiMessage&);
 	void midiNoteOn(int msgNote, int msgVelocity);
 	void sLog(const QString&);
 
