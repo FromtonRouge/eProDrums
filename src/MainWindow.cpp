@@ -133,19 +133,19 @@ MainWindow::MainWindow():
 	{
 		Parameter::Ptr pRoot(new Parameter());
 
-		Parameter::Ptr pGroup1(new Parameter("Secured Positions", groupColors[0]));
+		Parameter::Ptr pGroup1(new Parameter("Hi-hat secured positions", groupColors[0]));
 		{
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Secured yellow position (unit)", 0, 127,
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Secured close position (unit)", 0, 127,
 							pElHihatPedal->getSecurityPosition(),
 							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
-							tr("Under this position the hi-hat is always yellow").toStdString())));
-			pGroup1->addChild(Parameter::Ptr(new Parameter("Bow hits always yellow",
+							tr("Under this position the hi-hat is in close color").toStdString())));
+			pGroup1->addChild(Parameter::Ptr(new Parameter("Bow hits always in close color",
 						   	pElHihatPedal->isBowAlwaysYellow(),
 							boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1),
-						   	tr("If checked, bow hits are always yellow").toStdString())));
+						   	tr("If checked, bow hits are always in close color").toStdString())));
 		}
 
-		Parameter::Ptr pGroup2(new Parameter("Hi-hat blue on edge accent", groupColors[1],
+		Parameter::Ptr pGroup2(new Parameter("Hi-hat open color on edge accent", groupColors[1],
 					pElHihatPedal->isBlueDetectionByAccent(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByAccent, pElHihatPedal, _1)));
 		{
@@ -156,36 +156,36 @@ MainWindow::MainWindow():
 							pDescription,
 						   	pElHihatPedal->getBlueAccentFunctions(),
 							boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1),
-							tr("List of linear functions used to determine when to convert an accented hi-hat note to blue").toStdString())));
+							tr("List of linear functions used to determine when to convert an accented hi-hat note to open color").toStdString())));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Override secured position",
 						   	pElHihatPedal->isBlueAccentOverride(),
 							boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1),
-						   	tr("If checked, edge accented hits are converted to blue even under the secured yellow position").toStdString())));
+						   	tr("If checked, edge accented hits are converted to open color even under the secured close position").toStdString())));
 		}
 
-		Parameter::Ptr pGroup3(new Parameter("Hi-hat blue detection by position", groupColors[2],
+		Parameter::Ptr pGroup3(new Parameter("Hi-hat open color detection by position", groupColors[2],
 					pElHihatPedal->isBlueDetectionByPosition(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
 		{
 			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
 						   	pElHihatPedal->getControlPosThreshold(),
 							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
-							tr("Above this position the hi-hat is converted to blue").toStdString())));
+							tr("Above this position the hi-hat is converted to open color").toStdString())));
 			pGroup3->addChild(Parameter::Ptr(new Parameter("Delay time (ms)", 0, 5000,
 						   	pElHihatPedal->getControlPosDelayTime(),
 							boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1),
-							tr("Delay time before switching to blue state if the control position is above the threshold").toStdString())));
+							tr("Delay time before switching to open color if the control position is above the threshold").toStdString())));
 		}
 
-		Parameter::Ptr pGroup4(new Parameter("Hi-hat blue detection by speed", groupColors[3],
+		Parameter::Ptr pGroup4(new Parameter("Hi-hat open color detection by speed", groupColors[3],
 					pElHihatPedal->isBlueDetectionBySpeed(),
 					boost::bind(&HiHatPedalElement::setBlueDetectionBySpeed, pElHihatPedal, _1)));
 		{
 			Parameter::Ptr pOpenSpeed(new Parameter("Open speed (unit/s)", 0, 5000,
 						pElHihatPedal->getOpenSpeed(),
 						boost::bind(&HiHatPedalElement::setOpenSpeed, pElHihatPedal, _1),
-						tr("Above this speed the hi-hat is converted to blue").toStdString()));
+						tr("Above this speed the hi-hat is converted to open color").toStdString()));
 			pOpenSpeed->setInfiniteExtremities(Parameter::InfiniteExtremities(false, true));
 
 			pGroup4->addChild(pOpenSpeed);
@@ -193,7 +193,7 @@ MainWindow::MainWindow():
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
 						   	pElHihatPedal->getCloseSpeed(),
 							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1),
-							tr("Under this speed the hi-hat is converted to yellow").toStdString())));
+							tr("Under this speed the hi-hat is converted to close color").toStdString())));
 		}
 
 		Parameter::Ptr pGroup5(new Parameter("Hi-hat half-open mode", groupColors[4],
@@ -204,17 +204,17 @@ MainWindow::MainWindow():
 			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 						   	pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
-							tr("Half open detection algorithm starts between [Security yellow position] and this position").toStdString())));
+							tr("Half open detection algorithm starts between [Security close position] and this position").toStdString())));
 
 			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open detection time (ms)", 0, 5000,
 						   	pElHihatPedal->getHalfOpenActivationTime(),
 							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
-							tr("Afters the specified time (ms), if the hi-hat is still yellow, it goes in half open mode. It will leave this mode if the control position go back under [Security yellow position]").toStdString())));
+							tr("Afters the specified time (ms), if the hi-hat is still in close color, it goes in half open mode. It will leave this mode if the control position go back under [Security close position]").toStdString())));
 		}
 
-		Parameter::Ptr pGroup6(new Parameter("Green to Yellow Crash conversion", groupColors[5]));
+		Parameter::Ptr pGroup6(new Parameter("Chameleon Crash conversion", groupColors[5]));
 		{
-			const std::string& szDescription = tr("A [Green to Yellow Crash] is converted from green to yellow if one of these pads is hit at the same time").toStdString();
+			const std::string& szDescription = tr("A Chameleon Crash change its crash color to hi-hat close color if one of these pads is hit at the same time").toStdString();
 			pGroup6->setDescription(szDescription);
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
@@ -222,7 +222,7 @@ MainWindow::MainWindow():
 							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1),
 							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Green Crash",
+			pGroup6->addChild(Parameter::Ptr(new Parameter("Crash",
 						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1), szDescription)));
 
@@ -341,7 +341,7 @@ MainWindow::MainWindow():
 							pPad->isFlamActivated(),
 							boost::bind(&Pad::setFlamActivated, pPad, _1)));
 
-				pGroup1->addChild(Parameter::Ptr(new Parameter("[Pad type] Pad Type of the second hit", 0, Pad::TYPE_COUNT,
+				pGroup1->addChild(Parameter::Ptr(new Parameter("Pad Type of the second hit", 0, Pad::TYPE_COUNT,
 								pPad->getTypeFlam(),
 								boost::bind(&Pad::setTypeFlam, pPad, _1),
 								tr("Specify the Pad type of the second hit of the flam").toStdString(),

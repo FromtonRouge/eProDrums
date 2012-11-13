@@ -30,7 +30,7 @@ Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
 	(TOM1, "Tom 1")
 	(TOM2, "Tom 2")
 	(TOM3, "Tom 3")
-	(CRASH1, "Color change Crash")
+	(CRASH1, "Chameleon Crash")
 	(CRASH2, "Crash")
 	(CRASH3, "Alternate Crash")
 	(RIDE, "Ride")
