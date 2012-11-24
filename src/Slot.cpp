@@ -71,10 +71,10 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 	const DrumKitMidiMap::Description& desc = pDrumKit->getDescription();
 	const DrumKitMidiMap::Description::Pads& pads = desc.pads;
 
-	Pad::List::iterator it = _pads.begin();
-	while (it!=_pads.end())
+	Pad::List::iterator itPad = _pads.begin();
+	while (itPad!=_pads.end())
 	{
-		const Pad::Ptr& pPad = *(it++);
+		const Pad::Ptr& pPad = *(itPad++);
 		DrumKitMidiMap::Description::Pads::const_iterator it = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->getType());
 		if (it!=pads.end())
 		{

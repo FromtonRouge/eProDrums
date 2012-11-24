@@ -42,6 +42,9 @@ DrumNoteItemEditor::DrumNoteItemEditor(Pad::Type type, QWidget* pParent):QWidget
 	_pComboBox = new QComboBox(this);
 	_pComboBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onCurrentIndexChanged(int)));
+
+	_pComboBox->addItem(tr("None"), static_cast<int>(DrumNote::NONE));
+
 	switch (_type)
 	{
 	case Pad::SNARE:
@@ -74,7 +77,6 @@ DrumNoteItemEditor::DrumNoteItemEditor(Pad::Type type, QWidget* pParent):QWidget
 	case Pad::HIHAT_PEDAL:
 	case Pad::BASS_DRUM:
 		{
-			_pComboBox->addItem(tr("None"), static_cast<int>(DrumNote::NONE));
 			break;
 		}
 	}

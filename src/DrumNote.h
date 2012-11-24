@@ -74,6 +74,7 @@ struct DrumNotes
 	typedef Container::nth_index<2>::type::iterator IteratorMidiNote;
 
 	size_t size() const {return _container.size();}
+	const DrumNote& at(size_t i) const {return _container[i];}
 
 	void insert(const DrumNote& drumNote)
 	{
