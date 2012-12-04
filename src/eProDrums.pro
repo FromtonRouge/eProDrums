@@ -3,14 +3,29 @@
 ######################################################################
 
 # Define your paths here
-BOOST_DIR = /usr
-QWT_DIR = /usr
+win32 {
+	BOOST_DIR = E:/Dev/Cpp/Common/boost_1_49_0
+	QWT_DIR = E:/Dev/Cpp/Common/Qwt-6.0.0-svn
+}
+
+# Define your paths here
+unix {
+	BOOST_DIR = /usr
+	QWT_DIR = /usr
+}
 
 TEMPLATE = app
 TARGET = eProDrums
 DEPENDPATH += .
 INCLUDEPATH += .
-INCLUDEPATH += $${BOOST_DIR}/include
+
+win32 {
+	INCLUDEPATH += $${BOOST_DIR}
+}
+
+unix {
+	INCLUDEPATH += $${BOOST_DIR}/include
+}
 INCLUDEPATH += $${QWT_DIR}/include
 
 DEFINES -= UNICODE
