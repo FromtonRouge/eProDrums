@@ -79,6 +79,10 @@ DrumNoteItemEditor::DrumNoteItemEditor(Pad::Type type, QWidget* pParent):QWidget
 		{
 			break;
 		}
+	default:
+		{
+			break;
+		}
 	}
 	_pStackedWidget->addWidget(_pComboBox);
 

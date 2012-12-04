@@ -21,9 +21,35 @@ Visual Studio 2010 Express
 
 		qmake -spec win32-msvc2010 -tp vc
 
-Linux
-=====
+Linux (debian/ubuntu)
+=====================
 
-TODO
-----
+1.	Get Qt
 
+		apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig
+
+2.	Get Qwt
+
+		-	Download Qwt source code from : http://qwt.sourceforge.net
+		-	Edit qwtconfig.pri and change QWT_INSTALL_PREFIX like below
+
+    			QWT_INSTALL_PREFIX    = /usr
+
+		-	Build Qwt :
+			
+				qmake
+				make
+				sudo make install
+
+3.	Get Boost
+
+		apt-get install libboost1.50-all-dev
+
+4.	Build eProDrums
+	
+		qmake
+		make
+
+5.	Run eProDrums
+
+		./eProDrums

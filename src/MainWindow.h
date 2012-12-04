@@ -36,7 +36,9 @@
 #include <boost/thread/condition.hpp>
 #include <boost/iostreams/stream_buffer.hpp> 
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 class Settings;
 
@@ -148,8 +150,11 @@ private:
 	Slot::List::iterator	_currentSlot;
 
 	// Midi related...
+#ifdef _WIN32
     HMIDIIN				_midiInHandle;
     HMIDIOUT			_midiOutHandle;
+#endif
+
     bool				_bConnected;
     MidiMessage::List	_midiMessages;
 	MidiMessage			_lastHiHatMsgControl;

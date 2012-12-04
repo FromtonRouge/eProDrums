@@ -33,17 +33,17 @@ void MidiMessage::print() const
     std::cout << str() << std::endl;
 }
 
-DWORD MidiMessage::computeOutputMessage() const
+MidiMessage::MidiOutputMessage MidiMessage::computeOutputMessage() const
 {
-    DWORD result = 0;
-    DWORD byte1 = 0;
+    MidiOutputMessage result = 0;
+    MidiOutputMessage byte1 = 0;
     byte1 |= static_cast<char>(getMsgType()) << 4;    
     byte1 |= static_cast<char>(getChannel()-1);
 
-    DWORD byte2 = 0;
+    MidiOutputMessage byte2 = 0;
     byte2 = static_cast<char>(getOutputNote()) << 8;
 
-    DWORD byte3 = 0;
+    MidiOutputMessage byte3 = 0;
     byte3 = static_cast<char>(getValue()) << 16;
     
     result = byte1 | byte2 | byte3;

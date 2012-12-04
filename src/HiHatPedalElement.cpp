@@ -25,11 +25,15 @@ HiHatPedalElement::HiHatPedalElement():
 	Pad(HIHAT_PEDAL, NOTE_HIHAT_PEDAL),
 	_isBlue(false),
 	_isHalfOpen(false),
+	_footCancelTimeLimit(0),
+	_halfOpenEnteringTime(0),
+	_blueStateEnteringTime(0),
 	_previousControlPos(0),
 	_currentControlPos(0),
 	_currentControlSpeed(0),
 	_previousControlSpeed(0),
 	_currentControlAcceleration(0),
+	_blueStateChangeReason(INITIAL_STATE),
 	_posOnCloseBegin(127),
 	_posOnOpenBegin(0),
 	_isBlueDetectionByAccent(false),
@@ -38,9 +42,9 @@ HiHatPedalElement::HiHatPedalElement():
 	_isHalfOpenModeEnabled(false),
 	_isFootCancel(false),
 	_isFootCancelAfterPedalHit(false),
+	_isCancelHitWhileOpen(false),
 	_isBlueAccentOverride(false),
 	_isBowAlwaysYellow(false),
-	_isCancelHitWhileOpen(false),
 	_controlPosThreshold(127),
 	_controlPosDelayTime(0),
 	_openSpeed(330),
@@ -52,15 +56,11 @@ HiHatPedalElement::HiHatPedalElement():
 	_footCancelVelocity(42),
 	_footCancelAfterPedalHitMaskTime(20),
 	_footCancelAfterPedalHitVelocity(25),
-	_footCancelTimeLimit(0),
-	_halfOpenEnteringTime(0),
-	_blueStateEnteringTime(0),
 	_cancelOpenHitThreshold(0),
 	_cancelOpenHitVelocity(0),
 	_securityPosition(0),
 	_halfOpenMaximumPosition(65),
-	_halfOpenActivationTime(50),
-	_blueStateChangeReason(INITIAL_STATE)
+	_halfOpenActivationTime(50)
 {
 	LinearFunction::List functions;
 	functions.push_back(LinearFunction(0, 45, 127, 127));
@@ -70,7 +70,7 @@ HiHatPedalElement::HiHatPedalElement():
 	_blueAccentFunctions = functions;
 }
 
-HiHatPedalElement::HiHatPedalElement(const HiHatPedalElement& rOther)
+HiHatPedalElement::HiHatPedalElement(const HiHatPedalElement& rOther):Pad(rOther)
 {
 	Mutex::scoped_lock lock(_mutex);
 	this->operator=(rOther);
@@ -105,8 +105,7 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_isCancelHitWhileOpen = rOther._isCancelHitWhileOpen;
 		_isBlueAccentOverride = rOther._isBlueAccentOverride;
 		_isBowAlwaysYellow = rOther._isBowAlwaysYellow;
-		_controlPosThreshold = rOther._controlPosThreshold;
-		_controlPosDelayTime = rOther._controlPosDelayTime;
+		_controlPosThreshold = rOther._controlPosThreshold; _controlPosDelayTime = rOther._controlPosDelayTime;
 		_openSpeed = rOther._openSpeed;
 		_closeSpeed = rOther._closeSpeed;
 		_footCancelClosingSpeed = rOther._footCancelClosingSpeed;

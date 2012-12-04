@@ -24,6 +24,7 @@
 #include <QtGui/QApplication>
 
 #include <boost/format.hpp>
+#include <fstream>
 
 namespace fs = boost::filesystem;
 

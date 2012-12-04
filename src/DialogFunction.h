@@ -24,8 +24,8 @@
 #include "LinearFunction.h"
 
 #include "ui_DialogFunction.h"
-#include "qwt_plot.h"
-#include "qwt_plot_picker.h"
+#include <qwt_plot.h>
+#include <qwt_plot_picker.h>
 
 #include <boost/scoped_ptr.hpp>
 #include <boost/shared_ptr.hpp>
@@ -76,7 +76,7 @@ private:
 	QMenu*				_pMenu;
 	boost::scoped_ptr<FunctionItemModel>			_pFunctionItemModel;
 	boost::scoped_ptr<FunctionItemDelegate>			_pFunctionItemDelegate;
-	std::vector<boost::shared_ptr<QwtPlotIntervalCurve>>	_curves;
+	std::vector< boost::shared_ptr<QwtPlotIntervalCurve> >	_curves;
 	LinearFunction::List	_functions;
 	LinearFunction::Description::Ptr	_pDescription;
 };

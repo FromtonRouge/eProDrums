@@ -124,9 +124,9 @@ void EProPlotCurve::setVisible(bool state)
 
 void EProPlotCurve::setColor(const QColor& color)
 {
-	QPen pen(pen());
-	pen.setColor(color);
-	setPen(pen);
+	QPen p(pen());
+	p.setColor(color);
+	setPen(p);
 
 	_pMarkerInformation->setColor(color);
 }

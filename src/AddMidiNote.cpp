@@ -30,9 +30,9 @@
 #include <boost/lexical_cast.hpp>
 
 AddMidiNote::AddMidiNote(const Pad::MidiDescription& padDescription):
-	_prevNextState(0),
 	_pDrumNoteItemModel(new DrumNoteItemModel()),
-	_pDrumNoteItemDelegate(new DrumNoteItemDelegate(padDescription.type))
+	_pDrumNoteItemDelegate(new DrumNoteItemDelegate(padDescription.type)),
+	_prevNextState(0)
 {
 	setupUi(this);
 

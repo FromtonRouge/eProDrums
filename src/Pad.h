@@ -82,8 +82,10 @@ public:
 	{
 		MidiDescription(Type type = SNARE, int outputNote=0, const std::string& color = std::string()):
 			type(type),
-		   	outputNote(outputNote),
-		   	color(color) {}
+		   	color(color),
+		   	outputNote(outputNote)
+	   	{}
+
 		Type			type;
 		std::string		color;
 		DrumNotes		inputNotes;

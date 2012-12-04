@@ -30,10 +30,10 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	EProPlotCurve("Hi Hat Position", QColor(245, 255, 166), 1, pPlot),
 	_hiHatState(HHS_CLOSED),
 	_previousHiHatState(HHS_CLOSED),
-	_isFootCancelActivated(true),
-	_isHiHatStatesActivated(true),
 	_isFootCancelLayersShown(true),
-	_isHiHatLayersShown(true)
+	_isFootCancelActivated(true),
+	_isHiHatLayersShown(true),
+	_isHiHatStatesActivated(true)
 {
 	setMarkerInformationOutlineColor(QColor(Qt::red));
 	getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);

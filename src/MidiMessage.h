@@ -27,7 +27,9 @@
 #include <vector>
 #include <deque>
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 class Pad;
 
@@ -35,6 +37,14 @@ class MidiMessage
 {
 public:
 	typedef boost::chrono::high_resolution_clock Clock;
+
+#ifdef _WIN32
+	typedef DWORD_PTR MidiParam;
+	typedef DWORD MidiOutputMessage;
+#else
+	typedef unsigned long MidiParam;
+	typedef unsigned long MidiOutputMessage;
+#endif
 
 	enum IgnoreReason
 	{
@@ -49,15 +59,15 @@ public:
 	typedef std::vector<History> DictHistory;
 
 public:
-	MidiMessage(const Clock::time_point& time = Clock::time_point(), DWORD_PTR dwParam1=0, DWORD_PTR dwParam2=0):
+	MidiMessage(const Clock::time_point& time = Clock::time_point(), MidiParam dwParam1=0, MidiParam dwParam2=0):
+	   	hiHatSpeed(0),
+	   	hiHatAcceleration(0),
+		padType(0),
 	   	_tReceiveTime(time),
 	   	_dwParam1(dwParam1),
 	   	_dwParam2(dwParam2),
 	   	_ignore(NOT_IGNORED),
 	   	_alreadyModified(false),
-	   	hiHatSpeed(0),
-	   	hiHatAcceleration(0),
-		padType(0),
 	   	_outputNote(0)
    	{
 		_outputNote = getOriginalNote();
@@ -87,7 +97,7 @@ public:
 
 	void print() const;
 	std::string str() const;
-	DWORD computeOutputMessage() const;
+	MidiOutputMessage computeOutputMessage() const;
 	bool isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const;
 	int getAbsTimeDiff(const MidiMessage& otherMessage) const;
 
@@ -97,10 +107,10 @@ public:
 	int		padType;
 
 private:
-	DWORD_PTR			_dwParam1;
-	DWORD_PTR			_dwParam2;
+	Clock::time_point	_tReceiveTime; ///< receive time set at construction time.
+	MidiParam			_dwParam1;
+	MidiParam			_dwParam2;
 	IgnoreReason		_ignore;
 	bool				_alreadyModified;
 	int					_outputNote; ///< By default the output note is the original note.
-	Clock::time_point	_tReceiveTime; ///< receive time set at construction time.
 };

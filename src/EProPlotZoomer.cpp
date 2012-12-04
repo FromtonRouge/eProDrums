@@ -25,6 +25,7 @@
 #include "qwt_plot.h"
 #include <QMouseEvent>
 #include <boost/format.hpp>
+#include <cmath>
 
 EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 	QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, pCanvas),
@@ -179,7 +180,6 @@ void EProPlotZoomer::widgetKeyPressEvent(QKeyEvent*	pKeyEvent)
 
 void EProPlotZoomer::widgetKeyReleaseEvent(QKeyEvent*	pKeyEvent)
 {
-	Qt::KeyboardModifiers kbModifiers = pKeyEvent->modifiers();
 	_bModifierPressed = false;
 	setRubberBandPen(QColor(Qt::white));
 	setTrackerPen(QColor(Qt::white));
@@ -192,17 +192,20 @@ QwtText EProPlotZoomer::trackerText(const QPoint& pointInPixel) const
 	const QPointF& point = invTransform(pointInPixel);
 	if (_bModifierPressed)
 	{
-		return (fmtMsg%point.x()%point.y()).str().c_str();
+		QString result((fmtMsg%point.x()%point.y()).str().c_str());
+		return result;
 	}
 	else
 	{
 		if (_rect.first==0 && _rect.second==0)
 		{
-			return (fmtMsg%point.x()%point.y()).str().c_str();
+			QString result((fmtMsg%point.x()%point.y()).str().c_str());
+			return result;
 		}
 		else
 		{
-			return (fmtMsg%_rect.first%_rect.second).str().c_str();
+			QString result((fmtMsg%_rect.first%_rect.second).str().c_str());
+			return result;
 		}
 	}
 }
@@ -223,7 +226,7 @@ void EProPlotZoomer::onPlotSelectionMoved(const QPoint& pointInPixel)
         const QPointF& p1 = _plotSelectionPoints[0];
         const QPointF& p2 = invTransform(pointInPixel);
 
-		_rect.first = int(std::abs((p2.x()-p1.x())));
+		_rect.first = int(std::abs(p2.x()-p1.x()));
 		_rect.second = int(std::abs(p2.y()-p1.y()));
     }
 	else

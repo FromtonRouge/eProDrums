@@ -53,10 +53,10 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),
-		_bEnabled(bEnabled),
-		_value(_bEnabled),
-		_color(color),
 		_szDescription(szDescription),
+		_bEnabled(bEnabled),
+		_color(color),
+		_value(_bEnabled),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
@@ -70,12 +70,12 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const std::string& szDescription = std::string(),
 				const DictEnums& dictEnums = DictEnums()):
 		label(szLabel),
-		_bEnabled(true),
 		minimum(minimum),
 		maximum(maximum),
+		_szDescription(szDescription),
+		_bEnabled(true),
 		_value(value),
 		_dictEnums(dictEnums),
-		_szDescription(szDescription),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
@@ -88,11 +88,11 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),
-		_bEnabled(true),
 		minimum(minimum),
 		maximum(maximum),
-		_value(value),
 		_szDescription(szDescription),
+		_bEnabled(true),
+		_value(value),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
@@ -103,9 +103,9 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),
+		_szDescription(szDescription),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
@@ -116,9 +116,9 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),
+		_szDescription(szDescription),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);
@@ -131,9 +131,9 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 				const std::string& szDescription = std::string()):
 		label(szLabel),
 		_pFunctionDescription(pDescription),
+		_szDescription(szDescription),
 		_bEnabled(true),
 		_value(value),
-		_szDescription(szDescription),
 		_infiniteExtremities(InfiniteExtremities(false, false))
    	{
 		connect(slot);

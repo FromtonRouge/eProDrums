@@ -63,10 +63,12 @@ void MainWindow::toLog(const std::string& szText)
 
 MainWindow::MainWindow():
 	_pSettings(new Settings()),
+	_currentSlot(_userSettings.configSlots.end()),
+#ifdef _WIN32
     _midiInHandle(NULL),
     _midiOutHandle(NULL),
+#endif
     _bConnected(false),
-	_currentSlot(_userSettings.configSlots.end()),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
 	qRegisterMetaType<MidiMessage>();
@@ -401,11 +403,10 @@ MainWindow::MainWindow():
 		gridLayoutGhostNotes->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
 
-    // Get last settings
-    const std::string& szMidiIn = _pSettings->getMidiIn();
-    const std::string& szMidiOut = _pSettings->getMidiOut();
-
     int currentMidiIn = -1;
+
+#ifdef _WIN32
+	const std::string& szMidiIn = _pSettings->getMidiIn();
     UINT numMidiIn = midiInGetNumDevs();
     for (UINT i=0;i<numMidiIn;i++)
     {
@@ -420,6 +421,7 @@ MainWindow::MainWindow():
             currentMidiIn = i;
         }
     }
+#endif
 
     if (currentMidiIn>=0)
     {
@@ -427,6 +429,9 @@ MainWindow::MainWindow():
     }
 
     int currentMidiOut = -1;
+
+#ifdef _WIN32
+	const std::string& szMidiOut = _pSettings->getMidiOut();
     UINT numMidiOut = midiOutGetNumDevs();
     for (UINT i=0;i<numMidiOut;i++)
     {
@@ -441,6 +446,7 @@ MainWindow::MainWindow():
             currentMidiOut = i;
         }
     }
+#endif
 
     if (currentMidiOut>=0)
     {
@@ -449,10 +455,13 @@ MainWindow::MainWindow():
 
     pushButtonStop->setEnabled(false);
     pushButtonStart->setEnabled(false);
+
+#ifdef _WIN32
     if (numMidiIn && numMidiOut)
     {
         pushButtonStart->setEnabled(true);
     }
+#endif
 
 	// Logs
 	groupBoxLogs->setChecked(true);
@@ -483,9 +492,10 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 {
 	Mutex::scoped_lock lock(_mutex);
 
-	const int DEFAULT_NOTE_MSG_CTRL(4);
     if (!midiMessage.isIgnored() || bForce)
     {
+#ifdef _WIN32
+		const int DEFAULT_NOTE_MSG_CTRL(4);
         MMRESULT result = midiOutShortMsg(_midiOutHandle, midiMessage.computeOutputMessage());
 		if (result==MMSYSERR_NOERROR)
 		{
@@ -516,6 +526,7 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 				std::cout << "Error can't send midi message : " << midiMessage.str() << " Reason=" << result <<  std::endl;
 			}
 		}
+#endif
     }
 }
 
@@ -581,6 +592,7 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 	}
 }
 
+#ifdef _WIN32
 void CALLBACK midiInProc(
         HMIDIIN,  
         UINT wMsg,        
@@ -630,6 +642,7 @@ void CALLBACK midiInProc(
         }
     }
 }
+#endif
 
 void MainWindow::midiThread()
 {
@@ -776,6 +789,8 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 	_pGrapSubWindow->replot();
 
     _bConnected = false;
+
+#ifdef _WIN32
     UINT midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
     MMRESULT res = midiInOpen(&_midiInHandle, midiInId, (DWORD_PTR)midiInProc, (DWORD_PTR)this, CALLBACK_FUNCTION);
     if (res!=MMSYSERR_NOERROR)
@@ -834,6 +849,7 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 			}
         }
     }
+#endif
 }
 
 void MainWindow::stop()
@@ -855,10 +871,13 @@ void MainWindow::stop()
 	// Closing midi connection
     if (_bConnected)
     {
+#ifdef _WIN32
         midiInStop(_midiInHandle);
+#endif
         _bConnected = false;
     }
 
+#ifdef _WIN32
     if (_midiInHandle)
     {
         midiInClose(_midiInHandle);
@@ -868,6 +887,7 @@ void MainWindow::stop()
     {
         midiOutClose(_midiOutHandle);
     }
+#endif
 }
 
 void MainWindow::on_pushButtonStop_clicked(bool)

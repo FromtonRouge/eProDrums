@@ -1,6 +1,10 @@
-*.obj
-*.swp
+src/eProDrums
+src/moc_*
+src/qrc_*
 install/
+*.obj
+*.o
+*.swp
 */generated/
 */Debug/
 */Release/

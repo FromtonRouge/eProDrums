@@ -128,8 +128,8 @@ private:
 	}
 
 private:
-	float _x1, _y1;
-	float _x2, _y2;
+	float _x1, _x2;
+	float _y1, _y2;
 	float _a, _b;
 
 private:
