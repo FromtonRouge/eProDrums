@@ -54,6 +54,7 @@ Section "eProDrums (required)"
   File "..\install\qwt.dll"
   File "..\install\msvcp100.dll"
   File "..\install\msvcr100.dll"
+  File "..\install\portmidi.dll"
 
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\eProDrums "Install_Dir" "$INSTDIR"
