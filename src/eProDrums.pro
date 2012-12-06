@@ -122,4 +122,5 @@ win32 {
 
 unix {
 	LIBS += -L$${BOOST_DIR}/lib -lboost_system -lboost_serialization -lboost_thread -lboost_chrono -lboost_filesystem
+	LIBS += -L$${PORTMIDI_DIR}/lib -lporttime
 }
