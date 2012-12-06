@@ -26,28 +26,12 @@
 std::string MidiMessage::str() const
 {
     boost::format fmtMsg("hex=0x%X type=%d chan=%d note=%d vel=%d timestamp=%d");
-	return (fmtMsg%_dwParam1%getMsgType()%getChannel()%getOriginalNote()%getValue()%getTimestamp()).str();
+	PmMessage message = Pm_Message(getStatus(), getOriginalNote(), getValue());
+	return (fmtMsg%message%getMsgType()%getChannel()%getOriginalNote()%getValue()%getTimestamp()).str();
 }
 void MidiMessage::print() const
 {
     std::cout << str() << std::endl;
-}
-
-MidiMessage::MidiOutputMessage MidiMessage::computeOutputMessage() const
-{
-    MidiOutputMessage result = 0;
-    MidiOutputMessage byte1 = 0;
-    byte1 |= static_cast<char>(getMsgType()) << 4;    
-    byte1 |= static_cast<char>(getChannel()-1);
-
-    MidiOutputMessage byte2 = 0;
-    byte2 = static_cast<char>(getOutputNote()) << 8;
-
-    MidiOutputMessage byte3 = 0;
-    byte3 = static_cast<char>(getValue()) << 16;
-    
-    result = byte1 | byte2 | byte3;
-    return result;
 }
 
 int MidiMessage::getAbsTimeDiff(const MidiMessage& otherMessage) const
@@ -67,14 +51,8 @@ void MidiMessage::changeNoteTo(Pad* pPad, bool bChangeModifiedState)
 	_alreadyModified = bChangeModifiedState;
 }
 
-void MidiMessage::changeNoteTo(int note, bool bChangeModifiedState)
+void MidiMessage::changeNoteTo(Data note, bool bChangeModifiedState)
 {
 	_outputNote = note;
 	_alreadyModified = bChangeModifiedState;
-}
-
-void MidiMessage::setValue(char value)
-{
-	_dwParam1 &= 0xFF00FFFF;  // reset the byte where value is stored
-	_dwParam1 |= (value<<16); // set the value
 }

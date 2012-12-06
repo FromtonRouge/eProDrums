@@ -94,6 +94,7 @@ Section "Uninstall"
   Delete $INSTDIR\qwt.dll
   Delete $INSTDIR\msvcp100.dll
   Delete $INSTDIR\msvcr100.dll
+  Delete $INSTDIR\portmidi.dll
   Delete $INSTDIR\uninstall.exe
 
   ; Remove shortcuts, if any

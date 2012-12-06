@@ -31,14 +31,10 @@
 
 #include <QtGui/QMainWindow>
 
-#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
+#include <boost/scoped_ptr.hpp>
 #include <boost/iostreams/stream_buffer.hpp> 
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 class Settings;
 
@@ -61,7 +57,10 @@ public:
 
     void notify() {_condition.notify_all();}
     void addIncomingMidiMessage(const MidiMessage& midiMessage);
-	const UserSettings& getConfig() const {return _userSettings;}
+	const UserSettings& getConfig() const;
+
+	PmStream* getMidiInStream() const;
+	PmStream* getMidiOutStream() const;
 
 signals:
 	void hiHatState(int state);
@@ -149,19 +148,15 @@ private:
 	UserSettings			_userSettings;
 	Slot::List::iterator	_currentSlot;
 
-	// Midi related...
-#ifdef _WIN32
-    HMIDIIN				_midiInHandle;
-    HMIDIOUT			_midiOutHandle;
-#endif
+	PmStream*			_pMidiIn;
+	PmStream*			_pMidiOut;
 
     bool				_bConnected;
     MidiMessage::List	_midiMessages;
 	MidiMessage			_lastHiHatMsgControl;
 	int					_calibrationOffset;
 
-	// Thread etc...
     boost::condition					_condition;
-    boost::shared_ptr<boost::thread>	_midiThread;
-	GraphSubWindow*		_pGrapSubWindow;
+    boost::scoped_ptr<boost::thread>	_pMidiThread;
+	GraphSubWindow*						_pGrapSubWindow;
 };

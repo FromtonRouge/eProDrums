@@ -33,8 +33,6 @@
 #include <QtGui/QPushButton>
 
 #include <limits>
-#undef min
-#undef max
 
 const float SLIDER_FACTOR(1000);
 

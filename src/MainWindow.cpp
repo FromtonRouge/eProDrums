@@ -32,6 +32,7 @@
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/bind.hpp>
 #include <boost/format.hpp>
@@ -53,8 +54,64 @@ std::string MainWindow::APPLICATION_VERSION("dev");
 Q_DECLARE_METATYPE(Slot::Ptr)
 Q_DECLARE_METATYPE(MidiMessage)
 
-#undef max
-#undef min
+/**
+ * processMidi is called every milliseconds \see on_pushButtonStart_clicked() and Pt_Start()
+ */
+void processMidi(PtTimestamp timestamp, void* pUserData)
+{
+	PmEvent buffer; // just one message at a time
+	MidiMessage::Status status = 0;
+	MidiMessage::Data data1 = 0;
+	MidiMessage::Data data2 = 0;
+
+	MainWindow* pMainWindow = static_cast<MainWindow*>(pUserData);
+	PmStream* pMidiIn = pMainWindow->getMidiInStream();
+	const UserSettings& userSettings = pMainWindow->getConfig();
+	if (!pMidiIn)
+	{
+		return;
+	}
+
+	while (Pm_Poll(pMidiIn))
+	{
+		if (Pm_Read(pMidiIn, &buffer, 1) == pmBufferOverflow) 
+		{
+			continue;
+		}
+
+		// Unless there was overflow, we should have a message now
+		status = Pm_MessageStatus(buffer.message);
+		data1 = Pm_MessageData1(buffer.message);
+		data2 = Pm_MessageData2(buffer.message);
+
+		MainWindow::Mutex::scoped_lock lock(pMainWindow->_mutex);
+		MidiMessage midiMessage(pMainWindow->_clock.now(), timestamp, status, data1, data2);
+
+		// First filtering, we get only note-on and controller messages
+		if (midiMessage.isNoteOnMsg() || midiMessage.isControllerMsg())
+		{
+			if (midiMessage.isNoteOnMsg() && midiMessage.getValue()==0)
+			{
+				// Ignore note-on with velocity 0 (it happens...)
+				// But we print the msg if logs are on
+				if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
+				{
+					midiMessage.print();
+				}
+			}
+			else
+			{
+				pMainWindow->addIncomingMidiMessage(midiMessage);
+				lock.unlock();
+				pMainWindow->notify();
+			}
+		}
+		else if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
+		{
+			midiMessage.print();
+		}
+	}
+}
 
 void MainWindow::toLog(const std::string& szText)
 {
@@ -64,13 +121,14 @@ void MainWindow::toLog(const std::string& szText)
 MainWindow::MainWindow():
 	_pSettings(new Settings()),
 	_currentSlot(_userSettings.configSlots.end()),
-#ifdef _WIN32
-    _midiInHandle(NULL),
-    _midiOutHandle(NULL),
-#endif
+	_pMidiIn(NULL),
+	_pMidiOut(NULL),
     _bConnected(false),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
+	// portmidi: always start the timer before Pm_Initialize()
+	Pm_Initialize();
+
 	qRegisterMetaType<MidiMessage>();
 
 	setupUi(this);
@@ -403,65 +461,61 @@ MainWindow::MainWindow():
 		gridLayoutGhostNotes->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
 
-    int currentMidiIn = -1;
-
-#ifdef _WIN32
+	// Filling midi devices
+    int comboBoxIndexMidiIn = -1;
+    int comboBoxIndexMidiOut = -1;
 	const std::string& szMidiIn = _pSettings->getMidiIn();
-    UINT numMidiIn = midiInGetNumDevs();
-    for (UINT i=0;i<numMidiIn;i++)
-    {
-        MIDIINCAPS midiInCaps;
-        midiInGetDevCaps(i, &midiInCaps, sizeof(midiInCaps));
-		std::string name(midiInCaps.szPname);
-        comboBoxMidiIn->blockSignals(true);
-        comboBoxMidiIn->addItem(name.c_str(), i);
-        comboBoxMidiIn->blockSignals(false);
-        if (name == szMidiIn)
-        {
-            currentMidiIn = i;
-        }
-    }
-#endif
-
-    if (currentMidiIn>=0)
-    {
-        comboBoxMidiIn->setCurrentIndex(currentMidiIn);
-    }
-
-    int currentMidiOut = -1;
-
-#ifdef _WIN32
 	const std::string& szMidiOut = _pSettings->getMidiOut();
-    UINT numMidiOut = midiOutGetNumDevs();
-    for (UINT i=0;i<numMidiOut;i++)
-    {
-        MIDIOUTCAPS midiOutCaps;
-        midiOutGetDevCaps(i, &midiOutCaps, sizeof(midiOutCaps));
-		std::string name(midiOutCaps.szPname);
-        comboBoxMidiOut->blockSignals(true);
-        comboBoxMidiOut->addItem(name.c_str(), i);
-        comboBoxMidiOut->blockSignals(false);
-        if (name == szMidiOut)
-        {
-            currentMidiOut = i;
-        }
-    }
-#endif
+	int nbDevices = Pm_CountDevices();
+	for (int deviceId=0; deviceId<nbDevices; ++deviceId)
+	{
+		const PmDeviceInfo* pDeviceInfo = Pm_GetDeviceInfo(deviceId);
+		if (pDeviceInfo)
+		{
+			if (pDeviceInfo->input)
+			{
+				comboBoxMidiIn->blockSignals(true);
+				comboBoxMidiIn->addItem(pDeviceInfo->name, deviceId);
+				comboBoxMidiIn->blockSignals(false);
 
-    if (currentMidiOut>=0)
+				if (szMidiIn == pDeviceInfo->name)
+				{
+					comboBoxIndexMidiIn = comboBoxMidiIn->count()-1;
+				}
+			}
+
+			if (pDeviceInfo->output)
+			{
+				comboBoxMidiOut->blockSignals(true);
+				comboBoxMidiOut->addItem(pDeviceInfo->name, deviceId);
+				comboBoxMidiOut->blockSignals(false);
+				if (szMidiOut == pDeviceInfo->name)
+				{
+					comboBoxIndexMidiOut = comboBoxMidiOut->count()-1;
+				}
+			}
+		}
+	}
+
+	// Select midi in
+    if (comboBoxIndexMidiIn>=0)
     {
-        comboBoxMidiOut->setCurrentIndex(currentMidiOut);
+        comboBoxMidiIn->setCurrentIndex(comboBoxIndexMidiIn);
     }
 
+	// Select midi out
+    if (comboBoxIndexMidiOut>=0)
+    {
+        comboBoxMidiOut->setCurrentIndex(comboBoxIndexMidiOut);
+    }
+
+	// Enable/Disable Stop/Start buttons
     pushButtonStop->setEnabled(false);
     pushButtonStart->setEnabled(false);
-
-#ifdef _WIN32
-    if (numMidiIn && numMidiOut)
+    if (comboBoxMidiIn->count() && comboBoxMidiOut->count())
     {
         pushButtonStart->setEnabled(true);
     }
-#endif
 
 	// Logs
 	groupBoxLogs->setChecked(true);
@@ -471,7 +525,7 @@ MainWindow::MainWindow():
 	checkBoxLogsOthers->setChecked(true);
 	
     // Run the midi thread
-    if (currentMidiIn >=0 && currentMidiOut >=0)
+    if (comboBoxIndexMidiIn >=0 && comboBoxIndexMidiOut >=0)
     {
         on_pushButtonStart_clicked();
     }
@@ -486,6 +540,7 @@ MainWindow::MainWindow():
 MainWindow::~MainWindow()
 {
     stop();
+	Pm_Terminate();
 }
 
 void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
@@ -494,10 +549,9 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 
     if (!midiMessage.isIgnored() || bForce)
     {
-#ifdef _WIN32
 		const int DEFAULT_NOTE_MSG_CTRL(4);
-        MMRESULT result = midiOutShortMsg(_midiOutHandle, midiMessage.computeOutputMessage());
-		if (result==MMSYSERR_NOERROR)
+		PmError error = Pm_WriteShort(_pMidiOut, midiMessage.getTimestamp(), midiMessage.computeOutputMessage());
+		if (error==pmNoError)
 		{
 			if (midiMessage.isControllerMsg() && midiMessage.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 			{
@@ -523,10 +577,9 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 		{
 			if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
 			{
-				std::cout << "Error can't send midi message : " << midiMessage.str() << " Reason=" << result <<  std::endl;
+				std::cout << "Error can't send midi message : " << midiMessage.str() << " Reason=" << Pm_GetErrorText(error) <<  std::endl;
 			}
 		}
-#endif
     }
 }
 
@@ -591,58 +644,6 @@ void MainWindow::addIncomingMidiMessage(const MidiMessage& midiMsg)
 		}
 	}
 }
-
-#ifdef _WIN32
-void CALLBACK midiInProc(
-        HMIDIIN,  
-        UINT wMsg,        
-        DWORD_PTR dwInstance, 
-        DWORD_PTR dwParam1,   
-        DWORD_PTR dwParam2)
-{
-	MainWindow* pMainWindow = (MainWindow*)dwInstance;
-
-    switch (wMsg)
-    {
-    case MIM_DATA:
-        {
-			MainWindow::Mutex::scoped_lock lock(pMainWindow->_mutex);
-			const UserSettings& config = pMainWindow->getConfig();
-            MidiMessage midiMessage(pMainWindow->_clock.now(), dwParam1, dwParam2);
-
-			// First filtering, we get only note_on and controller messages
-			if (midiMessage.isNoteOnMsg() || midiMessage.isControllerMsg())
-			{
-				if (midiMessage.isNoteOnMsg() && midiMessage.getValue()==0)
-				{
-					// Ignore note_on with velocity 0 (it happens...)
-					// But we print the msg if logs are on
-					if (config.isLogs() && config.isLog(UserSettings::LOG_RAW_DATA))
-					{
-						midiMessage.print();
-					}
-				}
-				else
-				{
-					pMainWindow->addIncomingMidiMessage(midiMessage);
-					lock.unlock();
-					pMainWindow->notify();
-				}
-			}
-			else if (config.isLogs() && config.isLog(UserSettings::LOG_RAW_DATA))
-			{
-				midiMessage.print();
-			}
-
-            break;
-        }
-    default:
-        {
-            break;
-        }
-    }
-}
-#endif
 
 void MainWindow::midiThread()
 {
@@ -784,72 +785,91 @@ void MainWindow::midiThread()
 
 void MainWindow::on_pushButtonStart_clicked(bool)
 {
+    Pt_Start(1, &processMidi, this); // start a timer with millisecond accuracy
+
+#define INPUT_BUFFER_SIZE 0 // if INPUT_BUFFER_SIZE is 0, PortMidi uses a default value
+#define OUTPUT_BUFFER_SIZE 100
+#define DRIVER_INFO NULL
+#define TIME_PROC NULL
+#define TIME_INFO NULL
+#define LATENCY 0 // use zero latency because we want output to be immediate
+
+    _bConnected = false;
+	PmError error = pmNoError;
+
 	// Clearing plots
 	_pGrapSubWindow->clearPlots();
 	_pGrapSubWindow->replot();
 
-    _bConnected = false;
-
-#ifdef _WIN32
-    UINT midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
-    MMRESULT res = midiInOpen(&_midiInHandle, midiInId, (DWORD_PTR)midiInProc, (DWORD_PTR)this, CALLBACK_FUNCTION);
-    if (res!=MMSYSERR_NOERROR)
+	// Open Midi in device
+    int midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
+	const PmDeviceInfo* pDeviceInInfo = Pm_GetDeviceInfo(midiInId);
+    error = Pm_OpenInput(	&_pMidiIn, 
+							midiInId, 
+							DRIVER_INFO,
+							INPUT_BUFFER_SIZE,
+							TIME_PROC,
+							TIME_INFO);
+    if (error!=pmNoError)
     {
-        QMessageBox::critical(this, "Error", "Cannot open MIDI IN");
+        QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi in %1, reason : %2").arg(pDeviceInInfo->name).arg(Pm_GetErrorText(error)));
+		return;
     }
-    else
-    {
-        UINT midiOutId = comboBoxMidiOut->itemData(comboBoxMidiOut->currentIndex()).toInt();
-        res = midiOutOpen(&_midiOutHandle, midiOutId, NULL, NULL, CALLBACK_NULL);
-        if (res!=MMSYSERR_NOERROR)
-        {
-            QMessageBox::critical(this, "Error", "Cannot open MIDI OUT");
-        }
-        else
-        {
-            res = midiInStart(_midiInHandle);
-            if (res!=MMSYSERR_NOERROR)
-            {
-                QMessageBox::critical(this, "Error", "Cannot start MIDI IN");
-            }
-            else
-            {
-				_pSettings->setMidiIn(comboBoxMidiIn->currentText().toStdString());
-				_pSettings->setMidiOut(comboBoxMidiOut->currentText().toStdString());
+	else
+	{
+		// Ignoring sysex, tick, song position etc...
+		Pm_SetFilter(_pMidiIn, PM_FILT_REALTIME | PM_FILT_SYSTEMCOMMON);
+		_pSettings->setMidiIn(comboBoxMidiIn->currentText().toStdString());
+	}
 
-				// Thread already started, stopping it?
-				if (_midiThread)
-				{
-					if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
-				   	{
-					   	std::cout << "Closing previous Midi thread ..." << std::endl; 
-					}
+	// Open Midi out device
+	int midiOutId = comboBoxMidiOut->itemData(comboBoxMidiOut->currentIndex()).toInt();
+	const PmDeviceInfo* pDeviceOutInfo = Pm_GetDeviceInfo(midiOutId);
+    error = Pm_OpenOutput(	&_pMidiOut, 
+							midiOutId, 
+							DRIVER_INFO,
+							OUTPUT_BUFFER_SIZE,
+							TIME_PROC,
+							TIME_INFO,
+							LATENCY);
 
-					_midiThread->interrupt();
-					_midiThread->join();
+	if (error!=pmNoError)
+	{
+        QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi out %1, reason : %2").arg(pDeviceOutInfo->name).arg(Pm_GetErrorText(error)));
+		return;
+	}
+	else
+	{
+		_pSettings->setMidiOut(comboBoxMidiOut->currentText().toStdString());
+	}
 
-					if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
-				   	{
-						std::cout << "Previous Midi thread closed" << std::endl;
-					}
-				}
+	// Thread already started, stopping it?
+	if (_pMidiThread.get())
+	{
+		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
+		{
+			std::cout << "Closing previous Midi thread ..." << std::endl; 
+		}
 
-                // Initializing Midi in and out
-                _bConnected = true;
-                _midiThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&MainWindow::midiThread, this)));
-				if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
-				{
-					std::cout << "New Midi thread started" << std::endl;
-				}
+		_pMidiThread->interrupt();
 
-                comboBoxMidiIn->setEnabled(false);
-                comboBoxMidiOut->setEnabled(false);
-                pushButtonStart->setEnabled(false);
-                pushButtonStop->setEnabled(true);
-			}
-        }
-    }
-#endif
+		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
+		{
+			std::cout << "Previous Midi thread closed" << std::endl;
+		}
+	}
+
+	_bConnected = true;
+	_pMidiThread.reset(new boost::thread(boost::bind(&MainWindow::midiThread, this)));
+	if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
+	{
+		std::cout << "New Midi thread started" << std::endl;
+	}
+
+	comboBoxMidiIn->setEnabled(false);
+	comboBoxMidiOut->setEnabled(false);
+	pushButtonStart->setEnabled(false);
+	pushButtonStop->setEnabled(true);
 }
 
 void MainWindow::stop()
@@ -860,34 +880,30 @@ void MainWindow::stop()
 	   	std::cout << "Closing Midi thread ..." << std::endl;
    	}
 
-    if (_midiThread)
+    if (_pMidiThread)
     {
-        _midiThread->interrupt();
-        _midiThread->join();
-		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS)) { std::cout << "Midi thread closed" << std::endl; }
-		_midiThread.reset();
+        _pMidiThread->interrupt();
+		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
+	   	{
+		   	std::cout << "Midi thread closed" << std::endl;
+		}
     }
 
-	// Closing midi connection
-    if (_bConnected)
-    {
-#ifdef _WIN32
-        midiInStop(_midiInHandle);
-#endif
-        _bConnected = false;
-    }
+	Pt_Stop();
 
-#ifdef _WIN32
-    if (_midiInHandle)
-    {
-        midiInClose(_midiInHandle);
-    }
+	if (_pMidiOut)
+	{
+		Pm_Close(_pMidiOut);
+		_pMidiOut = NULL;
+	}
 
-    if (_midiOutHandle)
-    {
-        midiOutClose(_midiOutHandle);
-    }
-#endif
+	if (_pMidiIn)
+	{
+		Pm_Close(_pMidiIn);
+		_pMidiIn = NULL;
+	}
+
+	_bConnected = false;
 }
 
 void MainWindow::on_pushButtonStop_clicked(bool)
@@ -2056,4 +2072,21 @@ void MainWindow::on_actionSettings_triggered()
 	{
 		updateCurrentSlot();
 	}
+}
+
+PmStream* MainWindow::getMidiInStream() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _pMidiIn;
+}
+
+PmStream* MainWindow::getMidiOutStream() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _pMidiOut;
+}
+const UserSettings& MainWindow::getConfig() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _userSettings;
 }

@@ -27,10 +27,6 @@
 
 #include <QtGui/QFileDialog>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include <boost/bind.hpp>
 
 namespace fs = boost::filesystem;

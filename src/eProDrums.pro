@@ -6,12 +6,14 @@
 win32 {
 	BOOST_DIR = E:/Dev/Cpp/Common/boost_1_49_0
 	QWT_DIR = E:/Dev/Cpp/Common/Qwt-6.0.0-svn
+	PORTMIDI_DIR = E:/Dev/Cpp/Common/portmidi
 }
 
 # Define your paths here
 unix {
 	BOOST_DIR = /usr
 	QWT_DIR = /usr
+	PORTMIDI_DIR = /usr
 }
 
 TEMPLATE = app
@@ -27,6 +29,7 @@ unix {
 	INCLUDEPATH += $${BOOST_DIR}/include
 }
 INCLUDEPATH += $${QWT_DIR}/include
+INCLUDEPATH += $${PORTMIDI_DIR}/include
 
 DEFINES -= UNICODE
 DEFINES += QWT_DLL
@@ -109,22 +112,14 @@ SOURCES += AddMidiNote.cpp \
            UserSettings.cpp
 RESOURCES += EProDrums.qrc
 
+LIBS += -L$${PORTMIDI_DIR}/lib -lportmidi
+LIBS += -L$${QWT_DIR}/lib -lqwt
+
 win32 {
 	RC_FILE = EProDrums.rc
-	LIBS += -L$${BOOST_DIR}/stage/lib
-	LIBS += -lqtmain
-	LIBS += -lwinmm
-
-	release {
-		LIBS += -L$${QWT_DIR}/lib -lqwt
-	}
-
-	debug {
-		LIBS += -L$${QWT_DIR}/lib -lqwtd
-	}
+	LIBS += -L$${BOOST_DIR}/stage/lib -lqtmain
 }
 
 unix {
 	LIBS += -L$${BOOST_DIR}/lib -lboost_system -lboost_serialization -lboost_thread -lboost_chrono -lboost_filesystem
-	LIBS += -L$${QWT_DIR}/lib -lqwt
 }

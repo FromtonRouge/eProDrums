@@ -21,15 +21,14 @@
 
 #pragma once
 
+#include <portmidi.h>
+#include <porttime.h>
+
 #include <boost/chrono.hpp>
 
 #include <list>
 #include <vector>
 #include <deque>
-
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 class Pad;
 
@@ -37,14 +36,8 @@ class MidiMessage
 {
 public:
 	typedef boost::chrono::high_resolution_clock Clock;
-
-#ifdef _WIN32
-	typedef DWORD_PTR MidiParam;
-	typedef DWORD MidiOutputMessage;
-#else
-	typedef unsigned long MidiParam;
-	typedef unsigned long MidiOutputMessage;
-#endif
+	typedef unsigned char Status;		///< 1 byte for midi status (status is located at the first byte of Midi message 0x000000FF)
+	typedef int Data;			///< 1 byte for midi data1 or data2 (data1 is located at the second byte of a Midi message 0x0000FF00, data2 at the third 0x00FF0000)
 
 	enum IgnoreReason
 	{
@@ -59,45 +52,46 @@ public:
 	typedef std::vector<History> DictHistory;
 
 public:
-	MidiMessage(const Clock::time_point& time = Clock::time_point(), MidiParam dwParam1=0, MidiParam dwParam2=0):
+	MidiMessage(const Clock::time_point& time = Clock::time_point(), PtTimestamp timestamp=0, Status status = 0, Data data1=0, Data data2=0):
 	   	hiHatSpeed(0),
 	   	hiHatAcceleration(0),
 		padType(0),
 	   	_tReceiveTime(time),
-	   	_dwParam1(dwParam1),
-	   	_dwParam2(dwParam2),
+		_timestamp(timestamp),
+		_status(status),
+	   	_data1(data1),
+	   	_data2(data2),
+	   	_outputNote(_data1),
 	   	_ignore(NOT_IGNORED),
-	   	_alreadyModified(false),
-	   	_outputNote(0)
+	   	_alreadyModified(false)
    	{
-		_outputNote = getOriginalNote();
 	}
 
-	bool isNoteOnMsg() const {return getMsgType()==9;}
+	bool isNoteOnMsg() const {return (_status & 0xF0) == 0x90;}
+	bool isNoteOffMsg() const {return (_status & 0xF0) == 0x80;}
 	bool isControllerMsg() const {return getMsgType()==11;}
 
-	int getMsgType() const { return (_dwParam1 & 0x000000F0) >> 4;}
-	int getChannel() const { return ((_dwParam1 & 0x0000000F) >> 0)+1;}
-	int getOriginalNote() const { return (_dwParam1 & 0x0000FF00) >> 8;}
-	int getOutputNote() const {return _outputNote;}
+	const Clock::time_point& getReceiveTime() const { return _tReceiveTime;}
+	PtTimestamp getTimestamp() const {return _timestamp;}
+	void setTimestamp(PtTimestamp timestamp) {_timestamp = timestamp;}
+	Status getStatus() const {return _status;}
+	int getMsgType() const { return (_status & 0xF0) >> 4;}
+	int getChannel() const { return (_status & 0x0F) + 1;}
+	Data getOriginalNote() const { return _data1;}
+	Data getOutputNote() const {return _outputNote;}
+	Data getValue() const { return _data2;}
+	void setValue(Data value) {_data2 = value;}
 	void changeNoteTo(Pad* pPad, bool bChangeModifiedState=true);
-	void changeNoteTo(int note, bool bChangeModifiedState=true);
-	int getValue() const { return (_dwParam1 & 0x00FF0000) >> 16;}
-	void setValue(char value);
-	int getTimestamp() const {return _dwParam2;}
-	void setTimestamp(int timestamp) {_dwParam2 = timestamp;}
+	void changeNoteTo(Data note, bool bChangeModifiedState=true);
 
 	bool isIgnored() const {return _ignore!=NOT_IGNORED;}
 	IgnoreReason getIgnoreReason() const {return _ignore;}
 	void ignore(IgnoreReason reason) {_ignore = reason;}
-
 	bool isAlreadyModified() const {return _alreadyModified;}
-
-	const Clock::time_point& getReceiveTime() const { return _tReceiveTime;}
 
 	void print() const;
 	std::string str() const;
-	MidiOutputMessage computeOutputMessage() const;
+	PmMessage computeOutputMessage() const { return Pm_Message(getStatus(), getOutputNote(), getValue()); }
 	bool isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const;
 	int getAbsTimeDiff(const MidiMessage& otherMessage) const;
 
@@ -107,10 +101,14 @@ public:
 	int		padType;
 
 private:
-	Clock::time_point	_tReceiveTime; ///< receive time set at construction time.
-	MidiParam			_dwParam1;
-	MidiParam			_dwParam2;
+	Clock::time_point	_tReceiveTime;	///< receive time set at construction time.
+
+	PtTimestamp			_timestamp;		///< timestamp from driver
+	Status				_status;		///< Note on or off
+	Data				_data1;			///< aka original note
+	Data				_data2;			///< aka note value
+
+	Data				_outputNote;	///< By default the output note is the original note.
 	IgnoreReason		_ignore;
 	bool				_alreadyModified;
-	int					_outputNote; ///< By default the output note is the original note.
 };
