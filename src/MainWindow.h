@@ -143,6 +143,7 @@ private:
 
 private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;
+	std::streambuf*			_pOldStreambuf;
 
 	std::auto_ptr<Settings> _pSettings;
 	UserSettings			_userSettings;

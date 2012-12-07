@@ -119,6 +119,7 @@ void MainWindow::toLog(const std::string& szText)
 }
 
 MainWindow::MainWindow():
+	_pOldStreambuf(std::cout.rdbuf()),
 	_pSettings(new Settings()),
 	_currentSlot(_userSettings.configSlots.end()),
 	_pMidiIn(NULL),
@@ -541,6 +542,9 @@ MainWindow::~MainWindow()
 {
     stop();
 	Pm_Terminate();
+
+	// Restoring the std::cout streambuf
+	std::cout.rdbuf(_pOldStreambuf);
 }
 
 void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)

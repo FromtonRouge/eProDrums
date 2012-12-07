@@ -41,5 +41,6 @@ int main(int argc, char** argv)
 	{
 		QMessageBox::critical(NULL, "Error while starting application", e.what());
 	}
+
 	return programResult;
 }

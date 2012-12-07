@@ -20,6 +20,7 @@ TEMPLATE = app
 TARGET = eProDrums
 DEPENDPATH += .
 INCLUDEPATH += .
+CONFIG += debug_and_release
 
 win32 {
 	INCLUDEPATH += $${BOOST_DIR}
@@ -28,6 +29,7 @@ win32 {
 unix {
 	INCLUDEPATH += $${BOOST_DIR}/include
 }
+
 INCLUDEPATH += $${QWT_DIR}/include
 INCLUDEPATH += $${PORTMIDI_DIR}/include
 
@@ -35,10 +37,10 @@ DEFINES -= UNICODE
 DEFINES += QWT_DLL
 
 win32 {
-DEFINES += _SCL_SECURE_NO_WARNINGS
-# disable warning on too long decoration names
-QMAKE_CXXFLAGS += /wd4503
-QMAKE_CXXFLAGS_DEBUG += /Od
+	DEFINES += _SCL_SECURE_NO_WARNINGS
+	# disable warning on too long decoration names
+	QMAKE_CXXFLAGS += /wd4503
+	QMAKE_CXXFLAGS_DEBUG += /Od
 }
 
 # Input
