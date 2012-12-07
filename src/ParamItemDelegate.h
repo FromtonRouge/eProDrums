@@ -67,16 +67,22 @@ public:
 		if (!index.parent().isValid())
 		{
 			const Parameter* pParameter = index.data().value<Parameter*>();
-			painter->fillRect(rect, pParameter->getColor());
-			QStyleOptionViewItemV4 optionV4 = opt;
-			optionV4.state = QStyle::State_MouseOver;
-			QStyledItemDelegate::paint(painter, optionV4, index);
 
-			QFont font = painter->font();
-			font.setBold(true);
-			painter->setFont(font);
+			if (opt.state & QStyle::State_MouseOver)
+			{
+				painter->fillRect(rect, pParameter->getColor().darker(110));
+			}
+			else
+			{
+				painter->fillRect(rect, pParameter->getColor());
+			}
+
 			if (index.column()==0)
 			{
+				QFont font = painter->font();
+				font.setBold(true);
+				painter->setFont(font);
+
 				// Centering vertically
 				QSize sizeData = sizeHint(opt, index);
 				int offset((rect.height()-sizeData.height())/2);
@@ -110,13 +116,11 @@ public:
 
 				if (opt.state & QStyle::State_MouseOver)
 				{
-					const QColor& lighterColor = color.lighter(120);
-					painter->fillRect(rect, lighterColor);
+					painter->fillRect(rect, color.lighter(120));
 				}
 				else
 				{
-					const QColor& lighterColor = color.lighter(130);
-					painter->fillRect(rect, lighterColor);
+					painter->fillRect(rect, color.lighter(130));
 				}
 			}
 
