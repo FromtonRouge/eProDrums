@@ -44,7 +44,7 @@ SettingsDlg::SettingsDlg(Settings* pSettings, QWidget* pParent):QDialog(pParent)
 		QTreeWidgetItem* p =treeWidget->topLevelItem(i);
 		p->setData(0, Qt::UserRole, i);
 	}
-	
+
 	// boost connections
 	_connectionToSettings = _pSettings->signalKitDefined.connect(boost::bind(&SettingsDlg::onDrumKitLoaded, this, _1, _2));
 
@@ -73,9 +73,9 @@ SettingsDlg::~SettingsDlg()
 void SettingsDlg::on_treeWidget_itemSelectionChanged()
 {
 	// Select the correct stacked widget index
-    const QList<QTreeWidgetItem*>& selected = treeWidget->selectedItems();
-    if (!selected.empty())
-    {
+	const QList<QTreeWidgetItem*>& selected = treeWidget->selectedItems();
+	if (!selected.empty())
+	{
 		QTreeWidgetItem* pItem = selected[0];
 		const QVariant& variant = pItem->data(0, Qt::UserRole);
 		stackedWidget->setCurrentIndex(variant.toInt());
@@ -167,14 +167,15 @@ void SettingsDlg::on_pushButtonOpen_clicked(bool)
 
 void SettingsDlg::on_pushButtonSave_clicked(bool)
 {
-	const QString& filePath = QFileDialog::getSaveFileName(this, "Save drum kit mapping", "./", "Drum Kit Mapping (*.kit)");
-    if (filePath.isNull())
+	QFileDialog fileDlg(this, tr( "Save drum kit mapping"), "./",  "Drum Kit Mapping (*.kit)");
+	fileDlg.setDefaultSuffix("kit");
+	fileDlg.setAcceptMode(QFileDialog::AcceptSave);
+	if (fileDlg.exec())
 	{
-		return;
+		const QStringList& files = fileDlg.selectedFiles();
+		_pSettings->saveDrumKitMidiMap(fs::path(files[0].toStdString()));
+		lineEditPath->setText(files[0]);
 	}
-
-	_pSettings->saveDrumKitMidiMap(fs::path(filePath.toStdString()));
-	lineEditPath->setText(filePath);
 }
 
 void SettingsDlg::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const fs::path& pathConfig)
