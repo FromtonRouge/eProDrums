@@ -51,27 +51,27 @@ BOOST_CLASS_EXPORT(HiHatPedalElement);
 std::string MainWindow::APPLICATION_NAME("eProDrums");
 std::string MainWindow::APPLICATION_VERSION("dev");
 
-	Q_DECLARE_METATYPE(Slot::Ptr)
+Q_DECLARE_METATYPE(Slot::Ptr)
 Q_DECLARE_METATYPE(MidiMessage)
 
-	/**
-	 * processMidi is called every milliseconds \see on_pushButtonStart_clicked() and Pt_Start()
-	 */
+/**
+ * processMidi is called every milliseconds \see on_pushButtonStart_clicked() and Pt_Start()
+ */
 void processMidi(PtTimestamp timestamp, void* pUserData)
 {
-	PmEvent buffer; // just one message at a time
-	MidiMessage::Status status = 0;
-	MidiMessage::Data data1 = 0;
-	MidiMessage::Data data2 = 0;
-
 	MainWindow* pMainWindow = static_cast<MainWindow*>(pUserData);
 	PmStream* pMidiIn = pMainWindow->getMidiInStream();
-	const UserSettings& userSettings = pMainWindow->getConfig();
-	if (!pMidiIn)
+	PmStream* pMidiOut = pMainWindow->getMidiOutStream();
+	if (!pMidiIn || !pMidiOut)
 	{
 		return;
 	}
 
+	PmEvent buffer; // just one message at a time
+	MidiMessage::Status status = 0;
+	MidiMessage::Data data1 = 0;
+	MidiMessage::Data data2 = 0;
+	const UserSettings& userSettings = pMainWindow->getConfig();
 	while (Pm_Poll(pMidiIn))
 	{
 		if (Pm_Read(pMidiIn, &buffer, 1) == pmBufferOverflow) 
@@ -127,9 +127,6 @@ MainWindow::MainWindow():
 	_bConnected(false),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
-	// portmidi: always start the timer before Pm_Initialize()
-	Pm_Initialize();
-
 	qRegisterMetaType<MidiMessage>();
 
 	setupUi(this);
@@ -463,6 +460,7 @@ MainWindow::MainWindow():
 	}
 
 	// Filling midi devices
+	Pm_Initialize();
 	int comboBoxIndexMidiIn = -1;
 	int comboBoxIndexMidiOut = -1;
 	const std::string& szMidiIn = _pSettings->getMidiIn();
@@ -497,6 +495,7 @@ MainWindow::MainWindow():
 			}
 		}
 	}
+	Pm_Terminate();
 
 	// Select midi in
 	if (comboBoxIndexMidiIn>=0)
@@ -541,7 +540,6 @@ MainWindow::MainWindow():
 MainWindow::~MainWindow()
 {
 	stop();
-	Pm_Terminate();
 
 	// Restoring the std::cout streambuf
 	std::cout.rdbuf(_pOldStreambuf);
@@ -791,6 +789,8 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 {
 	Pt_Start(1, &processMidi, this); // start a timer with millisecond accuracy
 
+	Pm_Initialize();
+
 #define INPUT_BUFFER_SIZE 0 // if INPUT_BUFFER_SIZE is 0, PortMidi uses a default value
 #define OUTPUT_BUFFER_SIZE 100
 #define DRIVER_INFO NULL
@@ -908,6 +908,8 @@ void MainWindow::stop()
 	}
 
 	_bConnected = false;
+
+	Pm_Terminate();
 }
 
 void MainWindow::on_pushButtonStop_clicked(bool)
