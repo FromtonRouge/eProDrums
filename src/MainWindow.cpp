@@ -60,19 +60,19 @@ Q_DECLARE_METATYPE(MidiMessage)
  */
 void processMidi(PtTimestamp timestamp, void* pUserData)
 {
-	PmEvent buffer; // just one message at a time
-	MidiMessage::Status status = 0;
-	MidiMessage::Data data1 = 0;
-	MidiMessage::Data data2 = 0;
-
 	MainWindow* pMainWindow = static_cast<MainWindow*>(pUserData);
 	PmStream* pMidiIn = pMainWindow->getMidiInStream();
-	const UserSettings& userSettings = pMainWindow->getConfig();
-	if (!pMidiIn)
+	PmStream* pMidiOut = pMainWindow->getMidiOutStream();
+	if (!pMidiIn || !pMidiOut)
 	{
 		return;
 	}
 
+	PmEvent buffer; // just one message at a time
+	MidiMessage::Status status = 0;
+	MidiMessage::Data data1 = 0;
+	MidiMessage::Data data2 = 0;
+	const UserSettings& userSettings = pMainWindow->getConfig();
 	while (Pm_Poll(pMidiIn))
 	{
 		if (Pm_Read(pMidiIn, &buffer, 1) == pmBufferOverflow) 
@@ -125,12 +125,9 @@ MainWindow::MainWindow():
 	_currentSlot(_userSettings.configSlots.end()),
 	_pMidiIn(NULL),
 	_pMidiOut(NULL),
-    _bConnected(false),
+	_bConnected(false),
 	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
 {
-	// portmidi: always start the timer before Pm_Initialize()
-	Pm_Initialize();
-
 	qRegisterMetaType<MidiMessage>();
 
 	setupUi(this);
@@ -145,16 +142,16 @@ MainWindow::MainWindow():
 
 	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
 	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));
-    connect(this, SIGNAL(hiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
-    connect(this, SIGNAL(hiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
-    connect(this, SIGNAL(footCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
-    connect(this, SIGNAL(updatePlot(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
+	connect(this, SIGNAL(hiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
+	connect(this, SIGNAL(hiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
+	connect(this, SIGNAL(footCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
+	connect(this, SIGNAL(updatePlot(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
 	mdiArea->addSubWindow(_pGrapSubWindow);
 	_pGrapSubWindow->showMaximized();
 
 	// Buffer and Calibration offset
 	lineEditCalibrationOffset->setToolTip("Rock Band calibration offset to apply on both video and audio settings.\nIt's an offset, you have to add this value to your existing settings");
-    lineEditCalibrationOffset->setText("0");
+	lineEditCalibrationOffset->setText("0");
 	sliderBuffer->setToolTip("Modifying the midi buffer length (ms) affect your Rock Band calibration setting.\nSome features works better with a larger buffer length, a typical value is 35 ms");
 
 	listWidgetSlots->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -204,9 +201,9 @@ MainWindow::MainWindow():
 							boost::bind(&HiHatPedalElement::setSecurityPosition, pElHihatPedal, _1),
 							tr("Under this position the hi-hat is in close color").toStdString())));
 			pGroup1->addChild(Parameter::Ptr(new Parameter("Bow hits always in close color",
-						   	pElHihatPedal->isBowAlwaysYellow(),
+							pElHihatPedal->isBowAlwaysYellow(),
 							boost::bind(&HiHatPedalElement::setBowAlwaysYellow, pElHihatPedal, _1),
-						   	tr("If checked, bow hits are always in close color").toStdString())));
+							tr("If checked, bow hits are always in close color").toStdString())));
 		}
 
 		Parameter::Ptr pGroup2(new Parameter("Hi-hat open color on edge accent", groupColors[1],
@@ -218,14 +215,14 @@ MainWindow::MainWindow():
 			pDescription->szLabelY = tr("Velocity (unit)").toStdString();
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Parameters",
 							pDescription,
-						   	pElHihatPedal->getBlueAccentFunctions(),
+							pElHihatPedal->getBlueAccentFunctions(),
 							boost::bind(&HiHatPedalElement::setBlueAccentFunctions, pElHihatPedal, _1),
 							tr("List of linear functions used to determine when to convert an accented hi-hat note to open color").toStdString())));
 
 			pGroup2->addChild(Parameter::Ptr(new Parameter("Override secured position",
-						   	pElHihatPedal->isBlueAccentOverride(),
+							pElHihatPedal->isBlueAccentOverride(),
 							boost::bind(&HiHatPedalElement::setBlueAccentOverride, pElHihatPedal, _1),
-						   	tr("If checked, edge accented hits are converted to open color even under the secured close position").toStdString())));
+							tr("If checked, edge accented hits are converted to open color even under the secured close position").toStdString())));
 		}
 
 		Parameter::Ptr pGroup3(new Parameter("Hi-hat open color detection by position", groupColors[2],
@@ -233,11 +230,11 @@ MainWindow::MainWindow():
 					boost::bind(&HiHatPedalElement::setBlueDetectionByPosition, pElHihatPedal, _1)));
 		{
 			pGroup3->addChild(Parameter::Ptr(new Parameter("Control Position (unit)", 0, 127,
-						   	pElHihatPedal->getControlPosThreshold(),
+							pElHihatPedal->getControlPosThreshold(),
 							boost::bind(&HiHatPedalElement::setControlPosThreshold, pElHihatPedal, _1),
 							tr("Above this position the hi-hat is converted to open color").toStdString())));
 			pGroup3->addChild(Parameter::Ptr(new Parameter("Delay time (ms)", 0, 5000,
-						   	pElHihatPedal->getControlPosDelayTime(),
+							pElHihatPedal->getControlPosDelayTime(),
 							boost::bind(&HiHatPedalElement::setControlPosDelayTime, pElHihatPedal, _1),
 							tr("Delay time before switching to open color if the control position is above the threshold").toStdString())));
 		}
@@ -255,7 +252,7 @@ MainWindow::MainWindow():
 			pGroup4->addChild(pOpenSpeed);
 
 			pGroup4->addChild(Parameter::Ptr(new Parameter("Close speed (unit/s)", -5000, 0,
-						   	pElHihatPedal->getCloseSpeed(),
+							pElHihatPedal->getCloseSpeed(),
 							boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1),
 							tr("Under this speed the hi-hat is converted to close color").toStdString())));
 		}
@@ -266,12 +263,12 @@ MainWindow::MainWindow():
 		{
 
 			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
-						   	pElHihatPedal->getHalfOpenMaximumPosition(),
+							pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
 							tr("Half open detection algorithm starts between [Security close position] and this position").toStdString())));
 
 			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open detection time (ms)", 0, 5000,
-						   	pElHihatPedal->getHalfOpenActivationTime(),
+							pElHihatPedal->getHalfOpenActivationTime(),
 							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
 							tr("Afters the specified time (ms), if the hi-hat is still in close color, it goes in half open mode. It will leave this mode if the control position go back under [Security close position]").toStdString())));
 		}
@@ -287,23 +284,23 @@ MainWindow::MainWindow():
 							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Crash",
-						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1), szDescription)));
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Ride",
-						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1), szDescription)));
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Snare",
-						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1), szDescription)));
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Tom 2",
-						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1), szDescription)));
 
 			pGroup6->addChild(Parameter::Ptr(new Parameter("Tom 3",
-						   	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1), szDescription)));
 		}
 
@@ -390,7 +387,7 @@ MainWindow::MainWindow():
 	}
 
 	// Flams
-    {
+	{
 		Parameter::Ptr pRoot(new Parameter());
 		{
 			Pad::List::const_iterator it = pads.begin();
@@ -441,7 +438,7 @@ MainWindow::MainWindow():
 			}
 		}
 		gridLayoutFlams->addWidget(new TreeViewParameters(this, pRoot), 0,0);
-    }
+	}
 
 
 	// Ghost notes
@@ -466,8 +463,9 @@ MainWindow::MainWindow():
 	}
 
 	// Filling midi devices
-    int comboBoxIndexMidiIn = -1;
-    int comboBoxIndexMidiOut = -1;
+	Pm_Initialize();
+	int comboBoxIndexMidiIn = -1;
+	int comboBoxIndexMidiOut = -1;
 	const std::string& szMidiIn = _pSettings->getMidiIn();
 	const std::string& szMidiOut = _pSettings->getMidiOut();
 	int nbDevices = Pm_CountDevices();
@@ -500,26 +498,27 @@ MainWindow::MainWindow():
 			}
 		}
 	}
+	Pm_Terminate();
 
 	// Select midi in
-    if (comboBoxIndexMidiIn>=0)
-    {
-        comboBoxMidiIn->setCurrentIndex(comboBoxIndexMidiIn);
-    }
+	if (comboBoxIndexMidiIn>=0)
+	{
+		comboBoxMidiIn->setCurrentIndex(comboBoxIndexMidiIn);
+	}
 
 	// Select midi out
-    if (comboBoxIndexMidiOut>=0)
-    {
-        comboBoxMidiOut->setCurrentIndex(comboBoxIndexMidiOut);
-    }
+	if (comboBoxIndexMidiOut>=0)
+	{
+		comboBoxMidiOut->setCurrentIndex(comboBoxIndexMidiOut);
+	}
 
 	// Enable/Disable Stop/Start buttons
-    pushButtonStop->setEnabled(false);
-    pushButtonStart->setEnabled(false);
-    if (comboBoxMidiIn->count() && comboBoxMidiOut->count())
-    {
-        pushButtonStart->setEnabled(true);
-    }
+	pushButtonStop->setEnabled(false);
+	pushButtonStart->setEnabled(false);
+	if (comboBoxMidiIn->count() && comboBoxMidiOut->count())
+	{
+		pushButtonStart->setEnabled(true);
+	}
 
 	// Logs
 	groupBoxLogs->setChecked(true);
@@ -527,12 +526,12 @@ MainWindow::MainWindow():
 	checkBoxLogsFilteredData->setChecked(false);
 	checkBoxLogsHiHatControl->setChecked(false);
 	checkBoxLogsOthers->setChecked(true);
-	
-    // Run the midi thread
-    if (comboBoxIndexMidiIn >=0 && comboBoxIndexMidiOut >=0)
-    {
-        on_pushButtonStart_clicked();
-    }
+
+	// Run the midi thread
+	if (comboBoxIndexMidiIn >=0 && comboBoxIndexMidiOut >=0)
+	{
+		on_pushButtonStart_clicked();
+	}
 
 	// Settings connections
 	_pSettings->signalRedrawPeriodChanged.connect(boost::bind(&GraphSubWindow::onRedrawPeriodChanged, _pGrapSubWindow, _1));
@@ -543,8 +542,7 @@ MainWindow::MainWindow():
 
 MainWindow::~MainWindow()
 {
-    stop();
-	Pm_Terminate();
+	stop();
 
 	// Restoring the std::cout streambuf
 	std::cout.rdbuf(_pOldStreambuf);
@@ -554,8 +552,8 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 {
 	Mutex::scoped_lock lock(_mutex);
 
-    if (!midiMessage.isIgnored() || bForce)
-    {
+	if (!midiMessage.isIgnored() || bForce)
+	{
 		const int DEFAULT_NOTE_MSG_CTRL(4);
 		PmError error = Pm_WriteShort(_pMidiOut, midiMessage.getTimestamp(), midiMessage.computeOutputMessage());
 		if (error==pmNoError)
@@ -587,7 +585,7 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 				std::cout << "Error can't send midi message : " << midiMessage.str() << " Reason=" << Pm_GetErrorText(error) <<  std::endl;
 			}
 		}
-    }
+	}
 }
 
 void MainWindow::sendMidiMessages(const MidiMessage::List& midiMessages, bool bForce)
@@ -656,8 +654,8 @@ void MainWindow::midiThread()
 {
 	MidiMessage::DictHistory lastMsgSent(Pad::TYPE_COUNT);
 
-    while (true)
-    {
+	while (true)
+	{
 		// Data to protect between midiInProc, midiThread and Qt:
 		//	-	_userSettings
 		//	-	_midiMessages
@@ -666,41 +664,41 @@ void MainWindow::midiThread()
 		//	-	_lastHiHatMsgControl
 		//	-	Slot (thread safe)
 		//	-	Pad (thread safe)
-        Mutex::scoped_lock lock(_mutex);
-        _condition.wait(lock);
+		Mutex::scoped_lock lock(_mutex);
+		_condition.wait(lock);
 
-        while (!_midiMessages.empty())
-        {
+		while (!_midiMessages.empty())
+		{
 			boost::this_thread::interruption_point();
 
-            // Get the current message
-            MidiMessage currentMsg(_midiMessages.front());
+			// Get the current message
+			MidiMessage currentMsg(_midiMessages.front());
 
-            // Buffering here
+			// Buffering here
 			boost::chrono::milliseconds elapsed(boost::chrono::duration_cast<boost::chrono::milliseconds>(_clock.now() - currentMsg.getReceiveTime()));
-            int waiting(_userSettings.bufferLength - elapsed.count());
-            if (waiting>0)
-            {
-                lock.unlock();
-                boost::this_thread::sleep(boost::posix_time::milliseconds(waiting));
-                lock.lock();
-            }
+			int waiting(_userSettings.bufferLength - elapsed.count());
+			if (waiting>0)
+			{
+				lock.unlock();
+				boost::this_thread::sleep(boost::posix_time::milliseconds(waiting));
+				lock.lock();
+			}
 
-            // and removing it immediatly from the stack
-            _midiMessages.pop_front();
+			// and removing it immediatly from the stack
+			_midiMessages.pop_front();
 
 			// We have to check at least if a slot is selected
-            if (_currentSlot == _userSettings.configSlots.end())
-            {
-                // No slot selected we just forward the message
-                sendMidiMessage(currentMsg);
-                continue;
-            }
+			if (_currentSlot == _userSettings.configSlots.end())
+			{
+				// No slot selected we just forward the message
+				sendMidiMessage(currentMsg);
+				continue;
+			}
 
-            // Hi hat pedal controller msg
+			// Hi hat pedal controller msg
 			const int DEFAULT_NOTE_MSG_CTRL(4);
-            if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL && !currentMsg.isAlreadyModified())
-            {
+			if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL && !currentMsg.isAlreadyModified())
+			{
 				currentMsg.hiHatSpeed = 0.0f;
 				const HiHatPedalElement::Ptr& p = boost::dynamic_pointer_cast<HiHatPedalElement>(getCurrentSlot()->getPads()[Pad::HIHAT_PEDAL]);
 				p->setCurrentControlPos(127-currentMsg.getValue());
@@ -755,44 +753,46 @@ void MainWindow::midiThread()
 						}
 					}
 				}
-            }
+			}
 
 			// Compute midi message
 			computeMessage(currentMsg, lastMsgSent);
 
-            // Send the message
-            sendMidiMessage(currentMsg);
+			// Send the message
+			sendMidiMessage(currentMsg);
 
-            // Saving the sended message
-            if (currentMsg.isNoteOnMsg())
-            {
-                Pad::List::iterator it = getCurrentSlot()->getPads().begin();
-                while (it!=getCurrentSlot()->getPads().end())
-                {
-                    Pad::List::value_type& p = *(it++);
-                    if (p->isA(currentMsg.getOriginalNote()))
-                    {
+			// Saving the sended message
+			if (currentMsg.isNoteOnMsg())
+			{
+				Pad::List::iterator it = getCurrentSlot()->getPads().begin();
+				while (it!=getCurrentSlot()->getPads().end())
+				{
+					Pad::List::value_type& p = *(it++);
+					if (p->isA(currentMsg.getOriginalNote()))
+					{
 						MidiMessage::History& rHistory = lastMsgSent[p->getType()];
 						rHistory.push_front(currentMsg);
 						// We save the last 5 notes for this element
 						rHistory.resize(5);
-                        break;
-                    }
-                }
-            }
+						break;
+					}
+				}
+			}
 			else if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 			{
 				_lastHiHatMsgControl = currentMsg;
 				_lastHiHatMsgControl.hiHatSpeed = 0;
 				_lastHiHatMsgControl.hiHatAcceleration = 0;
 			}
-        }
-    }
+		}
+	}
 }
 
 void MainWindow::on_pushButtonStart_clicked(bool)
 {
-    Pt_Start(1, &processMidi, this); // start a timer with millisecond accuracy
+	Pt_Start(1, &processMidi, this); // start a timer with millisecond accuracy
+
+	Pm_Initialize();
 
 #define INPUT_BUFFER_SIZE 0 // if INPUT_BUFFER_SIZE is 0, PortMidi uses a default value
 #define OUTPUT_BUFFER_SIZE 100
@@ -801,7 +801,7 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 #define TIME_INFO NULL
 #define LATENCY 0 // use zero latency because we want output to be immediate
 
-    _bConnected = false;
+	_bConnected = false;
 	PmError error = pmNoError;
 
 	// Clearing plots
@@ -809,19 +809,19 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 	_pGrapSubWindow->replot();
 
 	// Open Midi in device
-    int midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
+	int midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
 	const PmDeviceInfo* pDeviceInInfo = Pm_GetDeviceInfo(midiInId);
-    error = Pm_OpenInput(	&_pMidiIn, 
-							midiInId, 
-							DRIVER_INFO,
-							INPUT_BUFFER_SIZE,
-							TIME_PROC,
-							TIME_INFO);
-    if (error!=pmNoError)
-    {
-        QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi in %1, reason : %2").arg(pDeviceInInfo->name).arg(Pm_GetErrorText(error)));
+	error = Pm_OpenInput(	&_pMidiIn, 
+			midiInId, 
+			DRIVER_INFO,
+			INPUT_BUFFER_SIZE,
+			TIME_PROC,
+			TIME_INFO);
+	if (error!=pmNoError)
+	{
+		QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi in %1, reason : %2").arg(pDeviceInInfo->name).arg(Pm_GetErrorText(error)));
 		return;
-    }
+	}
 	else
 	{
 		// Ignoring sysex, tick, song position etc...
@@ -832,17 +832,17 @@ void MainWindow::on_pushButtonStart_clicked(bool)
 	// Open Midi out device
 	int midiOutId = comboBoxMidiOut->itemData(comboBoxMidiOut->currentIndex()).toInt();
 	const PmDeviceInfo* pDeviceOutInfo = Pm_GetDeviceInfo(midiOutId);
-    error = Pm_OpenOutput(	&_pMidiOut, 
-							midiOutId, 
-							DRIVER_INFO,
-							OUTPUT_BUFFER_SIZE,
-							TIME_PROC,
-							TIME_INFO,
-							LATENCY);
+	error = Pm_OpenOutput(	&_pMidiOut, 
+			midiOutId, 
+			DRIVER_INFO,
+			OUTPUT_BUFFER_SIZE,
+			TIME_PROC,
+			TIME_INFO,
+			LATENCY);
 
 	if (error!=pmNoError)
 	{
-        QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi out %1, reason : %2").arg(pDeviceOutInfo->name).arg(Pm_GetErrorText(error)));
+		QMessageBox::critical(this, tr("Midi Error"), tr("Cannot open midi out %1, reason : %2").arg(pDeviceOutInfo->name).arg(Pm_GetErrorText(error)));
 		return;
 	}
 	else
@@ -883,18 +883,18 @@ void MainWindow::stop()
 {
 	// Exiting midi thread first
 	if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
-   	{
-	   	std::cout << "Closing Midi thread ..." << std::endl;
-   	}
+	{
+		std::cout << "Closing Midi thread ..." << std::endl;
+	}
 
-    if (_pMidiThread)
-    {
-        _pMidiThread->interrupt();
+	if (_pMidiThread)
+	{
+		_pMidiThread->interrupt();
 		if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
-	   	{
-		   	std::cout << "Midi thread closed" << std::endl;
+		{
+			std::cout << "Midi thread closed" << std::endl;
 		}
-    }
+	}
 
 	Pt_Stop();
 
@@ -911,16 +911,18 @@ void MainWindow::stop()
 	}
 
 	_bConnected = false;
+
+	Pm_Terminate();
 }
 
 void MainWindow::on_pushButtonStop_clicked(bool)
 {
-    stop();
+	stop();
 
-    comboBoxMidiIn->setEnabled(true);
-    comboBoxMidiOut->setEnabled(true);
-    pushButtonStart->setEnabled(true);
-    pushButtonStop->setEnabled(false);
+	comboBoxMidiIn->setEnabled(true);
+	comboBoxMidiOut->setEnabled(true);
+	pushButtonStart->setEnabled(true);
+	pushButtonStop->setEnabled(false);
 }
 
 void MainWindow::on_comboBoxMidiIn_currentIndexChanged(const QString& text)
@@ -935,55 +937,56 @@ void MainWindow::on_comboBoxMidiOut_currentIndexChanged(const QString& text)
 
 void MainWindow::on_actionSave_As_triggered()
 {
-    fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
-    QString qszDefaultDir(".\\default.epd");
-    if (pathDefaultConfig.has_parent_path())
-    {
-        qszDefaultDir = pathDefaultConfig.parent_path().generic_string().c_str();
-    }
+	fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
+	QString qszDefaultDir(".\\default.epd");
+	if (pathDefaultConfig.has_parent_path())
+	{
+		qszDefaultDir = pathDefaultConfig.parent_path().generic_string().c_str();
+	}
 
-    QString filePath = QFileDialog::getSaveFileName(this, "Save configuration file", qszDefaultDir, "Rock Band Pro Drums (*.epd)");
-    if (filePath.isNull())
-    {
-        return;
-    }
-
-    saveUserSettings(filePath.toStdString());
+	QFileDialog fileDlg(this, tr("Save configuration file"), qszDefaultDir, "Rock Band Pro Drums (*.epd)");
+	fileDlg.setDefaultSuffix("epd");
+	fileDlg.setAcceptMode(QFileDialog::AcceptSave);
+	if (fileDlg.exec())
+	{
+		const QStringList& files = fileDlg.selectedFiles();
+		saveUserSettings(files[0].toStdString());
+	}
 }
 
 void MainWindow::selectLastSlot()
 {
 	// Select the slot
-    if (listWidgetSlots->count())
-    {
-        int index = _pSettings->getLastSelectedSlotIndex();
-        if (index<listWidgetSlots->count())
-        {
-            listWidgetSlots->item(index)->setSelected(true);
-        }
-        else
-        {
-            listWidgetSlots->item(0)->setSelected(true);
-        }
-    }
+	if (listWidgetSlots->count())
+	{
+		int index = _pSettings->getLastSelectedSlotIndex();
+		if (index<listWidgetSlots->count())
+		{
+			listWidgetSlots->item(index)->setSelected(true);
+		}
+		else
+		{
+			listWidgetSlots->item(0)->setSelected(true);
+		}
+	}
 }
 
 void MainWindow::on_actionOpen_triggered()
 {
-    fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
-    QString qszDefaultDir(".\\");
-    if (pathDefaultConfig.has_parent_path() && fs::exists(pathDefaultConfig.parent_path()))
-    {
-        qszDefaultDir = pathDefaultConfig.parent_path().generic_string().c_str();
-    }
+	fs::path pathDefaultConfig(_pSettings->getUserSettingsFile());
+	QString qszDefaultDir(".\\");
+	if (pathDefaultConfig.has_parent_path() && fs::exists(pathDefaultConfig.parent_path()))
+	{
+		qszDefaultDir = pathDefaultConfig.parent_path().generic_string().c_str();
+	}
 
-    QString filePath = QFileDialog::getOpenFileName(this, "Open configuration file", qszDefaultDir, "eProDrums Config File (*.epd)");
-    if (filePath.isNull())
-    {
-        return;
-    }
+	QString filePath = QFileDialog::getOpenFileName(this, "Open configuration file", qszDefaultDir, "eProDrums Config File (*.epd)");
+	if (filePath.isNull())
+	{
+		return;
+	}
 
-    loadUserSettings(filePath.toStdString());
+	loadUserSettings(filePath.toStdString());
 	selectLastSlot();
 }
 
@@ -994,24 +997,24 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 		return;
 	}
 
-    Mutex::scoped_lock lock(_mutex);
+	Mutex::scoped_lock lock(_mutex);
 
-    try
-    {
-        fs::path pathConfig(szFilePath);
-        std::ifstream ifs(pathConfig.generic_string().c_str());
-        if (ifs.good())
-        {
-            boost::archive::xml_iarchive ia(ifs);
-            ia >> BOOST_SERIALIZATION_NVP(_userSettings);
-            _userSettings.filePath = pathConfig.generic_string();
+	try
+	{
+		fs::path pathConfig(szFilePath);
+		std::ifstream ifs(pathConfig.generic_string().c_str());
+		if (ifs.good())
+		{
+			boost::archive::xml_iarchive ia(ifs);
+			ia >> BOOST_SERIALIZATION_NVP(_userSettings);
+			_userSettings.filePath = pathConfig.generic_string();
 
-            listWidgetSlots->clear();
+			listWidgetSlots->clear();
 
-            // Setting the mutex
-            Slot::List::iterator it  = _userSettings.configSlots.begin();
-            while (it!=_userSettings.configSlots.end())
-            {
+			// Setting the mutex
+			Slot::List::iterator it  = _userSettings.configSlots.begin();
+			while (it!=_userSettings.configSlots.end())
+			{
 				const Slot::Ptr& pSlot = *(it++);
 
 				// Connection between global settings and the slot
@@ -1029,103 +1032,103 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 				{
 					pNewItem->setFlags(pNewItem->flags() | Qt::ItemIsEditable);
 				}
-            }
-			
+			}
+
 			// Global settings and all slots are connected, we can reload/load the drum kit map
 			_pSettings->reloadDrumKitMidiMap();
 
 			_pSettings->setUserSettingsFile(pathConfig.generic_string());
-            setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
+			setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
 			spinBoxBuffer->setValue(_userSettings.bufferLength);
 
 			// Set curve visibility
 			_pGrapSubWindow->loadCurveVisibility();
-        }
-    }
-    catch (const std::exception& e)
-    {
-        boost::format fmtMsg("Error while loading configuration. Reason : %s");
-        fmtMsg%e.what();
-        QMessageBox::critical(this,"Error while loading configuration", fmtMsg.str().c_str());
+		}
+	}
+	catch (const std::exception& e)
+	{
+		boost::format fmtMsg("Error while loading configuration. Reason : %s");
+		fmtMsg%e.what();
+		QMessageBox::critical(this,"Error while loading configuration", fmtMsg.str().c_str());
 		_userSettings.configSlots.clear();
 		_pSettings->setUserSettingsFile("./");
-    }
+	}
 }
 
 void MainWindow::saveUserSettings(const std::string& szFilePath)
 {
-    try
-    {
+	try
+	{
 		_pGrapSubWindow->saveCurveVisibility();
 
-        fs::path pathConfig(szFilePath);
-        std::ofstream ofs(pathConfig.generic_string().c_str());
-        boost::archive::xml_oarchive oa(ofs);
-        oa << BOOST_SERIALIZATION_NVP(_userSettings);
-        _userSettings.filePath = pathConfig.generic_string();
+		fs::path pathConfig(szFilePath);
+		std::ofstream ofs(pathConfig.generic_string().c_str());
+		boost::archive::xml_oarchive oa(ofs);
+		oa << BOOST_SERIALIZATION_NVP(_userSettings);
+		_userSettings.filePath = pathConfig.generic_string();
 		_pSettings->setUserSettingsFile(pathConfig.generic_string());
-        setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
-    }
-    catch (const std::exception& e)
-    {
-        boost::format fmtMsg("Error while saving configuration. Reason : %s");
-        fmtMsg%e.what();
-        QMessageBox::critical(this,"Error while loading configuration", fmtMsg.str().c_str());
-    }
+		setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
+	}
+	catch (const std::exception& e)
+	{
+		boost::format fmtMsg("Error while saving configuration. Reason : %s");
+		fmtMsg%e.what();
+		QMessageBox::critical(this,"Error while loading configuration", fmtMsg.str().c_str());
+	}
 }
 
 void MainWindow::on_actionSave_triggered()
 {
-    if (fs::exists(_userSettings.filePath) && !fs::is_directory(_userSettings.filePath))
-    {
-        saveUserSettings(_userSettings.filePath);
-    }
-    else
-    {
-        on_actionSave_As_triggered();
-    }
+	if (fs::exists(_userSettings.filePath) && !fs::is_directory(_userSettings.filePath))
+	{
+		saveUserSettings(_userSettings.filePath);
+	}
+	else
+	{
+		on_actionSave_As_triggered();
+	}
 }
 
 void MainWindow::on_actionQuit_triggered()
 {
-    QApplication::exit();
+	QApplication::exit();
 }
 
 void MainWindow::on_sliderBuffer_valueChanged(int value)
 {
-    spinBoxBuffer->setValue(value);
+	spinBoxBuffer->setValue(value);
 }
 
 void MainWindow::on_spinBoxBuffer_valueChanged(int value)
 {
-    sliderBuffer->blockSignals(true);
-    sliderBuffer->setValue(value);
-    sliderBuffer->blockSignals(false);
+	sliderBuffer->blockSignals(true);
+	sliderBuffer->setValue(value);
+	sliderBuffer->blockSignals(false);
 
-    Mutex::scoped_lock lock(_mutex);
-    _userSettings.bufferLength = value;
-    _calibrationOffset = _userSettings.bufferLength;
-    lineEditCalibrationOffset->setText((boost::format("%d")%_calibrationOffset).str().c_str());
+	Mutex::scoped_lock lock(_mutex);
+	_userSettings.bufferLength = value;
+	_calibrationOffset = _userSettings.bufferLength;
+	lineEditCalibrationOffset->setText((boost::format("%d")%_calibrationOffset).str().c_str());
 }
 
 void MainWindow::on_listWidgetSlots_customContextMenuRequested(const QPoint& point)
 {
-    QListWidgetItem* p = listWidgetSlots->itemAt(point);
+	QListWidgetItem* p = listWidgetSlots->itemAt(point);
 	actionAdd_Slot->setEnabled(true);
-    if (p && p->isSelected())
-    {
-        actionRemove_Slot->setEnabled(p->text() != "default");
-    }
-    else
-    {
-        actionRemove_Slot->setEnabled(false);
-    }
-    menuEdit->exec(QCursor::pos());
+	if (p && p->isSelected())
+	{
+		actionRemove_Slot->setEnabled(p->text() != "default");
+	}
+	else
+	{
+		actionRemove_Slot->setEnabled(false);
+	}
+	menuEdit->exec(QCursor::pos());
 }
 
 void MainWindow::on_actionAdd_Slot_triggered()
 {
-    Mutex::scoped_lock lock(_mutex);
+	Mutex::scoped_lock lock(_mutex);
 	const Slot::Ptr& pSlot = createDefaultSlot();
 	pSlot->setName(createNewSlotName());
 	_userSettings.configSlots.push_back(pSlot);
@@ -1164,13 +1167,13 @@ std::string MainWindow::createNewSlotName(const std::string& szBaseName) const
 
 void MainWindow::on_actionDuplicate_Slot_triggered()
 {
-    Mutex::scoped_lock lock(_mutex);
-    const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
-    if (!selected.empty())
-    {
-        QListWidgetItem* pSelected = selected[0];
-        const std::string& szSlotName = pSelected->text().toStdString();
-        Slot::List::iterator itSlot = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == szSlotName);
+	Mutex::scoped_lock lock(_mutex);
+	const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
+	if (!selected.empty())
+	{
+		QListWidgetItem* pSelected = selected[0];
+		const std::string& szSlotName = pSelected->text().toStdString();
+		Slot::List::iterator itSlot = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == szSlotName);
 		if (itSlot!=_userSettings.configSlots.end())
 		{
 			const Slot::Ptr& pSlotToDuplicate = *(itSlot);
@@ -1188,21 +1191,21 @@ void MainWindow::on_actionDuplicate_Slot_triggered()
 			pNewItem->setFlags(pNewItem->flags() | Qt::ItemIsEditable);
 			pNewItem->setSelected(true);
 		}
-    }
+	}
 }
 
 void MainWindow::on_actionRemove_Slot_triggered()
 {
-    Mutex::scoped_lock lock(_mutex);
-    const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
-    if (!selected.empty())
-    {
-        QListWidgetItem* pSelected = selected[0];
-        if (pSelected->text() != "default")
-        {
+	Mutex::scoped_lock lock(_mutex);
+	const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
+	if (!selected.empty())
+	{
+		QListWidgetItem* pSelected = selected[0];
+		if (pSelected->text() != "default")
+		{
 			int row = listWidgetSlots->row(pSelected);
-            listWidgetSlots->takeItem(row);
-            _userSettings.configSlots.erase(std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == pSelected->text().toStdString()));
+			listWidgetSlots->takeItem(row);
+			_userSettings.configSlots.erase(std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == pSelected->text().toStdString()));
 
 			// Select the next one
 			if (row < listWidgetSlots->count())
@@ -1213,63 +1216,63 @@ void MainWindow::on_actionRemove_Slot_triggered()
 			{
 				listWidgetSlots->item(listWidgetSlots->count()-1)->setSelected(true);
 			}
-        }
-    }
+		}
+	}
 }
 
 Slot::Ptr MainWindow::createDefaultSlot()
 {
 	Slot::Ptr pDefaultSlot(new Slot());
-    pDefaultSlot->setName("default");
+	pDefaultSlot->setName("default");
 
 	// Snare
-    const Pad::Ptr& pElSnare = Pad::Ptr(new Pad(Pad::SNARE, Pad::NOTE_SNARE));
+	const Pad::Ptr& pElSnare = Pad::Ptr(new Pad(Pad::SNARE, Pad::NOTE_SNARE));
 	pElSnare->setTypeFlam(Pad::TOM1);
-    pDefaultSlot->getPads().push_back(pElSnare);
+	pDefaultSlot->getPads().push_back(pElSnare);
 
 	// Hi Hat
-    const Pad::Ptr& pElHihat = Pad::Ptr(new Pad(Pad::HIHAT, Pad::NOTE_HIHAT)); 
-    pElHihat->setTypeFlam(Pad::SNARE);
-    pDefaultSlot->getPads().push_back(pElHihat);
+	const Pad::Ptr& pElHihat = Pad::Ptr(new Pad(Pad::HIHAT, Pad::NOTE_HIHAT)); 
+	pElHihat->setTypeFlam(Pad::SNARE);
+	pDefaultSlot->getPads().push_back(pElHihat);
 
 	// Hi Hat Pedal
-    const HiHatPedalElement::Ptr& pElHihatPedal = HiHatPedalElement::Ptr(new HiHatPedalElement());
-    pDefaultSlot->getPads().push_back(pElHihatPedal);
+	const HiHatPedalElement::Ptr& pElHihatPedal = HiHatPedalElement::Ptr(new HiHatPedalElement());
+	pDefaultSlot->getPads().push_back(pElHihatPedal);
 
-    const Pad::Ptr& pElTom1 = Pad::Ptr(new Pad(Pad::TOM1, Pad::NOTE_TOM1)); 
-    pElTom1->setTypeFlam(Pad::TOM2);
-    pDefaultSlot->getPads().push_back(pElTom1);
+	const Pad::Ptr& pElTom1 = Pad::Ptr(new Pad(Pad::TOM1, Pad::NOTE_TOM1)); 
+	pElTom1->setTypeFlam(Pad::TOM2);
+	pDefaultSlot->getPads().push_back(pElTom1);
 
-    const Pad::Ptr& pElTom2 = Pad::Ptr(new Pad(Pad::TOM2, Pad::NOTE_TOM2)); 
-    pElTom2->setTypeFlam(Pad::TOM3);
-    pDefaultSlot->getPads().push_back(pElTom2);
+	const Pad::Ptr& pElTom2 = Pad::Ptr(new Pad(Pad::TOM2, Pad::NOTE_TOM2)); 
+	pElTom2->setTypeFlam(Pad::TOM3);
+	pDefaultSlot->getPads().push_back(pElTom2);
 
-    const Pad::Ptr& pElTom3 = Pad::Ptr(new Pad(Pad::TOM3, Pad::NOTE_TOM3)); 
-    pElTom3->setTypeFlam(Pad::TOM2);
-    pDefaultSlot->getPads().push_back(pElTom3);
+	const Pad::Ptr& pElTom3 = Pad::Ptr(new Pad(Pad::TOM3, Pad::NOTE_TOM3)); 
+	pElTom3->setTypeFlam(Pad::TOM2);
+	pDefaultSlot->getPads().push_back(pElTom3);
 
-    const Pad::Ptr& pElCrash1 = Pad::Ptr(new Pad(Pad::CRASH1, Pad::NOTE_CRASH1)); 
-    pElCrash1->setTypeFlam(Pad::RIDE);
-    pDefaultSlot->getPads().push_back(pElCrash1);
+	const Pad::Ptr& pElCrash1 = Pad::Ptr(new Pad(Pad::CRASH1, Pad::NOTE_CRASH1)); 
+	pElCrash1->setTypeFlam(Pad::RIDE);
+	pDefaultSlot->getPads().push_back(pElCrash1);
 
-    const Pad::Ptr& pElCrash2 = Pad::Ptr(new Pad(Pad::CRASH2, Pad::NOTE_CRASH2)); 
-    pElCrash2->setTypeFlam(Pad::RIDE);
-    pDefaultSlot->getPads().push_back(pElCrash2);
+	const Pad::Ptr& pElCrash2 = Pad::Ptr(new Pad(Pad::CRASH2, Pad::NOTE_CRASH2)); 
+	pElCrash2->setTypeFlam(Pad::RIDE);
+	pDefaultSlot->getPads().push_back(pElCrash2);
 
-    const Pad::Ptr& pElCrash3 = Pad::Ptr(new Pad(Pad::CRASH3, Pad::NOTE_CRASH3)); 
-    pDefaultSlot->getPads().push_back(pElCrash3);
+	const Pad::Ptr& pElCrash3 = Pad::Ptr(new Pad(Pad::CRASH3, Pad::NOTE_CRASH3)); 
+	pDefaultSlot->getPads().push_back(pElCrash3);
 
-    const Pad::Ptr& pElRide = Pad::Ptr(new Pad(Pad::RIDE, Pad::NOTE_RIDE)); 
-    pElRide->setTypeFlam(Pad::CRASH2);
-    pDefaultSlot->getPads().push_back(pElRide);
+	const Pad::Ptr& pElRide = Pad::Ptr(new Pad(Pad::RIDE, Pad::NOTE_RIDE)); 
+	pElRide->setTypeFlam(Pad::CRASH2);
+	pDefaultSlot->getPads().push_back(pElRide);
 
-    const Pad::Ptr& pElBassDrum = Pad::Ptr(new Pad(Pad::BASS_DRUM, Pad::NOTE_BASS_DRUM)); 
-    pDefaultSlot->getPads().push_back(pElBassDrum);
+	const Pad::Ptr& pElBassDrum = Pad::Ptr(new Pad(Pad::BASS_DRUM, Pad::NOTE_BASS_DRUM)); 
+	pDefaultSlot->getPads().push_back(pElBassDrum);
 
 	_pSettings->signalKitDefined.connect(boost::bind(&Slot::onDrumKitLoaded, pDefaultSlot, _1, _2));
 	_pSettings->reloadDrumKitMidiMap();
 
-    return pDefaultSlot;
+	return pDefaultSlot;
 }
 
 void MainWindow::updateCurrentSlot()
@@ -1480,14 +1483,14 @@ void MainWindow::updateCurrentSlot()
 
 void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 {
-    const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
-    if (!selected.empty())
-    {
-        QListWidgetItem* pSelected = selected[0];
+	const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
+	if (!selected.empty())
+	{
+		QListWidgetItem* pSelected = selected[0];
 		_pSettings->setLastSelectedSlotIndex(listWidgetSlots->row(pSelected));
-        _currentSlot = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == pSelected->text().toStdString());
-        if (_currentSlot != _userSettings.configSlots.end())
-        {
+		_currentSlot = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == pSelected->text().toStdString());
+		if (_currentSlot != _userSettings.configSlots.end())
+		{
 			updateCurrentSlot();
 
 			// Hi Hat Curve default states
@@ -1496,49 +1499,49 @@ void MainWindow::on_listWidgetSlots_itemSelectionChanged()
 
 		actionDuplicate_Slot->setEnabled(true);
 		actionRemove_Slot->setEnabled(true);
-    }
+	}
 
 	actionAdd_Slot->setEnabled(true);
 }
 
 void MainWindow::on_menuEdit_aboutToShow()
 {
-    const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
+	const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
 
 	actionAdd_Slot->setEnabled(true);
-    if (!selected.empty())
-    {
-        actionRemove_Slot->setEnabled(selected[0]->text() != "default");
+	if (!selected.empty())
+	{
+		actionRemove_Slot->setEnabled(selected[0]->text() != "default");
 		actionDuplicate_Slot->setEnabled(true);
-    }
-    else
-    {
-        actionRemove_Slot->setEnabled(false);
+	}
+	else
+	{
+		actionRemove_Slot->setEnabled(false);
 		actionDuplicate_Slot->setEnabled(false);
-    }
+	}
 }
 
 MidiMessage* MainWindow::getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType)
 {
-    MidiMessage* pResult = NULL;
+	MidiMessage* pResult = NULL;
 
-    MidiMessage::List::iterator it = _midiMessages.begin();
-    while (it!=_midiMessages.end())
-    {
-        MidiMessage& r = *(it++);
-        if (r.getMsgType() == msgType && pElement->isA(r.getOriginalNote()))
-        {
-            pResult = &r;
-            break;
-        }
-    }
+	MidiMessage::List::iterator it = _midiMessages.begin();
+	while (it!=_midiMessages.end())
+	{
+		MidiMessage& r = *(it++);
+		if (r.getMsgType() == msgType && pElement->isA(r.getOriginalNote()))
+		{
+			pResult = &r;
+			break;
+		}
+	}
 
-    return pResult;
+	return pResult;
 }
 
 void MainWindow::on_listWidgetSlots_itemChanged(QListWidgetItem* pItem)
 {
-    Mutex::scoped_lock lock(_mutex);
+	Mutex::scoped_lock lock(_mutex);
 	const QVariant& variant = pItem->data(Qt::UserRole);
 	if (!variant.isNull())
 	{
@@ -1803,7 +1806,7 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			{
 				int cancelMaskTime = pElHihatPedal->getFootCancelMaskTime();
 				pElHihatPedal->setFootCancelTimeLimit(currentTime+cancelMaskTime);
-				
+
 				emit footCancelStarted(currentTime, cancelMaskTime, pElHihatPedal->getFootCancelVelocity());
 
 				if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_HIHAT_CONTROL))
@@ -1837,8 +1840,8 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			{
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
 				if ( pElHihatPedal->isCancelHitWhileOpen()
-					 && currentControlPos >= pElHihatPedal->getCancelOpenHitThreshold() 
-					 && currentMsg.getValue()<pElHihatPedal->getCancelOpenHitVelocity())
+						&& currentControlPos >= pElHihatPedal->getCancelOpenHitThreshold() 
+						&& currentMsg.getValue()<pElHihatPedal->getCancelOpenHitVelocity())
 				{
 					currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 				}
