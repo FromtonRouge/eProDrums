@@ -31,6 +31,7 @@
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
+#include <QtCore/QFileInfo>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/filesystem.hpp>
@@ -134,6 +135,8 @@ MainWindow::MainWindow():
 
 	setupUi(this);
 	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
+
+	_pProcessAssistant = new QProcess(this);
 
 	// Setup std::cout redirection
 	_streamBuffer.open(StreamSink(boost::bind(&MainWindow::toLog, this, _1)));
@@ -1560,6 +1563,42 @@ void MainWindow::on_listWidgetSlots_itemChanged(QListWidgetItem* pItem)
 				pItem->setData(Qt::UserRole, variant);
 				listWidgetSlots->blockSignals(false);
 			}
+		}
+	}
+}
+
+void MainWindow::on_actionAssistant_triggered()
+{
+	QString applicationPath(QApplication::applicationDirPath());
+	std::vector<QFileInfo> collections;
+	collections.push_back(QFileInfo(applicationPath + "/doc/collection.qhc"));
+	collections.push_back(QFileInfo(applicationPath + "/../doc/collection.qhc"));
+	QString collectionPath;
+	for (size_t i=0; i<collections.size(); ++i)
+	{
+		if (collections[i].exists())
+		{
+			collectionPath = collections[i].filePath();
+			break;
+		}
+	}
+
+	if (!collectionPath.isEmpty())
+	{
+#ifdef _WIN32
+		QFileInfo program(applicationPath + "/assistant.exe");
+#else
+		QFileInfo program(applicationPath + "/assistant");
+#endif
+		if (program.exists())
+		{
+			QStringList arguments;
+			arguments << "-collectionFile" << collectionPath;
+			_pProcessAssistant->start(program.filePath(), arguments);
+		}
+		else
+		{
+			QMessageBox::critical(this, tr("Error can't find assistant"), tr("Can't find the binary \"%1\"").arg(program.filePath()));
 		}
 	}
 }

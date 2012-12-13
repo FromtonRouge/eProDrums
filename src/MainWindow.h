@@ -30,6 +30,7 @@
 #include "ui_MainWindow.h"
 
 #include <QtGui/QMainWindow>
+#include <QtCore/QProcess>
 
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
@@ -92,6 +93,7 @@ private slots:
 	void on_actionAdd_Slot_triggered();
 	void on_actionDuplicate_Slot_triggered();
 	void on_actionRemove_Slot_triggered();
+	void on_actionAssistant_triggered();
 	void on_actionAbout_triggered();
 	void on_actionSettings_triggered();
 
@@ -160,4 +162,5 @@ private:
     boost::condition					_condition;
     boost::scoped_ptr<boost::thread>	_pMidiThread;
 	GraphSubWindow*						_pGrapSubWindow;
+	QProcess*							_pProcessAssistant;
 };

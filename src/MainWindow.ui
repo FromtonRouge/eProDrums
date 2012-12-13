@@ -84,8 +84,9 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>?</string>
     </property>
+    <addaction name="actionAssistant"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -540,6 +541,11 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionAssistant">
+   <property name="text">
+    <string>Help</string>
    </property>
   </action>
  </widget>

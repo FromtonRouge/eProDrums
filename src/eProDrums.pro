@@ -114,6 +114,13 @@ SOURCES += AddMidiNote.cpp \
            UserSettings.cpp
 RESOURCES += EProDrums.qrc
 
+# Documentation
+manual.target = doc/collection.qhc
+manual.depends = doc/*.qhp doc/*.qhcp doc/*.html
+manual.commands = qcollectiongenerator doc/collection.qhcp
+QMAKE_EXTRA_TARGETS += manual
+PRE_TARGETDEPS += doc/collection.qhc
+
 LIBS += -L$${PORTMIDI_DIR}/lib -lportmidi
 LIBS += -L$${QWT_DIR}/lib -lqwt
 

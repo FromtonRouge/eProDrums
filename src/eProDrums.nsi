@@ -48,6 +48,7 @@ Section "eProDrums (required)"
   
   ; Put file there
   File "Release\eProDrums.exe"
+  File "..\install\assistant.exe"
   File "..\install\QtGui4.dll"
   File "..\install\QtCore4.dll"
   File "..\install\QtSvg4.dll"
@@ -89,6 +90,7 @@ Section "Uninstall"
 
   ; Remove files and uninstaller
   Delete $INSTDIR\eProDrums.exe
+  Delete $INSTDIR\assistant.exe
   Delete $INSTDIR\QtGui4.dll
   Delete $INSTDIR\QtCore4.dll
   Delete $INSTDIR\QtSvg4.dll
