@@ -19,4 +19,6 @@ src/eProDrums
 *.exe
 *.ipch
 *.idb
+*.qhc
+*.qch
 tags

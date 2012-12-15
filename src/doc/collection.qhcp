@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QHelpCollectionProject version="1.0">
+     <assistant>
+         <title>eProDrums manual</title>
+		 <startPage>FromtonRouge.eProDrums.0.8/doc/index.html</startPage>
+         <currentFilter>eProDrums</currentFilter>
+		 <applicationIcon>../EProDrums.png</applicationIcon>
+         <enableFilterFunctionality>false</enableFilterFunctionality>
+         <enableDocumentationManager>false</enableDocumentationManager>
+         <enableAddressBar visible="true">true</enableAddressBar>
+         <cacheDirectory>FromtonRouge/eProDrums</cacheDirectory>
+         <aboutMenuText>
+             <text>About eProDrums</text>
+             <text language="en">eProDrums</text>
+         </aboutMenuText>
+         <aboutDialog>
+             <file>about.txt</file>
+             <file language="en">about.txt</file>
+			 <icon>../EProDrums.png</icon>
+         </aboutDialog>
+     </assistant>
+	<docFiles>
+		<generate>
+			<file>
+				<input>doc.qhp</input>
+				<output>doc.qch</output>
+			</file>
+		</generate>
+		<register>
+			<file>doc.qch</file>
+		</register>
+	</docFiles>
+</QHelpCollectionProject>

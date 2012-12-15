@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QtHelpProject version="1.0">
+	<namespace>FromtonRouge.eProDrums.0.8</namespace>
+	<virtualFolder>doc</virtualFolder>
+	<customFilter name="eProDrums 0.8">
+		<filterAttribute>eProDrums</filterAttribute>
+		<filterAttribute>0.8</filterAttribute>
+	</customFilter>
+	<filterSection>
+		<filterAttribute>eProDrums</filterAttribute>
+		<filterAttribute>0.8</filterAttribute>
+		<toc>
+			<section title="eProDrums manual" ref="index.html">
+				<section title="Description" ref="description.html" />
+				<section title="Quick Start" ref="quickstart.html" />
+			</section>
+		</toc>
+		<files>
+			<file>*.html</file>
+		</files>
+	</filterSection>
+</QtHelpProject>
