@@ -1444,15 +1444,13 @@ void MainWindow::updateCurrentSlot()
 					pPad = pads[++indexPad];
 				}
 
+				//Group update
 				pGroup1->setColor(QColor(pPad->getColor().c_str()));
-				pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(),
-						boost::bind(&Pad::setTypeFlam, pPad, _1));
+				pGroup1->update(pPad->isFlamActivated(), boost::bind(&Pad::setFlamActivated, pPad, _1));
 
-				pGroup1->getChildAt(1)->update(	pPad->getFlamFunctions(),
-						boost::bind(&Pad::setFlamFunctions, pPad, _1));
-
-				pGroup1->getChildAt(2)->update(	pPad->getFlamCancelDuringRoll(),
-						boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
+				pGroup1->getChildAt(0)->update(	pPad->getTypeFlam(), boost::bind(&Pad::setTypeFlam, pPad, _1));
+				pGroup1->getChildAt(1)->update(	pPad->getFlamFunctions(), boost::bind(&Pad::setFlamFunctions, pPad, _1));
+				pGroup1->getChildAt(2)->update(	pPad->getFlamCancelDuringRoll(), boost::bind(&Pad::setFlamCancelDuringRoll, pPad, _1));
 			}
 
 			pTreeView->update();
