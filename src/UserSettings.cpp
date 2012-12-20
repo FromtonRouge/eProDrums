@@ -23,16 +23,17 @@
 
 UserSettings::CurveVisibility UserSettings::CURVE_HIHAT_CONTROL			= 1<<0;
 UserSettings::CurveVisibility UserSettings::CURVE_HIHAT_ACCELERATION	= 1<<1;
-UserSettings::CurveVisibility UserSettings::CURVE_HIHAT					= 1<<2;
-UserSettings::CurveVisibility UserSettings::CURVE_HIHAT_PEDAL			= 1<<3;
-UserSettings::CurveVisibility UserSettings::CURVE_CRASH					= 1<<4;
-UserSettings::CurveVisibility UserSettings::CURVE_YELLOW_CRASH			= 1<<5;
-UserSettings::CurveVisibility UserSettings::CURVE_RIDE					= 1<<6;
-UserSettings::CurveVisibility UserSettings::CURVE_TOM1					= 1<<7;
-UserSettings::CurveVisibility UserSettings::CURVE_TOM2					= 1<<8;
-UserSettings::CurveVisibility UserSettings::CURVE_TOM3					= 1<<9;
-UserSettings::CurveVisibility UserSettings::CURVE_SNARE					= 1<<10;
-UserSettings::CurveVisibility UserSettings::CURVE_BASS_PEDAL			= 1<<11;
+UserSettings::CurveVisibility UserSettings::CURVE_HIHAT_JERK			= 1<<2;
+UserSettings::CurveVisibility UserSettings::CURVE_HIHAT					= 1<<3;
+UserSettings::CurveVisibility UserSettings::CURVE_HIHAT_PEDAL			= 1<<4;
+UserSettings::CurveVisibility UserSettings::CURVE_CRASH					= 1<<5;
+UserSettings::CurveVisibility UserSettings::CURVE_YELLOW_CRASH			= 1<<6;
+UserSettings::CurveVisibility UserSettings::CURVE_RIDE					= 1<<7;
+UserSettings::CurveVisibility UserSettings::CURVE_TOM1					= 1<<8;
+UserSettings::CurveVisibility UserSettings::CURVE_TOM2					= 1<<9;
+UserSettings::CurveVisibility UserSettings::CURVE_TOM3					= 1<<10;
+UserSettings::CurveVisibility UserSettings::CURVE_SNARE					= 1<<11;
+UserSettings::CurveVisibility UserSettings::CURVE_BASS_PEDAL			= 1<<12;
 
 UserSettings::LogActivation UserSettings::LOG_ACTIVATED				= 1<<0;
 UserSettings::LogActivation UserSettings::LOG_RAW_DATA				= 1<<1;

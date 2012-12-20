@@ -157,6 +157,7 @@ private:
     bool				_bConnected;
     MidiMessage::List	_midiMessages;
 	MidiMessage			_lastHiHatMsgControl;
+	MidiMessage			_currentHiHatMsgControl;
 	int					_calibrationOffset;
 
     boost::condition					_condition;

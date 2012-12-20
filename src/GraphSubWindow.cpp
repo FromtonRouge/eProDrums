@@ -63,13 +63,20 @@ GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QM
 	_pPlotZoomer->setEnabled(true);
 
     // Curve CC#4
-	QColor qHiHatAccel(245, 0, 150);
+	QColor colorAccel(245, 0, 150);
 	_curveHiHatPosition = new HiHatPositionCurve(_pPlot);
-	_curveHiHatAcceleration = new EProPlotCurve("Hi Hat Acceleration", qHiHatAccel, 1, _pPlot);
+	_curveHiHatAcceleration = new EProPlotCurve("Hi Hat Acceleration", colorAccel, 1, _pPlot);
 	_curveHiHatAcceleration->setMarkerInformationOutlineColor(QColor(Qt::white));
 	_curveHiHatAcceleration->getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
 	_curveHiHatAcceleration->setStyle(EProPlotCurve::Lines);
-	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatAccel, qHiHatAccel, QSize(2,2)));
+	_curveHiHatAcceleration->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, colorAccel, colorAccel, QSize(2,2)));
+
+	QColor colorJerk(0, 245, 150);
+	_curveHiHatJerk = new EProPlotCurve("Hi Hat Jerk", colorJerk, 1, _pPlot);
+	_curveHiHatJerk->setMarkerInformationOutlineColor(QColor(Qt::white));
+	_curveHiHatJerk->getMarker()->setLabelAlignment(Qt::AlignRight|Qt::AlignBottom);
+	_curveHiHatJerk->setStyle(EProPlotCurve::Lines);
+	_curveHiHatJerk->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, colorJerk, colorJerk, QSize(2,2)));
 
 	_curves[Pad::SNARE] = new EProPlotCurve("Snare", QColor(Pad::getDefaultColor(Pad::SNARE).c_str()), 2, _pPlot);
 	_curves[Pad::HIHAT] = new EProPlotCurve("Hi Hat", QColor(Pad::getDefaultColor(Pad::HIHAT).c_str()), 2, _pPlot);
@@ -85,8 +92,9 @@ GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QM
 
     _pPlot->showAll();
 
-	// By default we hide the hh accel
+	// By default we hide accels and jerks
 	setCurveVisibility(_curveHiHatAcceleration, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
+	setCurveVisibility(_curveHiHatJerk, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_JERK));
 }
 
 GraphSubWindow::~GraphSubWindow()
@@ -99,6 +107,7 @@ void GraphSubWindow::clearPlots()
 
 	_curveHiHatPosition->showMarkers(false);
 	_curveHiHatAcceleration->showMarkers(false);
+	_curveHiHatJerk->showMarkers(false);
 
 	_pPlot->clear();
 }
@@ -131,6 +140,7 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 	int timestamp = midiMessage.getTimestamp();
    	float hiHatControlSpeed = midiMessage.hiHatSpeed;
 	float hiHatAcceleration = midiMessage.hiHatAcceleration;
+	float hiHatJerk = midiMessage.hiHatJerk;
 
 	int plotTimeWindow = 5*1000;
 	if (timestamp>plotTimeWindow)
@@ -149,9 +159,11 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 		boost::any userData(std::make_pair(hiHatControlSpeed, hiHatAcceleration));
 		_curveHiHatPosition->add(QPointF(timestamp, hiHatLevel), userData);
 		_curveHiHatAcceleration->add(QPointF(timestamp, hiHatAcceleration*(127.f/HiHatPedalElement::MAX_ALLOWED_ACCELERATION)));
+		_curveHiHatJerk->add(QPointF(timestamp, hiHatJerk*(127.f/HiHatPedalElement::MAX_ALLOWED_JERK)));
+
 		if (_pUserSettings->isLogs() && _pUserSettings->isLog(UserSettings::LOG_HIHAT_CONTROL))
 		{
-			std::cout << (boost::format("%d (unit), %.3f (unit/s), %.3f (unit/ss)")%hiHatLevel%hiHatControlSpeed%hiHatAcceleration) << std::endl;
+			std::cout << (boost::format("%d (unit), %.3f (unit/s), %.3f (unit/ss), %.3f (unit/sss)")%hiHatLevel%hiHatControlSpeed%hiHatAcceleration%hiHatJerk) << std::endl;
 		}
     }
     else if (msgType == 9)
@@ -186,9 +198,16 @@ void GraphSubWindow::onLeftMouseClicked(const QPoint& pos)
 	if (index>=0)
 	{
 		float accel = _curveHiHatAcceleration->y(index)*float(HiHatPedalElement::MAX_ALLOWED_ACCELERATION)/127;
-		
 		boost::format fmtAccel("%.3f (unit/s²)");
 		_curveHiHatAcceleration->setMarkerInformationLabel((fmtAccel%accel).str());
+	}
+
+	index = _curveHiHatJerk->updateMarkers(pos);
+	if (index>=0)
+	{
+		float jerk = _curveHiHatJerk->y(index)*float(HiHatPedalElement::MAX_ALLOWED_JERK)/127;
+		boost::format fmtJerk("%.3f (unit/sss)");
+		_curveHiHatJerk->setMarkerInformationLabel((fmtJerk%jerk).str());
 	}
 
 	EProPlotCurve::Dict::iterator it = _curves.begin();
@@ -234,6 +253,7 @@ void GraphSubWindow::loadCurveVisibility()
 {
 	setCurveVisibility(_curveHiHatPosition, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_CONTROL));
 	setCurveVisibility(_curveHiHatAcceleration, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
+	setCurveVisibility(_curveHiHatJerk, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_JERK));
 	setCurveVisibility(_curves[Pad::HIHAT], _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT));
 	setCurveVisibility(_curves[Pad::HIHAT_PEDAL], _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_PEDAL));
 	setCurveVisibility(_curves[Pad::CRASH1], _pUserSettings->isCurveVisible(UserSettings::CURVE_CRASH));
@@ -250,6 +270,7 @@ void GraphSubWindow::saveCurveVisibility()
 {
 	_pUserSettings->setCurveVisibility(UserSettings::CURVE_HIHAT_CONTROL, _curveHiHatPosition->isVisible());
 	_pUserSettings->setCurveVisibility(UserSettings::CURVE_HIHAT_ACCELERATION, _curveHiHatAcceleration->isVisible());
+	_pUserSettings->setCurveVisibility(UserSettings::CURVE_HIHAT_JERK, _curveHiHatJerk->isVisible());
 	_pUserSettings->setCurveVisibility(UserSettings::CURVE_HIHAT, _curves[Pad::HIHAT]->isVisible());
 	_pUserSettings->setCurveVisibility(UserSettings::CURVE_HIHAT_PEDAL, _curves[Pad::HIHAT_PEDAL]->isVisible());
 	_pUserSettings->setCurveVisibility(UserSettings::CURVE_CRASH, _curves[Pad::CRASH1]->isVisible());

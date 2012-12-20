@@ -165,7 +165,7 @@ void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
 	if (extremities.first && value==_pDoubleSpinBox->minimum())
 	{
 		_pDoubleSpinBox->setEnabled(false);
-		value = std::numeric_limits<float>::min();
+		value = -std::numeric_limits<float>::max();
 	}
 	else if (extremities.second && value==_pDoubleSpinBox->maximum())
 	{

@@ -24,7 +24,7 @@
 
 EProPlotData::EProPlotData():
 	_yMin(std::numeric_limits<double>::max()),
-	_yMax(std::numeric_limits<double>::min())
+	_yMax(-std::numeric_limits<double>::max())
 {
 }
 
@@ -58,5 +58,5 @@ void EProPlotData::clear()
 	_userData.clear();
 	_data.clear();
 	_yMin = std::numeric_limits<double>::max();
-	_yMax = std::numeric_limits<double>::min();
+	_yMax = -std::numeric_limits<double>::max();
 }

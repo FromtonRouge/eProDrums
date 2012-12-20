@@ -114,6 +114,39 @@ void processMidi(PtTimestamp timestamp, void* pUserData)
 	}
 }
 
+/**
+ * Compute current speed, accel and jerk
+ */
+void computeSpeedAccelAndJerk(const MidiMessage& previous, MidiMessage& rCurrent)
+{
+	// Default values
+	rCurrent.hiHatSpeed = 0;
+	rCurrent.hiHatAcceleration = 0;
+	rCurrent.hiHatJerk = 0;
+
+	const int DEFAULT_NOTE_MSG_CTRL(4);
+	if (previous.isControllerMsg() && previous.getOutputNote()==DEFAULT_NOTE_MSG_CTRL)
+	{
+		float deltaTimeInS = float(rCurrent.getTimestamp()-previous.getTimestamp())/1000;
+		int deltaPosition = previous.getValue() - rCurrent.getValue();
+		if (deltaTimeInS==0.0f) // it happens and we don't want that (infinite acceleration)
+		{
+			rCurrent = previous; // Copy the previous
+		}
+		else if (deltaPosition)
+		{
+			// Speed computation
+			rCurrent.hiHatSpeed = float(deltaPosition)/deltaTimeInS;
+
+			// Acceleration computation
+			rCurrent.hiHatAcceleration = (rCurrent.hiHatSpeed-previous.hiHatSpeed)/deltaTimeInS;
+
+			// Jerk computation
+			rCurrent.hiHatJerk = (rCurrent.hiHatAcceleration-previous.hiHatAcceleration)/deltaTimeInS;
+		}
+	}
+}
+
 void MainWindow::toLog(const std::string& szText)
 {
 	emit sLog(boost::algorithm::trim_copy_if(szText, boost::is_any_of("\n")).c_str());
@@ -126,7 +159,8 @@ MainWindow::MainWindow():
 	_pMidiIn(NULL),
 	_pMidiOut(NULL),
 	_bConnected(false),
-	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0)
+	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0),
+	_currentHiHatMsgControl(_lastHiHatMsgControl)
 {
 	qRegisterMetaType<MidiMessage>();
 
@@ -257,49 +291,76 @@ MainWindow::MainWindow():
 							tr("Under this speed the hi-hat is converted to close color").toStdString())));
 		}
 
-		Parameter::Ptr pGroup5(new Parameter("Hi-hat half-open mode", groupColors[4],
+		Parameter::Ptr pGroup5(new Parameter("Hi-hat open color detection by acceleration", groupColors[4],
+					pElHihatPedal->isBlueDetectionByAcceleration(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByAcceleration, pElHihatPedal, _1)));
+		{
+			Parameter::Ptr pOpenAcceleration(new Parameter("Open acceleration (unit/s²)", 0, 50000,
+						pElHihatPedal->getOpenAcceleration(),
+						boost::bind(&HiHatPedalElement::setOpenAcceleration, pElHihatPedal, _1),
+						tr("Above this acceleration the hi-hat is converted to open color").toStdString()));
+			pOpenAcceleration->setInfiniteExtremities(Parameter::InfiniteExtremities(false, true));
+			pGroup5->addChild(pOpenAcceleration);
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Open position delta (unit)", 0, 127,
+							pElHihatPedal->getOpenPositionDelta(),
+							boost::bind(&HiHatPedalElement::setOpenPositionDelta, pElHihatPedal, _1),
+							tr("Minimum open delta position").toStdString())));
+
+			Parameter::Ptr pCloseAcceleration(new Parameter("Close acceleration (unit/s²)", -50000, 0,
+						pElHihatPedal->getCloseAcceleration(),
+						boost::bind(&HiHatPedalElement::setCloseAcceleration, pElHihatPedal, _1),
+						tr("Under this acceleration the hi-hat is converted to close color").toStdString()));
+			pCloseAcceleration->setInfiniteExtremities(Parameter::InfiniteExtremities(true, false));
+			pGroup5->addChild(pCloseAcceleration);
+			pGroup5->addChild(Parameter::Ptr(new Parameter("Close position delta (unit)", -127, 0,
+							pElHihatPedal->getClosePositionDelta(),
+							boost::bind(&HiHatPedalElement::setClosePositionDelta, pElHihatPedal, _1),
+							tr("Minimum close delta position").toStdString())));
+		}
+
+		Parameter::Ptr pGroup6(new Parameter("Hi-hat half-open mode", groupColors[5],
 					pElHihatPedal->isHalfOpenModeEnabled(),
 					boost::bind(&HiHatPedalElement::setHalfOpenModeEnabled, pElHihatPedal, _1)));
 		{
 
-			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
+			pGroup6->addChild(Parameter::Ptr(new Parameter("Half open maximum position (unit)", 0, 127,
 							pElHihatPedal->getHalfOpenMaximumPosition(),
 							boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1),
 							tr("Half open detection algorithm starts between [Security close position] and this position").toStdString())));
 
-			pGroup5->addChild(Parameter::Ptr(new Parameter("Half open detection time (ms)", 0, 5000,
+			pGroup6->addChild(Parameter::Ptr(new Parameter("Half open detection time (ms)", 0, 5000,
 							pElHihatPedal->getHalfOpenActivationTime(),
 							boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1),
 							tr("Afters the specified time (ms), if the hi-hat is still in close color, it goes in half open mode. It will leave this mode if the control position go back under [Security close position]").toStdString())));
 		}
 
-		Parameter::Ptr pGroup6(new Parameter("Chameleon Crash conversion", groupColors[5]));
+		Parameter::Ptr pGroup7(new Parameter("Chameleon Crash conversion", groupColors[6]));
 		{
 			const std::string& szDescription = tr("A Chameleon Crash change its crash color to hi-hat close color if one of these pads is hit at the same time").toStdString();
-			pGroup6->setDescription(szDescription);
+			pGroup7->setDescription(szDescription);
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Time window (ms)", 0, 100,
 							pCurrentSlot->getCymbalSimHitWindow(),
 							boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1),
 							tr("Timing window used to detect simultaneous hits between cymbals").toStdString())));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Crash",
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Crash",
 							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1), szDescription)));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Ride",
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Ride",
 							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1), szDescription)));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Snare",
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Snare",
 							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1), szDescription)));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Tom 2",
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Tom 2",
 							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1), szDescription)));
 
-			pGroup6->addChild(Parameter::Ptr(new Parameter("Tom 3",
+			pGroup7->addChild(Parameter::Ptr(new Parameter("Tom 3",
 							pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
 							boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1), szDescription)));
 		}
@@ -310,6 +371,7 @@ MainWindow::MainWindow():
 		pRoot->addChild(pGroup4);
 		pRoot->addChild(pGroup5);
 		pRoot->addChild(pGroup6);
+		pRoot->addChild(pGroup7);
 		gridLayoutHiHat->addWidget(new TreeViewParameters(this, pRoot), 0,0);
 	}
 
@@ -567,12 +629,9 @@ void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
 			{
 				// Note on message = 9
 				// Sending a fake hh control to the plotter
-				if (_lastHiHatMsgControl.isControllerMsg() && _lastHiHatMsgControl.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
+				if (_currentHiHatMsgControl.isControllerMsg() && _currentHiHatMsgControl.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 				{
-					// Update the timestamp of the last CC#4 to the same timestamp of the current note
-					_lastHiHatMsgControl.setTimestamp(midiMessage.getTimestamp());
-					const MidiMessage& m = _lastHiHatMsgControl;
-					emit updatePlot(m);
+					emit updatePlot(_currentHiHatMsgControl);
 				}
 			}
 
@@ -699,60 +758,42 @@ void MainWindow::midiThread()
 			const int DEFAULT_NOTE_MSG_CTRL(4);
 			if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL && !currentMsg.isAlreadyModified())
 			{
-				currentMsg.hiHatSpeed = 0.0f;
-				const HiHatPedalElement::Ptr& p = boost::dynamic_pointer_cast<HiHatPedalElement>(getCurrentSlot()->getPads()[Pad::HIHAT_PEDAL]);
-				p->setCurrentControlPos(127-currentMsg.getValue());
+				computeSpeedAccelAndJerk(_lastHiHatMsgControl, currentMsg);
 
-				// Compute the instant speed in unit/s
-				if (_lastHiHatMsgControl.isControllerMsg() && _lastHiHatMsgControl.getOutputNote()==DEFAULT_NOTE_MSG_CTRL)
+				// Set pos, speed, accel, jerk
+				const HiHatPedalElement::Ptr& pHiHatPedal = boost::dynamic_pointer_cast<HiHatPedalElement>(getCurrentSlot()->getPads()[Pad::HIHAT_PEDAL]);
+				pHiHatPedal->setCurrentControlPos(127-currentMsg.getValue());
+				pHiHatPedal->setCurrentDeltaPos(_lastHiHatMsgControl.getValue()-currentMsg.getValue());
+				HiHatPedalElement::MovingState movingState = pHiHatPedal->setCurrentControlSpeed(currentMsg.hiHatSpeed);
+				pHiHatPedal->setCurrentControlAcceleration(currentMsg.hiHatAcceleration);
+				pHiHatPedal->setCurrentJerk(currentMsg.hiHatJerk);
+
+				// Moving state
+				switch (movingState)
 				{
-					int deltaPosition = _lastHiHatMsgControl.getValue() - currentMsg.getValue();
-					float deltaTimeInS = float(currentMsg.getTimestamp()-_lastHiHatMsgControl.getTimestamp())/1000;
-
-					// Speed computation
-					const float MAX_FLOAT(std::numeric_limits<float>::max());
-					const float MIN_FLOAT(std::numeric_limits<float>::min());
-					if (deltaPosition!=0 && deltaTimeInS==0.0f)
+				case HiHatPedalElement::MS_START_CLOSE:
 					{
-						currentMsg.hiHatSpeed = (deltaPosition>0)?MAX_FLOAT:MIN_FLOAT;
+						emit hiHatStartMoving(movingState, pHiHatPedal->getPositionOnCloseBegin(), _lastHiHatMsgControl.getTimestamp());
+						break;
 					}
-					else
+				case HiHatPedalElement::MS_START_OPEN:
 					{
-						currentMsg.hiHatSpeed = float(deltaPosition)/deltaTimeInS;
+						emit hiHatStartMoving(movingState, pHiHatPedal->getPositionOnOpenBegin(), _lastHiHatMsgControl.getTimestamp());
+						break;
 					}
-
-					// Acceleration computation
-					int deltaSpeed = currentMsg.hiHatSpeed - p->getCurrentControlSpeed();
-					if (deltaSpeed!=0 && deltaTimeInS==0.0f)
+				default:
 					{
-						currentMsg.hiHatAcceleration = (deltaSpeed>0)?MAX_FLOAT:MIN_FLOAT;
-					}
-					else
-					{
-						currentMsg.hiHatAcceleration = float(deltaSpeed)/deltaTimeInS;
-					}
-					p->setCurrentControlAcceleration(currentMsg.hiHatAcceleration);
-
-					// Current speed
-					HiHatPedalElement::MovingState movingState = p->setCurrentControlSpeed(currentMsg.hiHatSpeed);
-					switch (movingState)
-					{
-					case HiHatPedalElement::MS_START_CLOSE:
-						{
-							emit hiHatStartMoving(movingState, p->getPositionOnCloseBegin(), _lastHiHatMsgControl.getTimestamp());
-							break;
-						}
-					case HiHatPedalElement::MS_START_OPEN:
-						{
-							emit hiHatStartMoving(movingState, p->getPositionOnOpenBegin(), _lastHiHatMsgControl.getTimestamp());
-							break;
-						}
-					default:
-						{
-							break;
-						}
+						break;
 					}
 				}
+
+				_currentHiHatMsgControl = currentMsg;
+			}
+			else
+			{
+				_currentHiHatMsgControl = _lastHiHatMsgControl;
+				_currentHiHatMsgControl.setTimestamp(currentMsg.getTimestamp());
+				computeSpeedAccelAndJerk(_lastHiHatMsgControl, _currentHiHatMsgControl);
 			}
 
 			// Compute midi message
@@ -777,12 +818,11 @@ void MainWindow::midiThread()
 						break;
 					}
 				}
+				_lastHiHatMsgControl = _currentHiHatMsgControl;
 			}
 			else if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 			{
-				_lastHiHatMsgControl = currentMsg;
-				_lastHiHatMsgControl.hiHatSpeed = 0;
-				_lastHiHatMsgControl.hiHatAcceleration = 0;
+				_lastHiHatMsgControl = _currentHiHatMsgControl;
 			}
 		}
 	}
@@ -1334,36 +1374,50 @@ void MainWindow::updateCurrentSlot()
 						boost::bind(&HiHatPedalElement::setCloseSpeed, pElHihatPedal, _1));
 			}
 
-			const Parameter::Ptr pGroup5 = pRoot->getChildAt(4);
-			pGroup5->update(pElHihatPedal->isHalfOpenModeEnabled(),
+			const Parameter::Ptr& pGroup5 = pRoot->getChildAt(4);
+			pGroup5->update(	pElHihatPedal->isBlueDetectionByAcceleration(),
+					boost::bind(&HiHatPedalElement::setBlueDetectionByAcceleration, pElHihatPedal, _1));
+			{
+				pGroup5->getChildAt(0)->update(	pElHihatPedal->getOpenAcceleration(),
+						boost::bind(&HiHatPedalElement::setOpenAcceleration, pElHihatPedal, _1));
+				pGroup5->getChildAt(1)->update(	pElHihatPedal->getOpenPositionDelta(),
+						boost::bind(&HiHatPedalElement::setOpenPositionDelta, pElHihatPedal, _1));
+				pGroup5->getChildAt(2)->update(	pElHihatPedal->getCloseAcceleration(),
+						boost::bind(&HiHatPedalElement::setCloseAcceleration, pElHihatPedal, _1));
+				pGroup5->getChildAt(3)->update(	pElHihatPedal->getClosePositionDelta(),
+						boost::bind(&HiHatPedalElement::setClosePositionDelta, pElHihatPedal, _1));
+			}
+
+			const Parameter::Ptr pGroup6 = pRoot->getChildAt(5);
+			pGroup6->update(pElHihatPedal->isHalfOpenModeEnabled(),
 					boost::bind(&HiHatPedalElement::setHalfOpenModeEnabled, pElHihatPedal, _1));
 			{
 
-				pGroup5->getChildAt(0)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
+				pGroup6->getChildAt(0)->update(	pElHihatPedal->getHalfOpenMaximumPosition(),
 						boost::bind(&HiHatPedalElement::setHalfOpenMaximumPosition, pElHihatPedal, _1));
 
-				pGroup5->getChildAt(1)->update(	pElHihatPedal->getHalfOpenActivationTime(),
+				pGroup6->getChildAt(1)->update(	pElHihatPedal->getHalfOpenActivationTime(),
 						boost::bind(&HiHatPedalElement::setHalfOpenActivationTime, pElHihatPedal, _1));
 			}
 
-			const Parameter::Ptr& pGroup6 = pRoot->getChildAt(5);
+			const Parameter::Ptr& pGroup7 = pRoot->getChildAt(6);
 			{
-				pGroup6->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
+				pGroup7->getChildAt(0)->update(	pCurrentSlot->getCymbalSimHitWindow(),
 						boost::bind(&Slot::setCymbalSimHitWindow, pCurrentSlot, _1));
 
-				pGroup6->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
+				pGroup7->getChildAt(1)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH),
 						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_CRASH, _1));
 
-				pGroup6->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
+				pGroup7->getChildAt(2)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE),
 						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_RIDE, _1));
 
-				pGroup6->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
+				pGroup7->getChildAt(3)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE),
 						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_SNARE, _1));
 
-				pGroup6->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
+				pGroup7->getChildAt(4)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2),
 						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM2, _1));
 
-				pGroup6->getChildAt(5)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
+				pGroup7->getChildAt(5)->update(	pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3),
 						boost::bind(&Slot::setAutoConvertCrash, pCurrentSlot, Slot::CRASH_TOM3, _1));
 			}
 
@@ -1715,15 +1769,19 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 			pElHihatPedal->setHalfOpen(false);
 		}
 
-		// Blue state by pedal speed
-		if (pElHihatPedal->isBlueDetectionBySpeed())
+		// Blue state by pedal acceleration
+		float currentSpeed = pElHihatPedal->getCurrentControlSpeed();
+		if (pElHihatPedal->isBlueDetectionByAcceleration())
 		{
 			if (!pElHihatPedal->isHalfOpen() && !bSecured)
 			{
+				float currentAccel = pElHihatPedal->getCurrentControlAcceleration();
+				float deltaPos = pElHihatPedal->getCurrentDeltaPos();
+
 				// Are we opening the Hi-Hat
-				if (pElHihatPedal->getCurrentControlSpeed() > 0)
+				if (currentSpeed > 0)
 				{
-					if (pElHihatPedal->getCurrentControlSpeed() >= pElHihatPedal->getOpenSpeed())
+					if (currentAccel >= pElHihatPedal->getOpenAcceleration() && deltaPos >= pElHihatPedal->getOpenPositionDelta())
 					{
 						pElHihatPedal->setBlue(true, HiHatPedalElement::OPENING_MOVEMENT);
 					}
@@ -1733,10 +1791,43 @@ void MainWindow::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 						pElHihatPedal->setBlueStateChangeReason(HiHatPedalElement::OPENING_MOVEMENT);
 					}
 				}
-				else if (pElHihatPedal->getCurrentControlSpeed() < 0)
+				else if (currentSpeed < 0)
 				{
 					// Hi-Hat closing
-					if (pElHihatPedal->getCurrentControlSpeed() <= pElHihatPedal->getCloseSpeed())
+					if (currentAccel <= pElHihatPedal->getCloseAcceleration() && deltaPos <= pElHihatPedal->getClosePositionDelta())
+					{
+						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);
+					}
+				}
+				else
+				{
+					// current accel == 0 => nothing we keep the last blue state (on or off)
+				}
+			}
+		}
+
+		// Blue state by pedal speed
+		if (pElHihatPedal->isBlueDetectionBySpeed())
+		{
+			if (!pElHihatPedal->isHalfOpen() && !bSecured)
+			{
+				// Are we opening the Hi-Hat
+				if (currentSpeed > 0)
+				{
+					if (currentSpeed >= pElHihatPedal->getOpenSpeed())
+					{
+						pElHihatPedal->setBlue(true, HiHatPedalElement::OPENING_MOVEMENT);
+					}
+					else
+					{
+						// Only change the reason to OPENING_MOVEMENT
+						pElHihatPedal->setBlueStateChangeReason(HiHatPedalElement::OPENING_MOVEMENT);
+					}
+				}
+				else if (currentSpeed < 0)
+				{
+					// Hi-Hat closing
+					if (currentSpeed <= pElHihatPedal->getCloseSpeed())
 					{
 						// Hi Hat closing and the close speed is reached
 						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);

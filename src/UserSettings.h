@@ -47,11 +47,12 @@
  */
 struct UserSettings
 {
-	typedef std::bitset<12>	CurveVisibility;
+	typedef std::bitset<13>	CurveVisibility;
 	typedef std::bitset<5>	LogActivation;
 
 	static CurveVisibility CURVE_HIHAT_CONTROL;
 	static CurveVisibility CURVE_HIHAT_ACCELERATION;
+	static CurveVisibility CURVE_HIHAT_JERK;
 	static CurveVisibility CURVE_HIHAT;
 	static CurveVisibility CURVE_HIHAT_PEDAL;
 	static CurveVisibility CURVE_CRASH;
@@ -76,6 +77,7 @@ struct UserSettings
 	{
 		curveVisibility.set();	// set all
 		setCurveVisibility(CURVE_HIHAT_ACCELERATION, false);
+		setCurveVisibility(CURVE_HIHAT_JERK, false);
    	}
 
 	/**

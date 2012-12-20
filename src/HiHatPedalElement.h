@@ -28,6 +28,7 @@ class HiHatPedalElement : public Pad
 {
 public:
 	static const int MAX_ALLOWED_ACCELERATION = 2500000;
+	static const int MAX_ALLOWED_JERK = 250000000;
 	static const int MIN_FOOT_SPEED = -8000;
 
 	typedef boost::signals2::signal<void (bool)> OnFootCancelActivated;
@@ -62,26 +63,45 @@ public:
 public:
     int getCurrentControlPos() const;
     void setCurrentControlPos(int value);
+	int getCurrentDeltaPos() const;
+	void setCurrentDeltaPos(int value);
     float getCurrentControlSpeed() const;
     MovingState setCurrentControlSpeed(float value);
     float getCurrentControlAcceleration() const;
     void setCurrentControlAcceleration(float value);
+	float getCurrentJerk() const;
+	void setCurrentJerk(float value);
+
 	bool isBlueDetectionByAccent() const;
 	void setBlueDetectionByAccent(const Parameter::Value& state);
 	bool isBlueDetectionByPosition() const;
 	void setBlueDetectionByPosition(const Parameter::Value& state);
 	bool isBlueDetectionBySpeed() const;
 	void setBlueDetectionBySpeed(const Parameter::Value& state);
+	bool isBlueDetectionByAcceleration() const;
+	void setBlueDetectionByAcceleration(const Parameter::Value& state);
 	bool isHalfOpenModeEnabled() const;
 	void setHalfOpenModeEnabled(const Parameter::Value& state);
     int getControlPosThreshold() const;
     void setControlPosThreshold(const Parameter::Value& value);
 	int getControlPosDelayTime() const;
 	void setControlPosDelayTime(const Parameter::Value& value);
+
     int getOpenSpeed() const;
     void setOpenSpeed(const Parameter::Value& value);
     int getCloseSpeed() const;
     void setCloseSpeed(const Parameter::Value& value);
+
+	int getOpenAcceleration() const;
+	void setOpenAcceleration(const Parameter::Value& value);
+	int getCloseAcceleration() const;
+	void setCloseAcceleration(const Parameter::Value& value);
+
+	int getOpenPositionDelta() const;
+	void setOpenPositionDelta(const Parameter::Value& value);
+	int getClosePositionDelta() const;
+	void setClosePositionDelta(const Parameter::Value& value);
+
 	bool isBlue() const;
 	BlueStateChangeReason getBlueStateChangeReason() const;
 	void setBlueStateChangeReason(BlueStateChangeReason reason);
@@ -155,9 +175,11 @@ private:
 	int		_blueStateEnteringTime;
     int		_previousControlPos;
     int		_currentControlPos;
+    int		_currentDeltaPos;
 	float	_currentControlSpeed;			// in unit/s
 	float	_previousControlSpeed;			// in unit/s
 	float 	_currentControlAcceleration;	// in unit/s²
+	float 	_currentJerk;					// in unit/s3
 	BlueStateChangeReason _blueStateChangeReason;
 
 	/** Position of the hh control at the very start of a closing movement. */
@@ -170,6 +192,7 @@ private:
 	Parameter::Value	_isBlueDetectionByAccent;
 	Parameter::Value	_isBlueDetectionByPosition;
 	Parameter::Value	_isBlueDetectionBySpeed;
+	Parameter::Value	_isBlueDetectionByAcceleration;
 	Parameter::Value	_isHalfOpenModeEnabled;
 	Parameter::Value	_isFootCancel;
 	Parameter::Value	_isFootCancelAfterPedalHit;
@@ -180,6 +203,10 @@ private:
 	Parameter::Value	_controlPosDelayTime;
 	Parameter::Value	_openSpeed;
 	Parameter::Value	_closeSpeed;
+	Parameter::Value	_openAcceleration;
+	Parameter::Value	_closeAcceleration;
+	Parameter::Value	_openPositionDelta;
+	Parameter::Value	_closePositionDelta;
 	Parameter::Value	_footCancelClosingSpeed;
 	Parameter::Value	_footCancelPos;
 	Parameter::Value	_footCancelPosDiff;
@@ -212,6 +239,7 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByAccent);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByPosition);
 		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionBySpeed);
+		ar  & BOOST_SERIALIZATION_NVP(_isBlueDetectionByAcceleration);
 		ar  & BOOST_SERIALIZATION_NVP(_isHalfOpenModeEnabled);
 		ar  & BOOST_SERIALIZATION_NVP(_isFootCancel);
 		ar  & BOOST_SERIALIZATION_NVP(_isFootCancelAfterPedalHit);
@@ -222,6 +250,10 @@ private:
 		ar  & BOOST_SERIALIZATION_NVP(_controlPosDelayTime);
 		ar  & BOOST_SERIALIZATION_NVP(_openSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_closeSpeed);
+		ar  & BOOST_SERIALIZATION_NVP(_openAcceleration);
+		ar  & BOOST_SERIALIZATION_NVP(_closeAcceleration);
+		ar  & BOOST_SERIALIZATION_NVP(_openPositionDelta);
+		ar  & BOOST_SERIALIZATION_NVP(_closePositionDelta);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelClosingSpeed);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPos);
 		ar  & BOOST_SERIALIZATION_NVP(_footCancelPosDiff);

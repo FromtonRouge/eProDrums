@@ -55,6 +55,7 @@ public:
 	MidiMessage(const Clock::time_point& time = Clock::time_point(), PtTimestamp timestamp=0, Status status = 0, Data data1=0, Data data2=0):
 	   	hiHatSpeed(0),
 	   	hiHatAcceleration(0),
+	   	hiHatJerk(0),
 		padType(0),
 	   	_tReceiveTime(time),
 		_timestamp(timestamp),
@@ -98,6 +99,7 @@ public:
 public:
 	float	hiHatSpeed;
 	float	hiHatAcceleration;
+	float	hiHatJerk;
 	int		padType;
 
 private:
