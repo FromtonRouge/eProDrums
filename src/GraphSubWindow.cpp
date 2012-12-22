@@ -137,7 +137,7 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 {
 	int msgType = midiMessage.getMsgType();
 	int msgVelocity = midiMessage.getValue();
-	int timestamp = midiMessage.getTimestamp();
+	int timestamp = midiMessage.getSentTimestamp();
    	float hiHatControlSpeed = midiMessage.hiHatSpeed;
 	float hiHatAcceleration = midiMessage.hiHatAcceleration;
 	float hiHatJerk = midiMessage.hiHatJerk;

@@ -68,49 +68,55 @@ void processMidi(PtTimestamp timestamp, void* pUserData)
 		return;
 	}
 
-	PmEvent buffer; // just one message at a time
+	PmEvent buffer[5]; // just one message at a time
 	MidiMessage::Status status = 0;
 	MidiMessage::Data data1 = 0;
 	MidiMessage::Data data2 = 0;
 	const UserSettings& userSettings = pMainWindow->getConfig();
 	while (Pm_Poll(pMidiIn))
 	{
-		if (Pm_Read(pMidiIn, &buffer, 1) == pmBufferOverflow) 
+		int eventsReaded = Pm_Read(pMidiIn, buffer, 5);
+		if (eventsReaded < 0) 
 		{
 			continue;
 		}
 
-		// Unless there was overflow, we should have a message now
-		status = Pm_MessageStatus(buffer.message);
-		data1 = Pm_MessageData1(buffer.message);
-		data2 = Pm_MessageData2(buffer.message);
-
 		MainWindow::Mutex::scoped_lock lock(pMainWindow->_mutex);
-		MidiMessage midiMessage(pMainWindow->_clock.now(), timestamp, status, data1, data2);
 
-		// First filtering, we get only note-on and controller messages
-		if (midiMessage.isNoteOnMsg() || midiMessage.isControllerMsg())
+		for (int i=0; i<eventsReaded; ++i)
 		{
-			if (midiMessage.isNoteOnMsg() && midiMessage.getValue()==0)
+			// Unless there was overflow, we should have a message now
+			status = Pm_MessageStatus(buffer[i].message);
+			data1 = Pm_MessageData1(buffer[i].message);
+			data2 = Pm_MessageData2(buffer[i].message);
+
+			MidiMessage midiMessage(timestamp, status, data1, data2);
+
+			// First filtering, we get only note-on and controller messages
+			if (midiMessage.isNoteOnMsg() || midiMessage.isControllerMsg())
 			{
-				// Ignore note-on with velocity 0 (it happens...)
-				// But we print the msg if logs are on
-				if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
+				if (midiMessage.isNoteOnMsg() && midiMessage.getValue()==0)
 				{
-					midiMessage.print();
+					// Ignore note-on with velocity 0 (it happens...)
+					// But we print the msg if logs are on
+					if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
+					{
+						midiMessage.print();
+					}
+				}
+				else
+				{
+					pMainWindow->addIncomingMidiMessage(midiMessage);
 				}
 			}
-			else
+			else if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
 			{
-				pMainWindow->addIncomingMidiMessage(midiMessage);
-				lock.unlock();
-				pMainWindow->notify();
+				midiMessage.print();
 			}
 		}
-		else if (userSettings.isLogs() && userSettings.isLog(UserSettings::LOG_RAW_DATA))
-		{
-			midiMessage.print();
-		}
+
+		lock.unlock();
+		pMainWindow->notify();
 	}
 }
 
@@ -158,9 +164,7 @@ MainWindow::MainWindow():
 	_currentSlot(_userSettings.configSlots.end()),
 	_pMidiIn(NULL),
 	_pMidiOut(NULL),
-	_bConnected(false),
-	_lastHiHatMsgControl(_clock.now(),0x000004B0, 0),
-	_currentHiHatMsgControl(_lastHiHatMsgControl)
+	_bConnected(false)
 {
 	qRegisterMetaType<MidiMessage>();
 
@@ -610,32 +614,46 @@ MainWindow::~MainWindow()
 	std::cout.rdbuf(_pOldStreambuf);
 }
 
-void MainWindow::sendMidiMessage(const MidiMessage& midiMessage, bool bForce)
+void MainWindow::sendMidiMessage(const MidiMessage& msg, bool bForce)
 {
 	Mutex::scoped_lock lock(_mutex);
 
+	MidiMessage midiMessage(msg);
 	if (!midiMessage.isIgnored() || bForce)
 	{
-		const int DEFAULT_NOTE_MSG_CTRL(4);
-		PmError error = Pm_WriteShort(_pMidiOut, midiMessage.getTimestamp(), midiMessage.computeOutputMessage());
+		const int NOT_USED(0); // no latency configuration
+
+		PtTimestamp tBeforeWrite = Pt_Time();
+		PmError error = Pm_WriteShort(_pMidiOut, NOT_USED, midiMessage.computeOutputMessage());
+		PtTimestamp tAfterWrite = Pt_Time();
+
+		midiMessage.setSentTimestamp(tAfterWrite);
+
 		if (error==pmNoError)
 		{
-			if (midiMessage.isControllerMsg() && midiMessage.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
-			{
-				// TODO
-				emit hiHatPedalControl(127-midiMessage.getValue());
-			}
-			else
+			if (!midiMessage.isControllerMsg())
 			{
 				// Note on message = 9
 				// Sending a fake hh control to the plotter
+				const int DEFAULT_NOTE_MSG_CTRL(4);
 				if (_currentHiHatMsgControl.isControllerMsg() && _currentHiHatMsgControl.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 				{
+					// Update hi-hat curves
 					emit updatePlot(_currentHiHatMsgControl);
 				}
 			}
 
 			emit updatePlot(midiMessage);
+
+			int diffTime = midiMessage.getTimeDiff();
+			int writeTime = tAfterWrite-tBeforeWrite;
+			if (_userSettings.bufferLength==0 && diffTime>30)
+			{
+				if (_userSettings.isLogs() && _userSettings.isLog(UserSettings::LOG_OTHERS))
+				{
+					std::cout << (boost::format("Warning: high latency detected: %d ms (midi write: %d ms) - %s")%diffTime%writeTime%midiMessage.str()) << std::endl;
+				}
+			}
 		}
 		else
 		{
@@ -718,7 +736,6 @@ void MainWindow::midiThread()
 		// Data to protect between midiInProc, midiThread and Qt:
 		//	-	_userSettings
 		//	-	_midiMessages
-		//	-	_clock
 		//	-	_currentSlot
 		//	-	_lastHiHatMsgControl
 		//	-	Slot (thread safe)
@@ -734,8 +751,8 @@ void MainWindow::midiThread()
 			MidiMessage currentMsg(_midiMessages.front());
 
 			// Buffering here
-			boost::chrono::milliseconds elapsed(boost::chrono::duration_cast<boost::chrono::milliseconds>(_clock.now() - currentMsg.getReceiveTime()));
-			int waiting(_userSettings.bufferLength - elapsed.count());
+			int elapsed(Pt_Time() - currentMsg.getTimestamp());
+			int waiting(_userSettings.bufferLength - elapsed);
 			if (waiting>0)
 			{
 				lock.unlock();

@@ -49,7 +49,6 @@ public:
 	typedef boost::recursive_mutex Mutex;
 
 public:
-	MidiMessage::Clock _clock;
 	mutable Mutex _mutex;
 
 public:

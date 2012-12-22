@@ -24,8 +24,6 @@
 #include <portmidi.h>
 #include <porttime.h>
 
-#include <boost/chrono.hpp>
-
 #include <list>
 #include <vector>
 #include <deque>
@@ -35,7 +33,6 @@ class Pad;
 class MidiMessage
 {
 public:
-	typedef boost::chrono::high_resolution_clock Clock;
 	typedef unsigned char Status;		///< 1 byte for midi status (status is located at the first byte of Midi message 0x000000FF)
 	typedef int Data;			///< 1 byte for midi data1 or data2 (data1 is located at the second byte of a Midi message 0x0000FF00, data2 at the third 0x00FF0000)
 
@@ -52,13 +49,13 @@ public:
 	typedef std::vector<History> DictHistory;
 
 public:
-	MidiMessage(const Clock::time_point& time = Clock::time_point(), PtTimestamp timestamp=0, Status status = 0, Data data1=0, Data data2=0):
+	MidiMessage(PtTimestamp timestamp=0, Status status = 0, Data data1=0, Data data2=0):
 	   	hiHatSpeed(0),
 	   	hiHatAcceleration(0),
 	   	hiHatJerk(0),
 		padType(0),
-	   	_tReceiveTime(time),
 		_timestamp(timestamp),
+		_sentTimestamp(_timestamp),
 		_status(status),
 	   	_data1(data1),
 	   	_data2(data2),
@@ -72,9 +69,12 @@ public:
 	bool isNoteOffMsg() const {return (_status & 0xF0) == 0x80;}
 	bool isControllerMsg() const {return getMsgType()==11;}
 
-	const Clock::time_point& getReceiveTime() const { return _tReceiveTime;}
 	PtTimestamp getTimestamp() const {return _timestamp;}
-	void setTimestamp(PtTimestamp timestamp) {_timestamp = timestamp;}
+	void setTimestamp(PtTimestamp t) {_timestamp = t;}
+	PtTimestamp getSentTimestamp() const {return _sentTimestamp;}
+	void setSentTimestamp(PtTimestamp t) {_sentTimestamp = t;}
+	int getTimeDiff() const {return _sentTimestamp-_timestamp;}
+	
 	Status getStatus() const {return _status;}
 	int getMsgType() const { return (_status & 0xF0) >> 4;}
 	int getChannel() const { return (_status & 0x0F) + 1;}
@@ -103,12 +103,12 @@ public:
 	int		padType;
 
 private:
-	Clock::time_point	_tReceiveTime;	///< receive time set at construction time.
 
-	PtTimestamp			_timestamp;		///< timestamp from driver
-	Status				_status;		///< Note on or off
-	Data				_data1;			///< aka original note
-	Data				_data2;			///< aka note value
+	PtTimestamp			_timestamp;			///< timestamp from driver
+	PtTimestamp			_sentTimestamp;		///< sent time
+	Status				_status;			///< Note on or off
+	Data				_data1;				///< aka original note
+	Data				_data2;				///< aka note value
 
 	Data				_outputNote;	///< By default the output note is the original note.
 	IgnoreReason		_ignore;
