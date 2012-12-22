@@ -628,6 +628,7 @@ void MainWindow::sendMidiMessage(const MidiMessage& msg, bool bForce)
 		PtTimestamp tAfterWrite = Pt_Time();
 
 		midiMessage.setSentTimestamp(tAfterWrite);
+		_currentHiHatMsgControl.setSentTimestamp(tAfterWrite);
 
 		if (error==pmNoError)
 		{
