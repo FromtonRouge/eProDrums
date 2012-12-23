@@ -85,6 +85,7 @@ MainWindow::MainWindow():
 	connect(&_midiEngine, SIGNAL(signalHiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
 	connect(&_midiEngine, SIGNAL(signalFootCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
 	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
+	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), doubleSpinBoxLatency, SLOT(setValue(double)));
 	connect(this, SIGNAL(signalSlotChanged(const Slot::Ptr&)), &_midiEngine, SLOT(onSlotChanged(const Slot::Ptr&)));
 	connect(sliderBuffer, SIGNAL(valueChanged(int)), spinBoxBuffer, SLOT(setValue(int)));
 	connect(spinBoxBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onBufferLengthChanged(int)));
@@ -92,9 +93,7 @@ MainWindow::MainWindow():
 	mdiArea->addSubWindow(_pGrapSubWindow);
 	_pGrapSubWindow->showMaximized();
 
-	// Buffer and Calibration offset
-	lineEditCalibrationOffset->setToolTip("Rock Band calibration offset to apply on both video and audio settings.\nIt's an offset, you have to add this value to your existing settings");
-	lineEditCalibrationOffset->setText("0");
+	// Buffer tooltip
 	sliderBuffer->setToolTip("Modifying the midi buffer length (ms) affect your Rock Band calibration setting.\nSome features works better with a larger buffer length, a typical value is 35 ms");
 
 	listWidgetSlots->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -722,7 +721,6 @@ void MainWindow::on_spinBoxBuffer_valueChanged(int value)
 
 	_userSettings.bufferLength = value;
 	_calibrationOffset = _userSettings.bufferLength;
-	lineEditCalibrationOffset->setText((boost::format("%d")%_calibrationOffset).str().c_str());
 }
 
 void MainWindow::on_listWidgetSlots_customContextMenuRequested(const QPoint& point)

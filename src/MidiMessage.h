@@ -73,7 +73,7 @@ public:
 	void setTimestamp(PtTimestamp t) {_timestamp = t;}
 	PtTimestamp getSentTimestamp() const {return _sentTimestamp;}
 	void setSentTimestamp(PtTimestamp t) {_sentTimestamp = t;}
-	int getTimeDiff() const {return _sentTimestamp-_timestamp;}
+	int getLatency() const {return _sentTimestamp-_timestamp;}
 	
 	Status getStatus() const {return _status;}
 	int getMsgType() const { return (_status & 0xF0) >> 4;}

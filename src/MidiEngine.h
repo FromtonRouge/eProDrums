@@ -43,6 +43,7 @@ signals:
 	void signalHiHatStartMoving(int movingState, int pos, int timestamp);
 	void signalFootCancelStarted(int timestamp, int maskLength, int velocity);
 	void signalHiHatState(int state);
+	void signalAverageLatency(double);
 
 public:
 	MidiEngine();
@@ -65,11 +66,14 @@ private:
 	void computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistory& lastMsgSent);
     MidiMessage* getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType = 9);
 	void sendMidiMessages(MidiMessage::List& midiMessages, bool bForce);
+	void clearAverageLatency();
 
 private:
 	PmStream*	_pMidiIn;
 	PmStream*	_pMidiOut;
 
+	int			_sumLatency;
+	size_t		_countLatency;
 	int					_bufferLength;
 	MidiMessage::List	_bufferedMessages;
 	MidiMessage			_lastHiHatMsgControl;

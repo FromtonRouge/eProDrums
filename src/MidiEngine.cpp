@@ -77,6 +77,8 @@ void readMidi(PtTimestamp timestamp, void* pUserData)
 MidiEngine::MidiEngine():
 	_pMidiIn(NULL),
 	_pMidiOut(NULL),
+	_sumLatency(0),
+	_countLatency(0),
 	_bufferLength(0),
 	_lastMsgSent(Pad::TYPE_COUNT),
 	_hiHatControlCC(4)
@@ -90,6 +92,8 @@ MidiEngine::~MidiEngine()
 
 bool MidiEngine::start(int midiInId, int midiOutId)
 {
+	clearAverageLatency();
+
 	Pt_Start(1, &readMidi, this); // start a timer with millisecond accuracy
 
 	Pm_Initialize();
@@ -186,7 +190,13 @@ void MidiEngine::sendMidiMessage(MidiMessage& midiMessage, bool bForce)
 				}
 			}
 
+			// Midi out notification
 			emit signalMidiOut(midiMessage);
+
+			// Average latency
+			_sumLatency += midiMessage.getLatency();
+			_countLatency++;
+			emit signalAverageLatency(double(_sumLatency)/_countLatency);
 		}
 		else
 		{
@@ -356,7 +366,16 @@ void MidiEngine::onSlotChanged(const Slot::Ptr& pSlot)
 
 void MidiEngine::onBufferLengthChanged(int value)
 {
+	clearAverageLatency();
 	_bufferLength = value;
+	emit signalAverageLatency(_bufferLength);
+}
+
+void MidiEngine::clearAverageLatency()
+{
+	_sumLatency = 0;
+	_countLatency = 0;
+	emit signalAverageLatency(0);
 }
 
 bool MidiEngine::classify(MidiMessage& midiMessage)

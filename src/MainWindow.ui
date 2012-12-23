@@ -36,7 +36,7 @@
          <x>0</x>
          <y>0</y>
          <width>840</width>
-         <height>255</height>
+         <height>228</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
@@ -231,19 +231,22 @@
         </sizepolicy>
        </property>
        <property name="title">
-        <string>Calibration Offset (ms)</string>
+        <string>Average latency (ms)</string>
        </property>
        <layout class="QGridLayout">
         <item row="0" column="0">
-         <widget class="QLineEdit" name="lineEditCalibrationOffset">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QDoubleSpinBox" name="doubleSpinBoxLatency">
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
           </property>
           <property name="readOnly">
            <bool>true</bool>
+          </property>
+          <property name="buttonSymbols">
+           <enum>QAbstractSpinBox::NoButtons</enum>
+          </property>
+          <property name="maximum">
+           <double>999.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -301,7 +304,7 @@
          <attribute name="title">
           <string>Cymbals / Hi-Hat</string>
          </attribute>
-         <layout class="QGridLayout" name="gridLayout">
+         <layout class="QGridLayout" name="gridLayout_1">
           <item row="0" column="0">
            <layout class="QGridLayout" name="gridLayoutHiHat"/>
           </item>
