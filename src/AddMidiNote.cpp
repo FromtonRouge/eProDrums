@@ -22,6 +22,7 @@
 #include "AddMidiNote.h"
 #include "DrumNoteItemModel.h"
 #include "DrumNoteItemDelegate.h"
+#include "MidiMessage.h"
 #include <QtGui/QGridLayout>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QSpinBox>
@@ -98,11 +99,11 @@ DrumNotes AddMidiNote::getNotes() const
 	return _pDrumNoteItemModel->getDrumNotes();
 }
 
-void AddMidiNote::onMidiNoteOn(int note, int velocity)
+void AddMidiNote::onMidiNoteOn(const MidiMessage& midiMessage)
 {
-	if (velocity)
+	if (midiMessage.getValue())
 	{
-		int row = _pDrumNoteItemModel->add(note);
+		int row = _pDrumNoteItemModel->add(midiMessage.getOriginalNote());
 		tableViewNotes->openPersistentEditor(_pDrumNoteItemModel->index(row, 1));
 	}
 }

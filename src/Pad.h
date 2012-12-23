@@ -46,6 +46,7 @@ public:
 
 	enum Type
 	{
+		UNKNOWN=-1,
 		SNARE=0,
 		HIHAT,
 		HIHAT_PEDAL,

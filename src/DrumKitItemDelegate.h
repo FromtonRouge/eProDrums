@@ -33,6 +33,8 @@
 Q_DECLARE_METATYPE(Pad::MidiDescription)
 #endif
 
+class MidiMessage;
+
 /**
  * Drum item delegate for QListView.
  */
@@ -41,7 +43,7 @@ class DrumKitItemDelegate : public QStyledItemDelegate
 	Q_OBJECT
 
 signals:
-	void midiNoteOn(int, int);
+	void onMidiIn(const MidiMessage&);
 
 public:
 	DrumKitItemDelegate(QObject* pParent=NULL):QStyledItemDelegate(pParent) { }
@@ -118,7 +120,7 @@ public:
 		case 3:
 			{
 				PadNotesWidget* pEditor = new PadNotesWidget(parent);
-				connect(this, SIGNAL(midiNoteOn(int, int)), pEditor, SIGNAL(midiNoteOn(int, int)));
+				connect(this, SIGNAL(onMidiIn(const MidiMessage&)), pEditor, SIGNAL(onMidiIn(const MidiMessage&)));
 				connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
 				return pEditor;
 			}

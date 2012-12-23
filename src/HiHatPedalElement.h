@@ -28,7 +28,6 @@ class HiHatPedalElement : public Pad
 {
 public:
 	static const int MAX_ALLOWED_ACCELERATION = 2500000;
-	static const int MAX_ALLOWED_JERK = 250000000;
 	static const int MIN_FOOT_SPEED = -8000;
 
 	typedef boost::signals2::signal<void (bool)> OnFootCancelActivated;

@@ -53,7 +53,7 @@ public:
 	   	hiHatSpeed(0),
 	   	hiHatAcceleration(0),
 	   	hiHatJerk(0),
-		padType(0),
+		padType(-1),
 		_timestamp(timestamp),
 		_sentTimestamp(_timestamp),
 		_status(status),
@@ -90,7 +90,6 @@ public:
 	void ignore(IgnoreReason reason) {_ignore = reason;}
 	bool isAlreadyModified() const {return _alreadyModified;}
 
-	void print() const;
 	std::string str() const;
 	PmMessage computeOutputMessage() const { return Pm_Message(getStatus(), getOutputNote(), getValue()); }
 	bool isInTimeWindow(const MidiMessage& otherMessage, int timeWindow) const;

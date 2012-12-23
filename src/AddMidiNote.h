@@ -30,6 +30,7 @@ class DrumNoteItemModel;
 class DrumNoteItemDelegate;
 class QMenu;
 class QAction;
+class MidiMessage;
 
 class AddMidiNote : public QDialog, private Ui::AddMidiNote
 {
@@ -45,7 +46,7 @@ public:
 	int getPrevNextState() const {return _prevNextState;}
 
 public slots:
-	void onMidiNoteOn(int, int);
+	void onMidiNoteOn(const MidiMessage&);
 
 protected slots:
 	void on_pushButtonPrev_clicked(bool checked=false);

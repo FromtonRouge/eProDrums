@@ -26,6 +26,8 @@
 
 #include <QtGui/QWidget>
 
+class MidiMessage;
+
 class PadNotesWidget : public QWidget, private Ui::PadNotesWidget
 {
 	Q_OBJECT
@@ -38,7 +40,7 @@ public:
 	const Pad::MidiDescription& getPadDescription() const {return _padDescription;}
 
 signals:
-	void midiNoteOn(int msgNote, int msgVelocity);
+	void onMidiIn(const MidiMessage&);
 	void editFinished(QWidget*);
 
 private slots:

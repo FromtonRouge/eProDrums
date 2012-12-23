@@ -47,12 +47,11 @@
  */
 struct UserSettings
 {
-	typedef std::bitset<13>	CurveVisibility;
+	typedef std::bitset<14>	CurveVisibility;
 	typedef std::bitset<5>	LogActivation;
 
 	static CurveVisibility CURVE_HIHAT_CONTROL;
 	static CurveVisibility CURVE_HIHAT_ACCELERATION;
-	static CurveVisibility CURVE_HIHAT_JERK;
 	static CurveVisibility CURVE_HIHAT;
 	static CurveVisibility CURVE_HIHAT_PEDAL;
 	static CurveVisibility CURVE_CRASH;
@@ -63,12 +62,10 @@ struct UserSettings
 	static CurveVisibility CURVE_TOM3;
 	static CurveVisibility CURVE_SNARE;
 	static CurveVisibility CURVE_BASS_PEDAL;
+	static CurveVisibility CURVE_UNKNOWN;
+	static CurveVisibility CURVE_LATENCY;
 
 	static LogActivation LOG_ACTIVATED;
-	static LogActivation LOG_RAW_DATA;
-	static LogActivation LOG_FILTERED_DATA;
-	static LogActivation LOG_HIHAT_CONTROL;
-	static LogActivation LOG_OTHERS;
 
 	/**
 	 * Constructor.
@@ -77,7 +74,7 @@ struct UserSettings
 	{
 		curveVisibility.set();	// set all
 		setCurveVisibility(CURVE_HIHAT_ACCELERATION, false);
-		setCurveVisibility(CURVE_HIHAT_JERK, false);
+		setCurveVisibility(CURVE_LATENCY, false);
    	}
 
 	/**

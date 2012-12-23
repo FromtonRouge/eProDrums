@@ -49,7 +49,7 @@ SettingsDlg::SettingsDlg(Settings* pSettings, QWidget* pParent):QDialog(pParent)
 	_connectionToSettings = _pSettings->signalKitDefined.connect(boost::bind(&SettingsDlg::onDrumKitLoaded, this, _1, _2));
 
 	// Qt connections
-	connect(this, SIGNAL(midiNoteOn(int, int)), _pDrumKitItemDelegate.get(), SIGNAL(midiNoteOn(int, int)));
+	connect(this, SIGNAL(onMidiIn(const MidiMessage&)), _pDrumKitItemDelegate.get(), SIGNAL(onMidiIn(const MidiMessage&)));
 
 	// Building drum kit view
 	tableViewDrumKit->setModel(_pDrumKitItemModel.get());
@@ -107,7 +107,7 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 {
 	AddMidiNote dlg;
 	dlg.showPrevNextButtons();
-	connect(this, SIGNAL(midiNoteOn(int, int)), &dlg, SLOT(onMidiNoteOn(int, int)));
+	connect(this, SIGNAL(onMidiIn(const MidiMessage&)), &dlg, SLOT(onMidiNoteOn(const MidiMessage&)));
 
 	DrumKitMidiMap* pDrumKit = _pSettings->getDrumKitMidiMap();
 	DrumKitMidiMap::Description& rDescription = pDrumKit->getDescription();

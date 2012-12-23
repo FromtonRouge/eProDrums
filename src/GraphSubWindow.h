@@ -91,6 +91,6 @@ private:
 
     HiHatPositionCurve*	_curveHiHatPosition;
     EProPlotCurve*		_curveHiHatAcceleration;
-    EProPlotCurve*		_curveHiHatJerk;
+    EProPlotCurve*		_curveLatency;
 	EProPlotCurve::Dict	_curves;
 };

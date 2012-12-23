@@ -34,6 +34,7 @@
 class DrumKitItemModel;
 class DrumKitItemDelegate;
 class Settings;
+class MidiMessage;
 
 /**
  * Settings dialog.
@@ -50,7 +51,7 @@ public:
 	};
 
 signals:
-	void midiNoteOn(int msgNote, int msgVelocity);
+	void onMidiIn(const MidiMessage&);
 
 public:
 	SettingsDlg(Settings* pSettings, QWidget* pParent=NULL);

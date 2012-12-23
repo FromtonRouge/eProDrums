@@ -68,6 +68,7 @@ HEADERS += AddMidiNote.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
            MainWindow.h \
+           MidiEngine.h \
            MidiMessage.h \
            Pad.h \
            PadHandler.h \
@@ -104,6 +105,7 @@ SOURCES += AddMidiNote.cpp \
 		   LinearFunction.cpp \
            main.cpp \
            MainWindow.cpp \
+           MidiEngine.cpp \
            MidiMessage.cpp \
            Pad.cpp \
            PadNotesWidget.cpp \

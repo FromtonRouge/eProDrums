@@ -29,10 +29,6 @@ std::string MidiMessage::str() const
 	PmMessage message = Pm_Message(getStatus(), getOriginalNote(), getValue());
 	return (fmtMsg%message%getMsgType()%getChannel()%getOriginalNote()%getValue()%getTimestamp()).str();
 }
-void MidiMessage::print() const
-{
-    std::cout << str() << std::endl;
-}
 
 int MidiMessage::getAbsTimeDiff(const MidiMessage& otherMessage) const
 {

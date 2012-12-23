@@ -342,113 +342,17 @@
           <string>Logs</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_7">
-          <item row="0" column="0">
-           <widget class="QScrollArea" name="scrollArea">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="widgetResizable">
-             <bool>true</bool>
-            </property>
-            <widget class="QWidget" name="scrollAreaWidgetContents">
-             <property name="geometry">
-              <rect>
-               <x>0</x>
-               <y>0</y>
-               <width>105</width>
-               <height>194</height>
-              </rect>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_5">
-              <property name="margin">
-               <number>0</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="QGroupBox" name="groupBoxLogs">
-                <property name="minimumSize">
-                 <size>
-                  <width>105</width>
-                  <height>194</height>
-                 </size>
-                </property>
-                <property name="title">
-                 <string>Logs</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <property name="checked">
-                 <bool>false</bool>
-                </property>
-                <layout class="QGridLayout" name="gridLayoutLogs">
-                 <item row="1" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsRawData">
-                   <property name="text">
-                    <string>Raw Data</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsOthers">
-                   <property name="text">
-                    <string>Others</string>
-                   </property>
-                   <property name="checked">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="2">
-                  <widget class="QPushButton" name="pushButtonClearLogs">
-                   <property name="text">
-                    <string>Clear</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsFilteredData">
-                   <property name="text">
-                    <string>Filtered Data</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="3" column="2">
-                  <widget class="QCheckBox" name="checkBoxLogsHiHatControl">
-                   <property name="text">
-                    <string>HH control</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="2">
-                  <spacer name="verticalSpacer">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>40</height>
-                    </size>
-                   </property>
-                  </spacer>
-                 </item>
-                </layout>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </widget>
-          </item>
-          <item row="0" column="1">
+          <item row="1" column="0">
            <widget class="QTextEdit" name="textEditLog">
             <property name="readOnly">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="pushButtonClearLogs">
+            <property name="text">
+             <string>Clear</string>
             </property>
            </widget>
           </item>
