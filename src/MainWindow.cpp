@@ -21,8 +21,10 @@
 
 #include "MainWindow.h"
 #include "DialogAbout.h"
+#include "TimeSlider.h"
 #include "Settings.h"
 #include "SettingsDlg.h"
+#include "MidiDevicesWidget.h"
 #include "TreeViewParameters.h"
 
 #include "Pad.h"
@@ -31,6 +33,9 @@
 
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
+#include <QtGui/QHBoxLayout>
+#include <QtGui/QSpinBox>
+#include <QtGui/QDoubleSpinBox>
 #include <QtCore/QFileInfo>
 
 #include <boost/shared_ptr.hpp>
@@ -71,30 +76,67 @@ MainWindow::MainWindow():
 	setupUi(this);
 	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
 
-	_pProcessAssistant = new QProcess(this);
-
 	// Setup std::cout redirection
 	_streamBuffer.open(StreamSink(boost::bind(&MainWindow::toLog, this, _1)));
 	std::cout.rdbuf(&_streamBuffer);
 	connect(this, SIGNAL(signalLog(const QString&)), textEditLog, SLOT(append(const QString&)));
 
+	// Building the first toolbar
+	toolBar->addAction(actionOpen);
+	toolBar->addAction(actionSave);
+	toolBar->addAction(actionSettings);
+	toolBar->addSeparator();
+	_pMidiDevicesWidget = new MidiDevicesWidget(this);
+	toolBar->addWidget(_pMidiDevicesWidget);
+	toolBar->addSeparator();
+
+	QWidget* pBufferWidget = new QWidget(this);
+	QHBoxLayout* pLayout = new QHBoxLayout;
+	pLayout->setContentsMargins(0,0,0,0);
+	pLayout->addWidget(new QLabel(tr("Buffer")));
+	_pSpinBoxBuffer = new QSpinBox(this);
+	_pSpinBoxBuffer->setToolTip(tr("Midi buffer in milliseconds, affects the latency"));
+	_pSpinBoxBuffer->setMaximum(300);
+	connect(_pSpinBoxBuffer, SIGNAL(valueChanged(int)), this, SLOT(onBufferChanged(int)));
+	pLayout->addWidget(_pSpinBoxBuffer);
+	pLayout->addWidget(new QLabel(tr("Latency")));
+	_pAverageLatency = new QDoubleSpinBox(this);
+	_pAverageLatency->setToolTip(tr("Average latency in milliseconds"));
+	_pAverageLatency->setAlignment(Qt::AlignHCenter);
+	_pAverageLatency->setMaximum(999);
+	_pAverageLatency->setReadOnly(true);
+	_pAverageLatency->setButtonSymbols(QDoubleSpinBox::NoButtons);
+	pLayout->addWidget(_pAverageLatency);
+	pBufferWidget->setLayout(pLayout);
+	toolBar->addWidget(pBufferWidget);
+
+	// Building the time toolbar
+	TimeSlider* pTimeSlider = new TimeSlider(this);
+	toolBarTime->addWidget(pTimeSlider);
+	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeSlider, SLOT(onMidiOut(const MidiMessage&)));
+
+	// Process "assistant" for help
+	_pProcessAssistant = new QProcess(this);
+
+	// Building the graph subwindow
 	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
+	connect(pTimeSlider, SIGNAL(valueChanged(int)), _pGrapSubWindow, SLOT(onTimeChange(int)));
+	connect(_pGrapSubWindow, SIGNAL(signalTimeChangeRequested(int)), pTimeSlider, SLOT(onTimeChangeRequested(int)));
+
 	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));
 	_pSettings->signalKitDefined.connect(boost::bind(&MidiEngine::onDrumKitLoaded, &_midiEngine, _1, _2));
 	connect(&_midiEngine, SIGNAL(signalHiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
 	connect(&_midiEngine, SIGNAL(signalHiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
 	connect(&_midiEngine, SIGNAL(signalFootCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
 	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
-	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), doubleSpinBoxLatency, SLOT(setValue(double)));
+	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), _pAverageLatency, SLOT(setValue(double)));
+	connect(&_midiEngine, SIGNAL(signalStart()), _pMidiDevicesWidget, SLOT(onMidiStart()));
+	connect(&_midiEngine, SIGNAL(signalStop()), _pMidiDevicesWidget, SLOT(onMidiStop()));
 	connect(this, SIGNAL(signalSlotChanged(const Slot::Ptr&)), &_midiEngine, SLOT(onSlotChanged(const Slot::Ptr&)));
-	connect(sliderBuffer, SIGNAL(valueChanged(int)), spinBoxBuffer, SLOT(setValue(int)));
-	connect(spinBoxBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onBufferLengthChanged(int)));
+	connect(_pSpinBoxBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onBufferLengthChanged(int)));
 
 	mdiArea->addSubWindow(_pGrapSubWindow);
 	_pGrapSubWindow->showMaximized();
-
-	// Buffer tooltip
-	sliderBuffer->setToolTip("Modifying the midi buffer length (ms) affect your Rock Band calibration setting.\nSome features works better with a larger buffer length, a typical value is 35 ms");
 
 	listWidgetSlots->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -433,64 +475,9 @@ MainWindow::MainWindow():
 	}
 
 	// Filling midi devices
-	Pm_Initialize();
-	int comboBoxIndexMidiIn = -1;
-	int comboBoxIndexMidiOut = -1;
-	const std::string& szMidiIn = _pSettings->getMidiIn();
-	const std::string& szMidiOut = _pSettings->getMidiOut();
-	int nbDevices = Pm_CountDevices();
-	for (int deviceId=0; deviceId<nbDevices; ++deviceId)
-	{
-		const PmDeviceInfo* pDeviceInfo = Pm_GetDeviceInfo(deviceId);
-		if (pDeviceInfo)
-		{
-			if (pDeviceInfo->input)
-			{
-				comboBoxMidiIn->blockSignals(true);
-				comboBoxMidiIn->addItem(pDeviceInfo->name, deviceId);
-				comboBoxMidiIn->blockSignals(false);
-
-				if (szMidiIn == pDeviceInfo->name)
-				{
-					comboBoxIndexMidiIn = comboBoxMidiIn->count()-1;
-				}
-			}
-
-			if (pDeviceInfo->output)
-			{
-				comboBoxMidiOut->blockSignals(true);
-				comboBoxMidiOut->addItem(pDeviceInfo->name, deviceId);
-				comboBoxMidiOut->blockSignals(false);
-				if (szMidiOut == pDeviceInfo->name)
-				{
-					comboBoxIndexMidiOut = comboBoxMidiOut->count()-1;
-				}
-			}
-		}
-	}
-	Pm_Terminate();
-
-	// Select midi in
-	if (comboBoxIndexMidiIn>=0)
-	{
-		comboBoxMidiIn->setCurrentIndex(comboBoxIndexMidiIn);
-	}
-
-	// Select midi out
-	if (comboBoxIndexMidiOut>=0)
-	{
-		comboBoxMidiOut->setCurrentIndex(comboBoxIndexMidiOut);
-	}
-
-	// Enable/Disable Stop/Start buttons
-	pushButtonStop->setEnabled(false);
-	pushButtonStart->setEnabled(false);
-	if (comboBoxMidiIn->count() && comboBoxMidiOut->count())
-	{
-		pushButtonStart->setEnabled(true);
-	}
-
-	if (comboBoxIndexMidiIn >=0 && comboBoxIndexMidiOut >=0)
+	_pMidiDevicesWidget->setMidiInDevices(_midiEngine.getMidiInDevices());
+	_pMidiDevicesWidget->setMidiOutDevices(_midiEngine.getMidiOutDevices());
+	if (_pMidiDevicesWidget->setMidiIn(_pSettings->getMidiIn()) && _pMidiDevicesWidget->setMidiOut(_pSettings->getMidiOut()))
 	{
 		on_pushButtonStart_clicked();
 	}
@@ -504,7 +491,7 @@ MainWindow::MainWindow():
 
 MainWindow::~MainWindow()
 {
-	stop();
+	_midiEngine.stop();
 
 	// Restoring the std::cout streambuf
 	std::cout.rdbuf(_pOldStreambuf);
@@ -512,46 +499,21 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButtonStart_clicked(bool)
 {
-	int midiInId = comboBoxMidiIn->itemData(comboBoxMidiIn->currentIndex()).toInt();
-	int midiOutId = comboBoxMidiOut->itemData(comboBoxMidiOut->currentIndex()).toInt();
-	if (_midiEngine.start(midiInId, midiOutId))
+	int midiInId = _pMidiDevicesWidget->getMidiInId();
+	int midiOutId = _pMidiDevicesWidget->getMidiOutId();
+	if (midiInId>=0 && midiOutId>=0 && _midiEngine.start(midiInId, midiOutId))
 	{
-		_pSettings->setMidiIn(comboBoxMidiIn->currentText().toStdString());
-		_pSettings->setMidiOut(comboBoxMidiOut->currentText().toStdString());
+		_pSettings->setMidiIn(_pMidiDevicesWidget->getMidiInString());
+		_pSettings->setMidiOut(_pMidiDevicesWidget->getMidiOutString());
 
 		_pGrapSubWindow->clearPlots();
 		_pGrapSubWindow->replot();
-
-		comboBoxMidiIn->setEnabled(false);
-		comboBoxMidiOut->setEnabled(false);
-		pushButtonStart->setEnabled(false);
-		pushButtonStop->setEnabled(true);
 	}
-}
-
-void MainWindow::stop()
-{
-	_midiEngine.stop();
 }
 
 void MainWindow::on_pushButtonStop_clicked(bool)
 {
-	stop();
-
-	comboBoxMidiIn->setEnabled(true);
-	comboBoxMidiOut->setEnabled(true);
-	pushButtonStart->setEnabled(true);
-	pushButtonStop->setEnabled(false);
-}
-
-void MainWindow::on_comboBoxMidiIn_currentIndexChanged(const QString& text)
-{
-	_pSettings->setMidiIn(text.toStdString());
-}
-
-void MainWindow::on_comboBoxMidiOut_currentIndexChanged(const QString& text)
-{
-	_pSettings->setMidiOut(text.toStdString());
+	_midiEngine.stop();
 }
 
 void MainWindow::on_actionSave_As_triggered()
@@ -658,7 +620,7 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 
 			_pSettings->setUserSettingsFile(pathConfig.generic_string());
 			setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
-			spinBoxBuffer->setValue(_userSettings.bufferLength);
+			_pSpinBoxBuffer->setValue(_userSettings.bufferLength);
 
 			// Set curve visibility
 			_pGrapSubWindow->loadCurveVisibility();
@@ -713,12 +675,8 @@ void MainWindow::on_actionQuit_triggered()
 	QApplication::exit();
 }
 
-void MainWindow::on_spinBoxBuffer_valueChanged(int value)
+void MainWindow::onBufferChanged(int value)
 {
-	sliderBuffer->blockSignals(true);
-	sliderBuffer->setValue(value);
-	sliderBuffer->blockSignals(false);
-
 	_userSettings.bufferLength = value;
 	_calibrationOffset = _userSettings.bufferLength;
 }

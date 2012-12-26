@@ -84,6 +84,26 @@ MidiEngine::MidiEngine():
 	_hiHatControlCC(4)
 {
 	qRegisterMetaType<MidiMessage>();
+
+	Pm_Initialize();
+	int nbDevices = Pm_CountDevices();
+	for (int deviceId=0; deviceId<nbDevices; ++deviceId)
+	{
+		const PmDeviceInfo* pDeviceInfo = Pm_GetDeviceInfo(deviceId);
+		if (pDeviceInfo)
+		{
+			if (pDeviceInfo->input)
+			{
+				_midiInDevices.push_back(MidiDevice(pDeviceInfo->name, deviceId));
+			}
+
+			if (pDeviceInfo->output)
+			{
+				_midiOutDevices.push_back(MidiDevice(pDeviceInfo->name, deviceId));
+			}
+		}
+	}
+	Pm_Terminate();
 }
 
 MidiEngine::~MidiEngine()

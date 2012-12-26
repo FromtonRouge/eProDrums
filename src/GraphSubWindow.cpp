@@ -45,7 +45,8 @@
 GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QMdiSubWindow(pParent),
 	_pUserSettings(pUserSettings),
 	_bRedrawState(true),
-	_redrawPeriod(25)
+	_redrawPeriod(25),
+	_curveWindowLength(5000)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -96,6 +97,15 @@ GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QM
 	// By default we hide accels and latency
 	setCurveVisibility(_curveHiHatAcceleration, _pUserSettings->isCurveVisible(UserSettings::CURVE_HIHAT_ACCELERATION));
 	setCurveVisibility(_curveLatency, _pUserSettings->isCurveVisible(UserSettings::CURVE_LATENCY));
+
+	QColor inColor(255, 0, 0);
+	QColor outColor(255, 255, 255);
+	_pPlotMarker = new QwtPlotMarker;
+	_pPlotMarker->setLineStyle(QwtPlotMarker::VLine);
+	_pPlotMarker->setLabelAlignment(Qt::AlignLeft|Qt::AlignTop);
+	_pPlotMarker->setLinePen(QPen(QColor(Qt::white), 0, Qt::DashDotLine));
+	_pPlotMarker->attach(_pPlot);
+	_pPlotMarker->setVisible(false);
 }
 
 GraphSubWindow::~GraphSubWindow()
@@ -104,7 +114,7 @@ GraphSubWindow::~GraphSubWindow()
 
 void GraphSubWindow::clearPlots()
 {
-	_pPlotZoomer->moveWindow(0, 5*1000);
+	_pPlotZoomer->moveWindow(0, _curveWindowLength);
 
 	_curveHiHatPosition->showMarkers(false);
 	_curveHiHatAcceleration->showMarkers(false);
@@ -129,13 +139,14 @@ void GraphSubWindow::replot()
 void GraphSubWindow::onCurveWindowLengthChanged(int value)
 {
 	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	int timeWindowInMs = value*1000;
+	_curveWindowLength = value*1000;
 	int maxValue = pScaleDiv->interval().maxValue();
-	_pPlotZoomer->moveWindow(maxValue-timeWindowInMs,timeWindowInMs, true, false);
+	_pPlotZoomer->moveWindow(maxValue-_curveWindowLength, _curveWindowLength, false);
 }
 
 void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 {
+	_pPlotMarker->setVisible(false);
 	int msgType = midiMessage.getMsgType();
 	int msgVelocity = midiMessage.getValue();
 	int receiveTime = midiMessage.getTimestamp();
@@ -147,14 +158,13 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
    	float hiHatControlSpeed = midiMessage.hiHatSpeed;
 	float hiHatAcceleration = midiMessage.hiHatAcceleration;
 
-	int plotTimeWindow = 5*1000;
-	if (sentTime>plotTimeWindow)
+	if (sentTime>_curveWindowLength)
 	{
-		_pPlotZoomer->moveWindow(sentTime-plotTimeWindow, plotTimeWindow);
+		_pPlotZoomer->moveWindow(sentTime-_curveWindowLength, _curveWindowLength);
 	}
 	else
 	{
-		_pPlotZoomer->moveWindow(0, plotTimeWindow);
+		_pPlotZoomer->moveWindow(0, _curveWindowLength);
 	}
 
     // CC#4
@@ -419,4 +429,49 @@ void GraphSubWindow::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::file
 	{
 		_curveHiHatPosition->setOpenedColor(QColor(itOpenHiHat->color.c_str()));
 	}
+}
+
+void GraphSubWindow::onTimeChange(int ms)
+{
+	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
+	int minValue = pScaleDiv->interval().minValue();
+	int maxValue = pScaleDiv->interval().maxValue();
+
+	_pPlotMarker->setVisible(true);
+	_pPlotMarker->setValue(ms, 0);
+	_pPlot->replot();
+
+	if (ms<=minValue)
+	{
+		_pPlotZoomer->onTimeChange(ms);
+	}
+	else if (ms >=maxValue)
+	{
+		_pPlotZoomer->onTimeChange(ms-_curveWindowLength);
+	}
+}
+
+void GraphSubWindow::keyPressEvent(QKeyEvent* pEvent)
+{
+	int offset = 100;
+	Qt::KeyboardModifiers kbModifiers = pEvent->modifiers();
+	if (kbModifiers & Qt::ControlModifier)
+	{
+		offset *= 10;
+	}
+
+	switch (pEvent->key())
+	{
+	case Qt::Key_Left:
+		{
+			emit signalTimeChangeRequested(-offset);
+			break;
+		}
+	case Qt::Key_Right:
+		{
+			emit signalTimeChangeRequested(offset);
+			break;
+		}
+	}
+	QMdiSubWindow::keyPressEvent(pEvent);
 }

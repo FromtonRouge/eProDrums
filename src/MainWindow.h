@@ -35,6 +35,9 @@
 #include <boost/iostreams/stream_buffer.hpp> 
 
 class Settings;
+class MidiDevicesWidget;
+class QSpinBox;
+class QDoubleSpinBox;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
@@ -61,8 +64,6 @@ private slots:
 
     void on_pushButtonStart_clicked(bool checked=false);
     void on_pushButtonStop_clicked(bool checked=false);
-	void on_comboBoxMidiIn_currentIndexChanged(const QString&);
-	void on_comboBoxMidiOut_currentIndexChanged(const QString&);
 
 	void on_actionOpen_triggered();
 	void on_actionSave_triggered();
@@ -75,8 +76,6 @@ private slots:
 	void on_actionAbout_triggered();
 	void on_actionSettings_triggered();
 
-	void on_spinBoxBuffer_valueChanged(int);
-
 	void on_listWidgetSlots_customContextMenuRequested(const QPoint&);
 	void on_listWidgetSlots_itemSelectionChanged();
 	void on_listWidgetSlots_itemChanged(QListWidgetItem* pItem);
@@ -84,9 +83,10 @@ private slots:
     void on_menuEdit_aboutToShow();
 	void on_tabWidget_currentChanged(int index);
 
+	void onBufferChanged(int);
+
 private:
 	void toLog(const std::string&);
-    void stop();
 
 	void saveUserSettings(const std::string& szFilePath);
 	void loadUserSettings(const std::string& szFilePath);
@@ -111,4 +111,7 @@ private:
 
 	GraphSubWindow*			_pGrapSubWindow;
 	QProcess*				_pProcessAssistant;
+	MidiDevicesWidget*		_pMidiDevicesWidget;
+	QSpinBox*				_pSpinBoxBuffer;
+	QDoubleSpinBox*			_pAverageLatency;
 };

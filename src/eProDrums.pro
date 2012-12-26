@@ -68,6 +68,7 @@ HEADERS += AddMidiNote.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
            MainWindow.h \
+           MidiDevicesWidget.h \
            MidiEngine.h \
            MidiMessage.h \
            Pad.h \
@@ -79,6 +80,7 @@ HEADERS += AddMidiNote.h \
            Settings.h \
            SettingsDlg.h \
            Slot.h \
+		   TimeSlider.h \
 		   TreeViewParameters.h \
            UserSettings.h
 FORMS += AddMidiNote.ui \
@@ -105,6 +107,7 @@ SOURCES += AddMidiNote.cpp \
 		   LinearFunction.cpp \
            main.cpp \
            MainWindow.cpp \
+           MidiDevicesWidget.cpp \
            MidiEngine.cpp \
            MidiMessage.cpp \
            Pad.cpp \
@@ -113,6 +116,7 @@ SOURCES += AddMidiNote.cpp \
            Settings.cpp \
            SettingsDlg.cpp \
            Slot.cpp \
+		   TimeSlider.cpp \
            UserSettings.cpp
 RESOURCES += EProDrums.qrc
 

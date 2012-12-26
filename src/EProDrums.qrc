@@ -2,7 +2,13 @@
     <qresource prefix="/" >
 	<file>EProDrums.png</file>
 	<file>Add.png</file>
+	<file>Copy.png</file>
+	<file>Help.png</file>
+	<file>Open.png</file>
+	<file>Quit.png</file>
 	<file>Remove.png</file>
+	<file>Save.png</file>
+	<file>Settings.png</file>
 	<file>FunctionEdit.png</file>
     </qresource>
 </RCC>

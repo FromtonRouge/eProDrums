@@ -32,6 +32,7 @@ class HiHatPositionCurve;
 class QTimer;
 class DrumKitMidiMap;
 struct UserSettings;
+class QwtPlotMarker;
 
 /**
  * GraphSubWindow.
@@ -39,6 +40,9 @@ struct UserSettings;
 class GraphSubWindow : public QMdiSubWindow
 {
 	Q_OBJECT
+
+signals:
+	void signalTimeChangeRequested(int offset);
 
 public:
 	GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent = NULL);
@@ -66,6 +70,7 @@ public:
 	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path&);
 
 public Q_SLOTS:
+	void onTimeChange(int ms);
     void onUpdatePlot(const MidiMessage&);
 	void onLeftMouseClicked(const QPoint&);
 	void onRedrawCurves();
@@ -78,6 +83,7 @@ private:
 	virtual void showEvent(QShowEvent* pEvent);
 	virtual void hideEvent(QHideEvent* pEvent);
 	virtual void closeEvent(QCloseEvent* pEvent);
+	virtual void keyPressEvent(QKeyEvent* pEvent);
 
 private:
 	UserSettings*		_pUserSettings;
@@ -89,8 +95,11 @@ private:
 	QTimer*				_pRedrawTimer;
 	int					_redrawPeriod;
 
+	int					_curveWindowLength;
     HiHatPositionCurve*	_curveHiHatPosition;
     EProPlotCurve*		_curveHiHatAcceleration;
     EProPlotCurve*		_curveLatency;
 	EProPlotCurve::Dict	_curves;
+
+	QwtPlotMarker*		_pPlotMarker;
 };

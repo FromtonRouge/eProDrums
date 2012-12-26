@@ -37,11 +37,14 @@ public:
     EProPlotZoomer(QwtPlotCanvas* pCanvas);
     virtual ~EProPlotZoomer();
 
-	void moveWindow(double x, double width, bool bReplot = false, bool bSaveWindow = true);
+	void moveWindow(double x, double width, bool bSaveWindow = true);
 
 signals:
 	void inRectSelection(bool);
 	void leftMouseClicked(const QPoint&);
+
+public slots:
+	void onTimeChange(int ms);
 
 protected slots:
 	void onPlotSelectionMoved(const QPoint& point);

@@ -26,6 +26,7 @@
 #include "Slot.h"
 
 #include "MidiMessage.h"
+#include "MidiDevice.h"
 
 #include <boost/filesystem.hpp>
 
@@ -48,6 +49,9 @@ signals:
 public:
 	MidiEngine();
 	virtual ~MidiEngine();
+
+	const MidiDevice::List& getMidiInDevices() const {return _midiInDevices;}
+	const MidiDevice::List& getMidiOutDevices() const {return _midiOutDevices;}
 
 	bool start(int midiInId, int midiOutId);
 	void stop();
@@ -81,4 +85,6 @@ private:
 	MidiMessage::DictHistory	_lastMsgSent;
 	int							_hiHatControlCC;
 	Slot::Ptr					_pCurrentSlot;
+	MidiDevice::List			_midiInDevices;
+	MidiDevice::List			_midiOutDevices;
 };

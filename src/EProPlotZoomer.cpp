@@ -41,9 +41,7 @@ EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 
 	// Plot magnifier, allow zooming by wheel
 	_pPlotMagnifier = new QwtPlotMagnifier(pCanvas);
-
-	// Zoom when clicking Qt::RightButton disabled
-	_pPlotMagnifier->setMouseButton(Qt::NoButton);
+	_pPlotMagnifier->setMouseButton(Qt::NoButton); // Zoom when clicking Qt::RightButton disabled
 
     setRubberBandPen(QColor(Qt::white));
     setTrackerPen(QColor(Qt::white));
@@ -51,30 +49,34 @@ EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 
     connect(this, SIGNAL(appended(const QPoint&)), this, SLOT(onPlotSelectionAppended(const QPoint&)));
 	connect(this, SIGNAL(moved(const QPoint&)), this, SLOT(onPlotSelectionMoved(const QPoint&)));
+
+	zoom(QRectF(0, 0, 5000, 127));
 }
 
 EProPlotZoomer::~EProPlotZoomer()
 {
 }
 
-void EProPlotZoomer::moveWindow(double x, double width, bool bReplot, bool bSaveWindow)
+void EProPlotZoomer::moveWindow(double x, double width, bool bSaveWindow)
 {
 	if (bSaveWindow)
 	{
 		_savedWindowX = x;
 		_savedWindowWidth = width;
 	}
-	plot()->setAxisScale(QwtPlot::yLeft, 0, 127, 30);
-	plot()->setAxisScale(QwtPlot::xBottom, x, x+width, 1000);
-	setZoomBase(bReplot);
+
+	// Increase the axis scale
+	plot()->setAxisScale(QwtPlot::xBottom, 0, std::min<int>(x, width), 0);
+
+	// Adjust the zoom base
+	QRectF rectBase(x, 0, width, 127);
+	setZoomBase(rectBase);
+	zoom(rectBase);
 }
 
 void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
 {
 	QMouseEvent* pNewMouseEvent = pMouseEvent;
-
-	// We have to set the zoom base before the rect zoom to avoid a zoom bug
-	setZoomBase();
 
 	switch(pMouseEvent->button())
 	{
@@ -103,7 +105,6 @@ void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
 	case Qt::RightButton:
 		{
 			moveWindow(_savedWindowX, _savedWindowWidth, true);
-			QwtPlotZoomer::widgetMousePressEvent(pNewMouseEvent);
 			break;
 		}
 
@@ -112,7 +113,6 @@ void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
 			break;
 		}
 	}
-	QwtPlotZoomer::widgetMousePressEvent(pNewMouseEvent);
 }
 
 void EProPlotZoomer::widgetMouseReleaseEvent(QMouseEvent* pMouseEvent)
@@ -141,7 +141,6 @@ void EProPlotZoomer::widgetMouseReleaseEvent(QMouseEvent* pMouseEvent)
 		}
 	case Qt::RightButton:
 		{
-			QwtPlotZoomer::widgetMouseReleaseEvent(pNewMouseEvent);
 			break;
 		}
 	case Qt::MidButton:
@@ -175,7 +174,6 @@ void EProPlotZoomer::widgetKeyPressEvent(QKeyEvent*	pKeyEvent)
 		setTrackerPen(QColor(Qt::green));
 		_bModifierPressed = true;
 	}
-	QwtPlotZoomer::widgetKeyPressEvent(pKeyEvent);
 }
 
 void EProPlotZoomer::widgetKeyReleaseEvent(QKeyEvent*	pKeyEvent)
@@ -235,4 +233,10 @@ void EProPlotZoomer::onPlotSelectionMoved(const QPoint& pointInPixel)
 		_rect.second = 0;
 	}
 	emit inRectSelection(true);
+}
+
+void EProPlotZoomer::onTimeChange(int ms)
+{
+	moveTo(QPointF(ms, 0));
+	emit zoomed(zoomRect());
 }
