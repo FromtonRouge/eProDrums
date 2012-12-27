@@ -644,6 +644,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 	if (currentMsg.isNoteOnMsg() && !currentMsg.isAlreadyModified())
 	{
+		MidiMessage::List messagesToSend;
 		switch (currentMsg.padType)
 		{
 		case Pad::HIHAT_PEDAL:
@@ -720,7 +721,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				// Flam and ghost
 				if (!currentMsg.isIgnored())
 				{
-					sendMidiMessages(pElHihat->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElHihat)), true);
+					pElHihat->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElHihat), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -790,7 +792,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElCrash1->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash1)), true);
+					pElCrash1->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash1), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -798,7 +801,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		case Pad::CRASH3:
 			{
 				// Flam and ghost
-				sendMidiMessages(pElCrash3->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash3)), true);
+				pElCrash3->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash3), messagesToSend);
+				sendMidiMessages(messagesToSend, true);
 				break;
 			}
 
@@ -818,7 +822,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElCrash2->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash2)), true);
+					pElCrash2->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElCrash2), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -834,7 +839,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElRide->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElRide)), true);
+					pElRide->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElRide), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -850,7 +856,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElSnare->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElSnare)), true);
+					pElSnare->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElSnare), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -858,7 +865,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		case Pad::TOM1:
 			{
 				// Flam and ghost
-				sendMidiMessages(pElTom1->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom1)), true);
+				pElTom1->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom1), messagesToSend);
+				sendMidiMessages(messagesToSend, true);
 				break;
 			}
 
@@ -873,7 +881,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElTom2->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom2)), true);
+					pElTom2->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom2), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -889,7 +898,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else
 				{
 					// Flam and ghost
-					sendMidiMessages(pElTom3->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom3)), true);
+					pElTom3->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElTom3), messagesToSend);
+					sendMidiMessages(messagesToSend, true);
 				}
 				break;
 			}
@@ -897,7 +907,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		case Pad::BASS_DRUM:
 			{
 				// Flam and ghost
-				sendMidiMessages(pElBassDrum->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElBassDrum)), true);
+				pElBassDrum->applyFlamAndGhost(pads, lastMsgSent, &currentMsg, getNextMessage(pElBassDrum), messagesToSend);
+				sendMidiMessages(messagesToSend, true);
 				break;
 			}
 

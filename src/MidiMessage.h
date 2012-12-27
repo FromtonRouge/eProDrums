@@ -27,6 +27,7 @@
 #include <list>
 #include <vector>
 #include <deque>
+#include <string>
 
 class Pad;
 

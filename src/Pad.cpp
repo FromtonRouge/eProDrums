@@ -238,10 +238,10 @@ void Pad::setFlamFunctions(const Parameter::Value& value)
 	_flamFunctions = value;
 }
 
-MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext)
+void Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext, MidiMessage::List& rResult)
 {
 	Mutex::scoped_lock lock(_mutex);
-	MidiMessage::List messageToSend;
+	rResult.clear();
 
 	// Hits history for this element
 	const MidiMessage::History& history = lastMsgSent[_type];
@@ -310,15 +310,13 @@ MidiMessage::List Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage:
 						if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
 						{
 							// If the previous hit was a ghost note, we send it for the flam here
-							messageToSend.push_back(rLast);
+							rResult.push_back(rLast);
 						}
 					}
 				}
 			}
 		}
 	}
-
-	return messageToSend;
 }
 
 bool Pad::isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const

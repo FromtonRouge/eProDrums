@@ -149,7 +149,7 @@ public:
 	 * Compute flams, ghosts on current and next midi message.
 	 * @return midi message to send if any
 	 */
-	MidiMessage::List applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext);
+	void applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext, MidiMessage::List& rResult);
 
 private:
 	bool isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const;
