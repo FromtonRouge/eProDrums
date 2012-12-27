@@ -21,21 +21,29 @@
 
 #pragma once
 
-#include <QtGui/QSlider>
+#include <QtGui/QWidget>
 
-class MidiMessage;
+class QSpinBox;
 
-class TimeSlider : public QSlider
+class TimeSpinBox : public QWidget
 {
 	Q_OBJECT
 
+signals:
+	void signalTimeChanged(int);
+	void signalTimeEdited(int);
+
 public:
-	TimeSlider(QWidget* pParent);
-	virtual ~TimeSlider();
+	TimeSpinBox(QWidget* pParent = NULL);
+	virtual ~TimeSpinBox();
 
 public slots:
+	void onSliderChange(int ms);
+	void onValueChanged();
 
-	void onTimeEdited(int);
-	void onMidiOut(const MidiMessage&);
-	void onTimeChangeRequested(int);
+private:
+	QSpinBox*	_pHours;
+	QSpinBox*	_pMinutes;
+	QSpinBox*	_pSeconds;
+	QSpinBox*	_pMilliseconds;
 };

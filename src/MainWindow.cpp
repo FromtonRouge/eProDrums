@@ -22,6 +22,7 @@
 #include "MainWindow.h"
 #include "DialogAbout.h"
 #include "TimeSlider.h"
+#include "TimeSpinBox.h"
 #include "Settings.h"
 #include "SettingsDlg.h"
 #include "MidiDevicesWidget.h"
@@ -113,6 +114,10 @@ MainWindow::MainWindow():
 	// Building the time toolbar
 	TimeSlider* pTimeSlider = new TimeSlider(this);
 	toolBarTime->addWidget(pTimeSlider);
+	TimeSpinBox* pTimeSpinBox = new TimeSpinBox(this);
+	connect(pTimeSlider, SIGNAL(valueChanged(int)), pTimeSpinBox, SLOT(onSliderChange(int)));
+	connect(pTimeSpinBox, SIGNAL(signalTimeEdited(int)), pTimeSlider, SLOT(onTimeEdited(int)));
+	toolBarTime->addWidget(pTimeSpinBox);
 	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeSlider, SLOT(onMidiOut(const MidiMessage&)));
 
 	// Process "assistant" for help
@@ -120,7 +125,7 @@ MainWindow::MainWindow():
 
 	// Building the graph subwindow
 	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
-	connect(pTimeSlider, SIGNAL(valueChanged(int)), _pGrapSubWindow, SLOT(onTimeChange(int)));
+	connect(pTimeSpinBox, SIGNAL(signalTimeChanged(int)), _pGrapSubWindow, SLOT(onTimeChange(int)));
 	connect(_pGrapSubWindow, SIGNAL(signalTimeChangeRequested(int)), pTimeSlider, SLOT(onTimeChangeRequested(int)));
 
 	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));

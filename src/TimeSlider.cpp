@@ -35,11 +35,19 @@ void TimeSlider::onMidiOut(const MidiMessage& midiMessage)
 {
 	blockSignals(true);
 	setMaximum(midiMessage.getSentTimestamp());
-	setValue(maximum());
 	blockSignals(false);
+
+	setValue(maximum());
 }
 
 void TimeSlider::onTimeChangeRequested(int offset)
 {
 	setValue(value()+offset);
+}
+
+void TimeSlider::onTimeEdited(int t)
+{
+	blockSignals(true);
+	setValue(t);
+	blockSignals(false);
 }

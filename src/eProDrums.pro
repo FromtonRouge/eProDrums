@@ -81,6 +81,7 @@ HEADERS += AddMidiNote.h \
            SettingsDlg.h \
            Slot.h \
 		   TimeSlider.h \
+		   TimeSpinBox.h \
 		   TreeViewParameters.h \
            UserSettings.h
 FORMS += AddMidiNote.ui \
@@ -117,6 +118,7 @@ SOURCES += AddMidiNote.cpp \
            SettingsDlg.cpp \
            Slot.cpp \
 		   TimeSlider.cpp \
+		   TimeSpinBox.cpp \
            UserSettings.cpp
 RESOURCES += EProDrums.qrc
 
