@@ -37,14 +37,14 @@ class MidiEngine : public QObject
 	Q_OBJECT
 
 signals:
-	void signalStart();
-	void signalStop();
 	void signalMidiIn(const MidiMessage&);
 	void signalMidiOut(const MidiMessage&);
 	void signalHiHatStartMoving(int movingState, int pos, int timestamp);
 	void signalFootCancelStarted(int timestamp, int maskLength, int velocity);
 	void signalHiHatState(int state);
 	void signalAverageLatency(double);
+	void signalStarted();
+	void signalStopped();
 
 public:
 	MidiEngine();
@@ -53,8 +53,6 @@ public:
 	const MidiDevice::List& getMidiInDevices() const {return _midiInDevices;}
 	const MidiDevice::List& getMidiOutDevices() const {return _midiOutDevices;}
 
-	bool start(int midiInId, int midiOutId);
-	void stop();
 	void processMidi(PtTimestamp timestamp);
 	void transform(MidiMessage& currentMsg);
 
@@ -63,6 +61,8 @@ public:
 public slots:
 	void onSlotChanged(const Slot::Ptr&);
 	void onBufferLengthChanged(int);
+	void start(int midiInId, int midiOutId);
+	void stop();
 
 private:
     void sendMidiMessage(MidiMessage& midiMessage, bool bForce = false);

@@ -60,11 +60,6 @@ signals:
 	void signalSlotChanged(const Slot::Ptr&);
 
 private slots:
-	void on_pushButtonClearLogs_clicked(bool checked=false);
-
-    void on_pushButtonStart_clicked(bool checked=false);
-    void on_pushButtonStop_clicked(bool checked=false);
-
 	void on_actionOpen_triggered();
 	void on_actionSave_triggered();
 	void on_actionSave_As_triggered();
@@ -83,7 +78,12 @@ private slots:
     void on_menuEdit_aboutToShow();
 	void on_tabWidget_currentChanged(int index);
 
+	void on_pushButtonClearLogs_clicked(bool checked=false);
+
 	void onBufferChanged(int);
+
+	void onMidiEngineStarted();
+	void onMidiEngineStopped();
 
 private:
 	void toLog(const std::string&);

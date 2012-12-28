@@ -25,25 +25,29 @@
 #include <QtGui/QLabel>
 #include <QtGui/QComboBox>
 #include <QtGui/QPushButton>
+#include <QtGui/QMessageBox>
 
 MidiDevicesWidget::MidiDevicesWidget(QWidget* pParent):QWidget(pParent)
 {
 	QHBoxLayout* pLayout = new QHBoxLayout;
 	pLayout->setContentsMargins(0,0,0,0);
-	pLayout->addWidget(new QLabel(tr("Midi in")));
 	
 	_pComboBoxMidiIn = new QComboBox();
+	_pComboBoxMidiIn->setMaximumWidth(100);
+	_pComboBoxMidiIn->setToolTip(tr("Midi in"));
 	pLayout->addWidget(_pComboBoxMidiIn);
 
-	pLayout->addWidget(new QLabel(tr("Midi out")));
-
 	_pComboBoxMidiOut = new QComboBox();
+	_pComboBoxMidiOut->setMaximumWidth(100);
+	_pComboBoxMidiOut->setToolTip(tr("Midi out"));
 	pLayout->addWidget(_pComboBoxMidiOut);
 
 	_pPushButtonStart = new QPushButton(tr("Start"), this);
+	_pPushButtonStart->setToolTip(tr("Start the Midi engine"));
 	connect(_pPushButtonStart, SIGNAL(clicked(bool)), this, SLOT(onMidiStart()));
 	pLayout->addWidget(_pPushButtonStart);
 	_pPushButtonStop = new QPushButton(tr("Stop"), this);
+	_pPushButtonStop->setToolTip(tr("Stop the Midi engine"));
 	connect(_pPushButtonStop, SIGNAL(clicked(bool)), this, SLOT(onMidiStop()));
 	pLayout->addWidget(_pPushButtonStop);
 
@@ -59,10 +63,20 @@ MidiDevicesWidget::~MidiDevicesWidget()
 
 void MidiDevicesWidget::onMidiStart()
 {
-	_pComboBoxMidiIn->setEnabled(false);
-	_pComboBoxMidiOut->setEnabled(false);
-	_pPushButtonStart->setEnabled(false);
-	_pPushButtonStop->setEnabled(true);
+	int midiInId = getMidiInId();
+	int midiOutId = getMidiOutId();
+	if (midiInId>=0 && midiOutId>=0)
+	{
+		_pComboBoxMidiIn->setEnabled(false);
+		_pComboBoxMidiOut->setEnabled(false);
+		_pPushButtonStart->setEnabled(false);
+		_pPushButtonStop->setEnabled(true);
+		emit signalStart(midiInId, midiOutId);
+	}
+	else
+	{
+		QMessageBox::critical(this, tr("Invalid devices"), tr("Invalid devices"));
+	}
 }
 
 void MidiDevicesWidget::onMidiStop()
@@ -71,6 +85,7 @@ void MidiDevicesWidget::onMidiStop()
 	_pComboBoxMidiOut->setEnabled(true);
 	_pPushButtonStart->setEnabled(true);
 	_pPushButtonStop->setEnabled(false);
+	emit signalStop();
 }
 
 bool MidiDevicesWidget::setMidiIn(const std::string& szMidiIn)
@@ -80,7 +95,7 @@ bool MidiDevicesWidget::setMidiIn(const std::string& szMidiIn)
 	{
 		_pComboBoxMidiIn->setCurrentIndex(index);
 
-		if (_pComboBoxMidiOut->currentIndex()>=0);
+		if (_pComboBoxMidiOut->currentIndex()>=0)
 		{
 			_pPushButtonStart->setEnabled(true);
 			_pPushButtonStop->setEnabled(false);
@@ -96,7 +111,7 @@ bool MidiDevicesWidget::setMidiOut(const std::string& szMidiOut)
 	if (index>=0)
 	{
 		_pComboBoxMidiOut->setCurrentIndex(index);
-		if (_pComboBoxMidiIn->currentIndex()>=0);
+		if (_pComboBoxMidiIn->currentIndex()>=0)
 		{
 			_pPushButtonStart->setEnabled(true);
 			_pPushButtonStop->setEnabled(false);

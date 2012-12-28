@@ -88,6 +88,8 @@ MainWindow::MainWindow():
 	toolBar->addAction(actionSettings);
 	toolBar->addSeparator();
 	_pMidiDevicesWidget = new MidiDevicesWidget(this);
+	connect(_pMidiDevicesWidget, SIGNAL(signalStart(int, int)), &_midiEngine, SLOT(start(int, int)));
+	connect(_pMidiDevicesWidget, SIGNAL(signalStop()), &_midiEngine, SLOT(stop()));
 	toolBar->addWidget(_pMidiDevicesWidget);
 	toolBar->addSeparator();
 
@@ -135,8 +137,8 @@ MainWindow::MainWindow():
 	connect(&_midiEngine, SIGNAL(signalFootCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
 	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
 	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), _pAverageLatency, SLOT(setValue(double)));
-	connect(&_midiEngine, SIGNAL(signalStart()), _pMidiDevicesWidget, SLOT(onMidiStart()));
-	connect(&_midiEngine, SIGNAL(signalStop()), _pMidiDevicesWidget, SLOT(onMidiStop()));
+	connect(&_midiEngine, SIGNAL(signalStarted()), this, SLOT(onMidiEngineStarted()));
+	connect(&_midiEngine, SIGNAL(signalStopped()), this, SLOT(onMidiEngineStopped()));
 	connect(this, SIGNAL(signalSlotChanged(const Slot::Ptr&)), &_midiEngine, SLOT(onSlotChanged(const Slot::Ptr&)));
 	connect(_pSpinBoxBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onBufferLengthChanged(int)));
 
@@ -484,7 +486,7 @@ MainWindow::MainWindow():
 	_pMidiDevicesWidget->setMidiOutDevices(_midiEngine.getMidiOutDevices());
 	if (_pMidiDevicesWidget->setMidiIn(_pSettings->getMidiIn()) && _pMidiDevicesWidget->setMidiOut(_pSettings->getMidiOut()))
 	{
-		on_pushButtonStart_clicked();
+		_pMidiDevicesWidget->onMidiStart();
 	}
 
 	// Settings connections
@@ -496,29 +498,21 @@ MainWindow::MainWindow():
 
 MainWindow::~MainWindow()
 {
-	_midiEngine.stop();
-
 	// Restoring the std::cout streambuf
 	std::cout.rdbuf(_pOldStreambuf);
 }
 
-void MainWindow::on_pushButtonStart_clicked(bool)
+void MainWindow::onMidiEngineStarted()
 {
-	int midiInId = _pMidiDevicesWidget->getMidiInId();
-	int midiOutId = _pMidiDevicesWidget->getMidiOutId();
-	if (midiInId>=0 && midiOutId>=0 && _midiEngine.start(midiInId, midiOutId))
-	{
-		_pSettings->setMidiIn(_pMidiDevicesWidget->getMidiInString());
-		_pSettings->setMidiOut(_pMidiDevicesWidget->getMidiOutString());
+	_pSettings->setMidiIn(_pMidiDevicesWidget->getMidiInString());
+	_pSettings->setMidiOut(_pMidiDevicesWidget->getMidiOutString());
 
-		_pGrapSubWindow->clearPlots();
-		_pGrapSubWindow->replot();
-	}
+	_pGrapSubWindow->clearPlots();
+	_pGrapSubWindow->replot();
 }
 
-void MainWindow::on_pushButtonStop_clicked(bool)
+void MainWindow::onMidiEngineStopped()
 {
-	_midiEngine.stop();
 }
 
 void MainWindow::on_actionSave_As_triggered()

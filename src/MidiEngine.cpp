@@ -108,9 +108,10 @@ MidiEngine::MidiEngine():
 
 MidiEngine::~MidiEngine()
 {
+	stop();
 }
 
-bool MidiEngine::start(int midiInId, int midiOutId)
+void MidiEngine::start(int midiInId, int midiOutId)
 {
 	clearAverageLatency();
 
@@ -138,7 +139,7 @@ bool MidiEngine::start(int midiInId, int midiOutId)
 	if (error!=pmNoError)
 	{
 		QMessageBox::critical(QApplication::activeWindow(), tr("Midi Error"), tr("Cannot open midi in %1, reason : %2").arg(pDeviceInInfo->name).arg(Pm_GetErrorText(error)));
-		return false;
+		return;
 	}
 	else
 	{
@@ -158,11 +159,8 @@ bool MidiEngine::start(int midiInId, int midiOutId)
 	if (error!=pmNoError)
 	{
 		QMessageBox::critical(QApplication::activeWindow(), tr("Midi Error"), tr("Cannot open midi out %1, reason : %2").arg(pDeviceOutInfo->name).arg(Pm_GetErrorText(error)));
-		return false;
 	}
-
-	emit signalStart();
-	return true;
+	emit signalStarted();
 }
 
 void MidiEngine::stop()
@@ -182,7 +180,7 @@ void MidiEngine::stop()
 	}
 
 	Pm_Terminate();
-	emit signalStop();
+	emit signalStopped();
 }
 
 void MidiEngine::sendMidiMessage(MidiMessage& midiMessage, bool bForce)

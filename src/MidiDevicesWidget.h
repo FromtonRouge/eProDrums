@@ -32,6 +32,10 @@ class MidiDevicesWidget : public QWidget
 {
 	Q_OBJECT
 
+signals:
+	void signalStart(int, int);
+	void signalStop();
+
 public:
 
 	MidiDevicesWidget(QWidget* pParent = NULL);
@@ -43,14 +47,16 @@ public:
 	bool setMidiIn(const std::string& szMidiIn);
 	bool setMidiOut(const std::string& szMidiOut);
 
-	int getMidiInId() const;
-	int getMidiOutId() const;
 	std::string getMidiInString() const;
 	std::string getMidiOutString() const;
 
-private slots:
+public slots:
 	void onMidiStart();
 	void onMidiStop();
+
+private:
+	int getMidiInId() const;
+	int getMidiOutId() const;
 
 private:
 	QComboBox*		_pComboBoxMidiIn;
