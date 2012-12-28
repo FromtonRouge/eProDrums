@@ -96,12 +96,14 @@ MainWindow::MainWindow():
 	QWidget* pBufferWidget = new QWidget(this);
 	QHBoxLayout* pLayout = new QHBoxLayout;
 	pLayout->setContentsMargins(0,0,0,0);
+
 	pLayout->addWidget(new QLabel(tr("Buffer")));
-	_pSpinBoxBuffer = new QSpinBox(this);
-	_pSpinBoxBuffer->setToolTip(tr("Midi buffer in milliseconds, affects the latency"));
-	_pSpinBoxBuffer->setMaximum(300);
-	connect(_pSpinBoxBuffer, SIGNAL(valueChanged(int)), this, SLOT(onBufferChanged(int)));
-	pLayout->addWidget(_pSpinBoxBuffer);
+	_pSpinBoxInputBuffer = new QSpinBox(this);
+	_pSpinBoxInputBuffer->setToolTip(tr("Midi input buffer in milliseconds, improve specific features (Chameleon cymbal), affects the latency"));
+	_pSpinBoxInputBuffer->setMaximum(300);
+	connect(_pSpinBoxInputBuffer, SIGNAL(valueChanged(int)), this, SLOT(onInputBufferChanged(int)));
+	pLayout->addWidget(_pSpinBoxInputBuffer);
+
 	pLayout->addWidget(new QLabel(tr("Latency")));
 	_pAverageLatency = new QDoubleSpinBox(this);
 	_pAverageLatency->setToolTip(tr("Average latency in milliseconds"));
@@ -120,7 +122,7 @@ MainWindow::MainWindow():
 	connect(pTimeSlider, SIGNAL(valueChanged(int)), pTimeSpinBox, SLOT(onSliderChange(int)));
 	connect(pTimeSpinBox, SIGNAL(signalTimeEdited(int)), pTimeSlider, SLOT(onTimeEdited(int)));
 	toolBarTime->addWidget(pTimeSpinBox);
-	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeSlider, SLOT(onMidiOut(const MidiMessage&)));
+	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeSlider, SLOT(onMidiOut(const MidiMessage&)), Qt::QueuedConnection);
 
 	// Process "assistant" for help
 	_pProcessAssistant = new QProcess(this);
@@ -132,15 +134,15 @@ MainWindow::MainWindow():
 
 	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));
 	_pSettings->signalKitDefined.connect(boost::bind(&MidiEngine::onDrumKitLoaded, &_midiEngine, _1, _2));
-	connect(&_midiEngine, SIGNAL(signalHiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)));
-	connect(&_midiEngine, SIGNAL(signalHiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)));
-	connect(&_midiEngine, SIGNAL(signalFootCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)));
-	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)));
-	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), _pAverageLatency, SLOT(setValue(double)));
+	connect(&_midiEngine, SIGNAL(signalHiHatStartMoving(int, int, int)), _pGrapSubWindow, SLOT(onHiHatStartMoving(int, int, int)), Qt::QueuedConnection);
+	connect(&_midiEngine, SIGNAL(signalHiHatState(int)), _pGrapSubWindow, SLOT(onHiHatState(int)), Qt::QueuedConnection);
+	connect(&_midiEngine, SIGNAL(signalFootCancelStarted(int, int, int)), _pGrapSubWindow, SLOT(onFootCancelStarted(int, int, int)), Qt::QueuedConnection);
+	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), _pGrapSubWindow, SLOT(onUpdatePlot(const MidiMessage&)), Qt::QueuedConnection);
+	connect(&_midiEngine, SIGNAL(signalAverageLatency(double)), _pAverageLatency, SLOT(setValue(double)), Qt::QueuedConnection);
 	connect(&_midiEngine, SIGNAL(signalStarted()), this, SLOT(onMidiEngineStarted()));
 	connect(&_midiEngine, SIGNAL(signalStopped()), this, SLOT(onMidiEngineStopped()));
 	connect(this, SIGNAL(signalSlotChanged(const Slot::Ptr&)), &_midiEngine, SLOT(onSlotChanged(const Slot::Ptr&)));
-	connect(_pSpinBoxBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onBufferLengthChanged(int)));
+	connect(_pSpinBoxInputBuffer, SIGNAL(valueChanged(int)), &_midiEngine, SLOT(onInputBufferChanged(int)));
 
 	mdiArea->addSubWindow(_pGrapSubWindow);
 	_pGrapSubWindow->showMaximized();
@@ -149,8 +151,6 @@ MainWindow::MainWindow():
 
 	// Loading last user settings
 	loadUserSettings(_pSettings->getUserSettingsFile().generic_string());
-
-	_calibrationOffset = _userSettings.bufferLength;
 
 	// Building the default config if empty
 	if (_userSettings.configSlots.empty())
@@ -619,7 +619,7 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 
 			_pSettings->setUserSettingsFile(pathConfig.generic_string());
 			setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
-			_pSpinBoxBuffer->setValue(_userSettings.bufferLength);
+			_pSpinBoxInputBuffer->setValue(_userSettings.bufferLength);
 
 			// Set curve visibility
 			_pGrapSubWindow->loadCurveVisibility();
@@ -674,10 +674,9 @@ void MainWindow::on_actionQuit_triggered()
 	QApplication::exit();
 }
 
-void MainWindow::onBufferChanged(int value)
+void MainWindow::onInputBufferChanged(int value)
 {
 	_userSettings.bufferLength = value;
-	_calibrationOffset = _userSettings.bufferLength;
 }
 
 void MainWindow::on_listWidgetSlots_customContextMenuRequested(const QPoint& point)
@@ -1182,6 +1181,11 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_pushButtonClearLogs_clicked(bool)
 {
 	textEditLog->clear();
+}
+
+void MainWindow::on_pushButtonStressTest_clicked(bool)
+{
+	_midiEngine.stressTest();
 }
 
 void MainWindow::on_tabWidget_currentChanged(int index)

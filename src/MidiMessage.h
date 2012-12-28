@@ -68,7 +68,7 @@ public:
 
 	bool isNoteOnMsg() const {return (_status & 0xF0) == 0x90;}
 	bool isNoteOffMsg() const {return (_status & 0xF0) == 0x80;}
-	bool isControllerMsg() const {return getMsgType()==11;}
+	bool isControllerMsg() const {return (_status & 0xF0) == 0xB0;}
 
 	PtTimestamp getTimestamp() const {return _timestamp;}
 	void setTimestamp(PtTimestamp t) {_timestamp = t;}

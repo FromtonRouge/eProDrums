@@ -55,12 +55,13 @@ public:
 
 	void processMidi(PtTimestamp timestamp);
 	void transform(MidiMessage& currentMsg);
+	void stressTest();
 
 	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path&);
 
 public slots:
 	void onSlotChanged(const Slot::Ptr&);
-	void onBufferLengthChanged(int);
+	void onInputBufferChanged(int);
 	void start(int midiInId, int midiOutId);
 	void stop();
 
@@ -71,6 +72,7 @@ private:
     MidiMessage* getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType = 9);
 	void sendMidiMessages(MidiMessage::List& midiMessages, bool bForce);
 	void clearAverageLatency();
+	void popInputBuffer(PtTimestamp t);
 
 private:
 	PmStream*	_pMidiIn;
@@ -78,8 +80,8 @@ private:
 
 	int			_sumLatency;
 	size_t		_countLatency;
-	int					_bufferLength;
-	MidiMessage::List	_bufferedMessages;
+	int			_inputBufferLength;
+	MidiMessage::List	_inputBufferedMessages;
 	MidiMessage			_lastHiHatMsgControl;
 	MidiMessage			_currentHiHatMsgControl;
 	MidiMessage::DictHistory	_lastMsgSent;

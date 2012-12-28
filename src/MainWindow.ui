@@ -183,7 +183,7 @@
           <string>Logs</string>
          </attribute>
          <layout class="QGridLayout" name="gridLayout_7">
-          <item row="1" column="0">
+          <item row="1" column="0" colspan="2">
            <widget class="QTextEdit" name="textEditLog">
             <property name="readOnly">
              <bool>true</bool>
@@ -191,6 +191,13 @@
            </widget>
           </item>
           <item row="0" column="0">
+           <widget class="QPushButton" name="pushButtonStressTest">
+            <property name="text">
+             <string>Stress Test</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
            <widget class="QPushButton" name="pushButtonClearLogs">
             <property name="text">
              <string>Clear</string>
@@ -216,7 +223,7 @@
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
-    <bool>true</bool>
+    <bool>false</bool>
    </attribute>
   </widget>
   <widget class="QToolBar" name="toolBarTime">

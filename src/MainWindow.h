@@ -79,8 +79,9 @@ private slots:
 	void on_tabWidget_currentChanged(int index);
 
 	void on_pushButtonClearLogs_clicked(bool checked=false);
+	void on_pushButtonStressTest_clicked(bool checked=false);
 
-	void onBufferChanged(int);
+	void onInputBufferChanged(int);
 
 	void onMidiEngineStarted();
 	void onMidiEngineStopped();
@@ -107,11 +108,9 @@ private:
 	UserSettings			_userSettings;
 	Slot::List::iterator	_currentSlot;
 
-	int						_calibrationOffset;
-
 	GraphSubWindow*			_pGrapSubWindow;
 	QProcess*				_pProcessAssistant;
 	MidiDevicesWidget*		_pMidiDevicesWidget;
-	QSpinBox*				_pSpinBoxBuffer;
+	QSpinBox*				_pSpinBoxInputBuffer;
 	QDoubleSpinBox*			_pAverageLatency;
 };

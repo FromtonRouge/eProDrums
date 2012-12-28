@@ -29,8 +29,10 @@
 #include <QtGui/QMessageBox>
 #include <QtCore/QMetaType>
 #include <iostream>
+#include <cmath>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/format.hpp>
 
 Q_DECLARE_METATYPE(MidiMessage)
 
@@ -79,7 +81,7 @@ MidiEngine::MidiEngine():
 	_pMidiOut(NULL),
 	_sumLatency(0),
 	_countLatency(0),
-	_bufferLength(0),
+	_inputBufferLength(0),
 	_lastMsgSent(Pad::TYPE_COUNT),
 	_hiHatControlCC(4)
 {
@@ -258,7 +260,7 @@ void MidiEngine::processMidi(PtTimestamp timestamp)
 				{
 					if (classify(midiMessage))
 					{
-						if (_bufferLength==0)
+						if (_inputBufferLength==0)
 						{
 							// Transform the message now when no buffering
 							transform(midiMessage);
@@ -266,7 +268,7 @@ void MidiEngine::processMidi(PtTimestamp timestamp)
 						else
 						{
 							// Add the message in the midi buffer
-							_bufferedMessages.push_back(midiMessage);
+							_inputBufferedMessages.push_back(midiMessage);
 						}
 					}
 				}
@@ -274,26 +276,8 @@ void MidiEngine::processMidi(PtTimestamp timestamp)
 		}
 	}
 
-	// Pop buffer if any
-	if (_bufferLength)
-	{
-		while (!_bufferedMessages.empty())
-		{
-			MidiMessage& midiMessage = _bufferedMessages.front();
-
-			// Is it time to transform and send buffered messages ?
-			if (timestamp - midiMessage.getTimestamp() >= _bufferLength)
-			{
-				transform(midiMessage);
-				_bufferedMessages.pop_front();
-			}
-			else
-			{
-				// No need to continue
-				break;
-			}
-		}
-	}
+	// Pop buffers if any
+	popInputBuffer(timestamp);
 }
 
 void MidiEngine::transform(MidiMessage& currentMsg)
@@ -382,11 +366,11 @@ void MidiEngine::onSlotChanged(const Slot::Ptr& pSlot)
 	_pCurrentSlot = pSlot;
 }
 
-void MidiEngine::onBufferLengthChanged(int value)
+void MidiEngine::onInputBufferChanged(int value)
 {
 	clearAverageLatency();
-	_bufferLength = value;
-	emit signalAverageLatency(_bufferLength);
+	_inputBufferLength = value;
+	emit signalAverageLatency(_inputBufferLength);
 }
 
 void MidiEngine::clearAverageLatency()
@@ -463,7 +447,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	bool mutableCrashWithSnare = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE);
 	bool mutableCrashWithTom2 = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2);
 	bool mutableCrashWithTom3 = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3);
-	bool bHasNextMidiMessage = !_bufferedMessages.empty();
+	bool bHasNextMidiMessage = !_inputBufferedMessages.empty();
 
 	const int DEFAULT_NOTE_MSG_CTRL(4);
 	int currentTime = currentMsg.getTimestamp();
@@ -921,8 +905,8 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 MidiMessage* MidiEngine::getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType)
 {
 	MidiMessage* pResult = NULL;
-	MidiMessage::List::iterator it = _bufferedMessages.begin();
-	while (it!=_bufferedMessages.end())
+	MidiMessage::List::iterator it = _inputBufferedMessages.begin();
+	while (it!=_inputBufferedMessages.end())
 	{
 		MidiMessage& r = *(it++);
 		if (r.getMsgType() == msgType && pElement->isA(r.getOriginalNote()))
@@ -941,5 +925,47 @@ void MidiEngine::sendMidiMessages(MidiMessage::List& midiMessages, bool bForce)
 	{
 		MidiMessage& msg = *(it++);
 		sendMidiMessage(msg, bForce);
+	}
+}
+
+void MidiEngine::stressTest()
+{
+	PtTimestamp tBegin = Pt_Time();
+	MidiMessage::Data control = 0;
+	for (size_t i=0; i<1000; ++i)
+	{
+		PtTimestamp t = Pt_Time();
+		float v = std::sin(float(i)/100)+1;
+		control = static_cast<MidiMessage::Data>((v*127)/2);
+		MidiMessage midiMessage(t, 0xB3, 4, 127-control);
+		if (classify(midiMessage))
+		{
+			transform(midiMessage);
+		}
+	}
+	PtTimestamp tEnd = Pt_Time();
+	std::cout << (boost::format("Time elapsed : %d ms")%(tEnd-tBegin)) << std::endl;
+}
+
+void MidiEngine::popInputBuffer(PtTimestamp timestamp)
+{
+	if (_inputBufferLength)
+	{
+		while (!_inputBufferedMessages.empty())
+		{
+			MidiMessage& midiMessage = _inputBufferedMessages.front();
+
+			// Is it time to transform and send buffered messages ?
+			if (timestamp - midiMessage.getTimestamp() >= _inputBufferLength)
+			{
+				transform(midiMessage);
+				_inputBufferedMessages.pop_front();
+			}
+			else
+			{
+				// No need to continue
+				break;
+			}
+		}
 	}
 }
