@@ -35,29 +35,32 @@ TimeSpinBox::TimeSpinBox(QWidget* pParent):QWidget(pParent)
 	setLayout(pLayout);
 
 	_pHours = new QSpinBox(this);
-	connect(_pHours, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged()));
+	connect(_pHours, SIGNAL(valueChanged(int)), this, SLOT(onHoursChanged(int)));
 	_pHours->setMaximum(99);
 	_pHours->setAlignment(Qt::AlignRight);
 	pLayout->addWidget(_pHours);
 	pLayout->addWidget(new QLabel(":"));
 
 	_pMinutes = new QSpinBox(this);
-	connect(_pMinutes, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged()));
-	_pMinutes->setMaximum(59);
+	connect(_pMinutes, SIGNAL(valueChanged(int)), this, SLOT(onMinutesChanged(int)));
+	_pMinutes->setMinimum(-1);
+	_pMinutes->setMaximum(60);
 	_pMinutes->setAlignment(Qt::AlignRight);
 	pLayout->addWidget(_pMinutes);
 	pLayout->addWidget(new QLabel(":"));
 
 	_pSeconds = new QSpinBox(this);
-	connect(_pSeconds, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged()));
-	_pSeconds->setMaximum(59);
+	connect(_pSeconds, SIGNAL(valueChanged(int)), this, SLOT(onSecondsChanged(int)));
+	_pSeconds->setMinimum(-1);
+	_pSeconds->setMaximum(60);
 	_pSeconds->setAlignment(Qt::AlignRight);
 	pLayout->addWidget(_pSeconds);
 	pLayout->addWidget(new QLabel("."));
 
 	_pMilliseconds = new QSpinBox(this);
-	connect(_pMilliseconds, SIGNAL(valueChanged(int)), this, SLOT(onValueChanged()));
-	_pMilliseconds->setMaximum(999);
+	connect(_pMilliseconds, SIGNAL(valueChanged(int)), this, SLOT(onMillisecondsChanged(int)));
+	_pMilliseconds->setMinimum(-1);
+	_pMilliseconds->setMaximum(1000);
 	_pMilliseconds->setAlignment(Qt::AlignRight);
 	pLayout->addWidget(_pMilliseconds);
 }
@@ -92,7 +95,73 @@ void TimeSpinBox::onSliderChange(int tInMs)
 	emit signalTimeChanged(tInMs);
 }
 
-void TimeSpinBox::onValueChanged()
+void TimeSpinBox::updateMinMax(QSpinBox* p1, QSpinBox* p2)
+{
+	if (p1->value()==p1->minimum())
+	{
+		p1->blockSignals(true);
+		p1->setValue(p1->maximum()-1);
+		p1->blockSignals(false);
+		p2->setValue(p2->value()-1);
+	}
+	else if (p1->value()==p1->maximum())
+	{
+		p1->blockSignals(true);
+		p1->setValue(0);
+		p1->blockSignals(false);
+		p2->setValue(p2->value()+1);
+	}
+	else
+	{
+		computeTime();
+	}
+}
+
+void TimeSpinBox::onHoursChanged(int)
+{
+	if (_pHours->value()==_pHours->minimum())
+	{
+		_pHours->blockSignals(true);
+		_pHours->setValue(0);
+		_pHours->blockSignals(false);
+	}
+	computeTime();
+}
+
+void TimeSpinBox::onMinutesChanged(int)
+{
+	if (_pHours->value()==0 && _pMinutes->value()==_pMinutes->minimum())
+	{
+		_pMinutes->blockSignals(true);
+		_pMinutes->setValue(0);
+		_pMinutes->blockSignals(false);
+	}
+	updateMinMax(_pMinutes, _pHours);
+}
+
+void TimeSpinBox::onSecondsChanged(int)
+{
+	if (_pHours->value()==0 && _pMinutes->value()==0 && _pSeconds->value()==_pSeconds->minimum())
+	{
+		_pSeconds->blockSignals(true);
+		_pSeconds->setValue(0);
+		_pSeconds->blockSignals(false);
+	}
+	updateMinMax(_pSeconds, _pMinutes);
+}
+
+void TimeSpinBox::onMillisecondsChanged(int)
+{
+	if (_pHours->value()==0 && _pMinutes->value()==0 && _pSeconds->value()==0 && _pMilliseconds->value()==_pMilliseconds->minimum())
+	{
+		_pMilliseconds->blockSignals(true);
+		_pMilliseconds->setValue(0);
+		_pMilliseconds->blockSignals(false);
+	}
+	updateMinMax(_pMilliseconds, _pSeconds);
+}
+
+void TimeSpinBox::computeTime()
 {
 	using namespace boost::chrono;
 	hours h(_pHours->value());

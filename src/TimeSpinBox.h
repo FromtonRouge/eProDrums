@@ -37,9 +37,17 @@ public:
 	TimeSpinBox(QWidget* pParent = NULL);
 	virtual ~TimeSpinBox();
 
+	void computeTime();
+
 public slots:
 	void onSliderChange(int ms);
-	void onValueChanged();
+	void onHoursChanged(int);
+	void onMinutesChanged(int);
+	void onSecondsChanged(int);
+	void onMillisecondsChanged(int);
+
+private:
+	void updateMinMax(QSpinBox* p1, QSpinBox* p2);
 
 private:
 	QSpinBox*	_pHours;
