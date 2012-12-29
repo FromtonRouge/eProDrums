@@ -59,6 +59,7 @@ TimeSpinBox::TimeSpinBox(QWidget* pParent):QWidget(pParent)
 
 	_pMilliseconds = new QSpinBox(this);
 	connect(_pMilliseconds, SIGNAL(valueChanged(int)), this, SLOT(onMillisecondsChanged(int)));
+	_pMilliseconds->setSingleStep(100);
 	_pMilliseconds->setMinimum(-1);
 	_pMilliseconds->setMaximum(1000);
 	_pMilliseconds->setAlignment(Qt::AlignRight);
@@ -100,9 +101,9 @@ void TimeSpinBox::updateMinMax(QSpinBox* p1, QSpinBox* p2)
 	if (p1->value()==p1->minimum())
 	{
 		p1->blockSignals(true);
-		p1->setValue(p1->maximum()-1);
+		p1->setValue(p1->maximum()-p1->singleStep());
 		p1->blockSignals(false);
-		p2->setValue(p2->value()-1);
+		p2->setValue(p2->value()-p2->singleStep());
 	}
 	else if (p1->value()==p1->maximum())
 	{
