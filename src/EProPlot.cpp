@@ -31,15 +31,13 @@
 
 #include <boost/format.hpp>
 
-EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow):
-    QwtPlot(pParent),
-    _plotTimeWindow(plotTimeWindow)
+EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow): QwtPlot(pParent)
 {
 	setAutoReplot(false);
 
     setAxisScale(QwtPlot::yLeft, 0, 127, 30);
     setAxisMaxMinor(QwtPlot::yLeft, 2);
-    setAxisScale(QwtPlot::xBottom, 0, _plotTimeWindow, 1000);
+    setAxisScale(QwtPlot::xBottom, 0, plotTimeWindow, 1000);
     setCanvasBackground(QColor(Qt::black));
 
     QwtPlotGrid* pGrid = new QwtPlotGrid;

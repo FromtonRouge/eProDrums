@@ -26,6 +26,7 @@
 #include <QMouseEvent>
 #include <boost/format.hpp>
 #include <cmath>
+#include <iostream>
 
 EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 	QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, pCanvas),
@@ -49,8 +50,6 @@ EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 
     connect(this, SIGNAL(appended(const QPoint&)), this, SLOT(onPlotSelectionAppended(const QPoint&)));
 	connect(this, SIGNAL(moved(const QPoint&)), this, SLOT(onPlotSelectionMoved(const QPoint&)));
-
-	zoom(QRectF(0, 0, 5000, 127));
 }
 
 EProPlotZoomer::~EProPlotZoomer()
@@ -65,13 +64,9 @@ void EProPlotZoomer::moveWindow(double x, double width, bool bSaveWindow)
 		_savedWindowWidth = width;
 	}
 
-	// Increase the axis scale
-	plot()->setAxisScale(QwtPlot::xBottom, 0, std::min<int>(x, width), 0);
-
-	// Adjust the zoom base
-	QRectF rectBase(x, 0, width, 127);
-	setZoomBase(rectBase);
-	zoom(rectBase);
+    plot()->setAxisScale(QwtPlot::xBottom, 0, x+width);
+	setZoomBase(QRectF(x, 0, width, 127));
+	zoom(QRectF(x, 0, width, 127));
 }
 
 void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)

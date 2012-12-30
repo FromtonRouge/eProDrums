@@ -30,14 +30,11 @@ class EProPlot : public QwtPlot
     Q_OBJECT
 
 public:
-    EProPlot(QWidget* pParent, int plotTimeWindow = 10000);
+    EProPlot(QWidget* pParent, int plotTimeWindow = 5000);
     virtual ~EProPlot();
     void showAll();
 	void clear();
 
 private slots:
     void showCurve(QwtPlotItem*, bool);
-
-private:
-    int _plotTimeWindow;
 };

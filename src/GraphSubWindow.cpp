@@ -158,13 +158,10 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
    	float hiHatControlSpeed = midiMessage.hiHatSpeed;
 	float hiHatAcceleration = midiMessage.hiHatAcceleration;
 
-	if (sentTime>_curveWindowLength)
+	const QRectF& rectBase = _pPlotZoomer->zoomBase();
+	if (sentTime>rectBase.right())
 	{
-		_pPlotZoomer->moveWindow(sentTime-_curveWindowLength, _curveWindowLength);
-	}
-	else
-	{
-		_pPlotZoomer->moveWindow(0, _curveWindowLength);
+		_pPlotZoomer->moveWindow(sentTime, _curveWindowLength);
 	}
 
     // CC#4
