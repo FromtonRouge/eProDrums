@@ -461,12 +461,12 @@ void GraphSubWindow::keyPressEvent(QKeyEvent* pEvent)
 	{
 	case Qt::Key_Left:
 		{
-			emit signalTimeChangeRequested(-offset);
+			emit signalTimeOffset(-offset);
 			break;
 		}
 	case Qt::Key_Right:
 		{
-			emit signalTimeChangeRequested(offset);
+			emit signalTimeOffset(offset);
 			break;
 		}
 	}

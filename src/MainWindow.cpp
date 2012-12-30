@@ -20,9 +20,8 @@
 // ============================================================ 
 
 #include "MainWindow.h"
+#include "TimeBar.h"
 #include "DialogAbout.h"
-#include "TimeSlider.h"
-#include "TimeSpinBox.h"
 #include "Settings.h"
 #include "SettingsDlg.h"
 #include "MidiDevicesWidget.h"
@@ -116,21 +115,17 @@ MainWindow::MainWindow():
 	toolBar->addWidget(pBufferWidget);
 
 	// Building the time toolbar
-	TimeSlider* pTimeSlider = new TimeSlider(this);
-	toolBarTime->addWidget(pTimeSlider);
-	TimeSpinBox* pTimeSpinBox = new TimeSpinBox(this);
-	connect(pTimeSlider, SIGNAL(valueChanged(int)), pTimeSpinBox, SLOT(onSliderChange(int)));
-	connect(pTimeSpinBox, SIGNAL(signalTimeEdited(int)), pTimeSlider, SLOT(onTimeEdited(int)));
-	toolBarTime->addWidget(pTimeSpinBox);
-	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeSlider, SLOT(onMidiOut(const MidiMessage&)), Qt::QueuedConnection);
+	TimeBar* pTimeBar = new TimeBar(this);
+	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeBar, SLOT(onMidiOut(const MidiMessage&)), Qt::QueuedConnection);
+	toolBarTime->addWidget(pTimeBar);
 
 	// Process "assistant" for help
 	_pProcessAssistant = new QProcess(this);
 
 	// Building the graph subwindow
 	_pGrapSubWindow = new GraphSubWindow(&_userSettings, this);
-	connect(pTimeSpinBox, SIGNAL(signalTimeChanged(int)), _pGrapSubWindow, SLOT(onTimeChange(int)));
-	connect(_pGrapSubWindow, SIGNAL(signalTimeChangeRequested(int)), pTimeSlider, SLOT(onTimeChangeRequested(int)));
+	connect(pTimeBar, SIGNAL(signalTimeChanged(int)), _pGrapSubWindow, SLOT(onTimeChange(int)));
+	connect(_pGrapSubWindow, SIGNAL(signalTimeOffset(int)), pTimeBar, SLOT(onTimeOffset(int)));
 
 	_pSettings->signalKitDefined.connect(boost::bind(&GraphSubWindow::onDrumKitLoaded, _pGrapSubWindow, _1, _2));
 	_pSettings->signalKitDefined.connect(boost::bind(&MidiEngine::onDrumKitLoaded, &_midiEngine, _1, _2));

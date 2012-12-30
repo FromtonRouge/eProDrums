@@ -42,7 +42,7 @@ class GraphSubWindow : public QMdiSubWindow
 	Q_OBJECT
 
 signals:
-	void signalTimeChangeRequested(int offset);
+	void signalTimeOffset(int offset);
 
 public:
 	GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent = NULL);

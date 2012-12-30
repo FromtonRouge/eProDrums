@@ -80,6 +80,7 @@ HEADERS += AddMidiNote.h \
            Settings.h \
            SettingsDlg.h \
            Slot.h \
+		   TimeBar.h \
 		   TimeSlider.h \
 		   TimeSpinBox.h \
 		   TreeViewParameters.h \
@@ -117,6 +118,7 @@ SOURCES += AddMidiNote.cpp \
            Settings.cpp \
            SettingsDlg.cpp \
            Slot.cpp \
+		   TimeBar.cpp \
 		   TimeSlider.cpp \
 		   TimeSpinBox.cpp \
            UserSettings.cpp

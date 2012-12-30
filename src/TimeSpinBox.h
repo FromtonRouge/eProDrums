@@ -30,24 +30,23 @@ class TimeSpinBox : public QWidget
 	Q_OBJECT
 
 signals:
-	void signalTimeChanged(int);
-	void signalTimeEdited(int);
+	void signalValueChanged(int);
 
 public:
 	TimeSpinBox(QWidget* pParent = NULL);
 	virtual ~TimeSpinBox();
 
-	void computeTime();
+	void setTime(int tInMs);
+	int getTime() const;
 
 public slots:
-	void onSliderChange(int ms);
 	void onHoursChanged(int);
 	void onMinutesChanged(int);
 	void onSecondsChanged(int);
 	void onMillisecondsChanged(int);
 
 private:
-	void updateMinMax(QSpinBox* p1, QSpinBox* p2);
+	void update(QSpinBox* p1, QSpinBox* p2);
 
 private:
 	QSpinBox*	_pHours;
