@@ -156,7 +156,7 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 
 void SettingsDlg::on_pushButtonOpen_clicked(bool)
 {
-	const QString& filePath = QFileDialog::getOpenFileName(this, "Open drum kit mapping", "./", "Drum Kit Mapping (*.kit)");
+	const QString& filePath = QFileDialog::getOpenFileName(this, "Open drum kit mapping", _pSettings->getDrumKitConfigPath().string().c_str(), "Drum Kit Mapping (*.kit)");
 	if (filePath.isNull())
 	{
 		return;
@@ -167,7 +167,7 @@ void SettingsDlg::on_pushButtonOpen_clicked(bool)
 
 void SettingsDlg::on_pushButtonSave_clicked(bool)
 {
-	QFileDialog fileDlg(this, tr( "Save drum kit mapping"), "./",  "Drum Kit Mapping (*.kit)");
+	QFileDialog fileDlg(this, tr( "Save drum kit mapping"), _pSettings->getDrumKitConfigPath().string().c_str(),  "Drum Kit Mapping (*.kit)");
 	fileDlg.setDefaultSuffix("kit");
 	fileDlg.setAcceptMode(QFileDialog::AcceptSave);
 	if (fileDlg.exec())

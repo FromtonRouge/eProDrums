@@ -7,20 +7,23 @@
 
 ;--------------------------------
 
+!define ORGANIZATION_NAME "FromtonRouge"
+!define APPLICATION_NAME "eProDrums"
+
 ; The name of the installer
-Name "eProDrums"
+Name "${APPLICATION_NAME}"
 
 !define /date TIMESTAMP "%Y-%m-%d"
 
 ; The file to write
-OutFile "${TIMESTAMP}-unstable-eProDrums.exe"
+OutFile "${TIMESTAMP}-unstable-${APPLICATION_NAME}.exe"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\eProDrums
+InstallDir "$PROGRAMFILES\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\eProDrums" "Install_Dir"
+InstallDirRegKey HKLM "Software\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -39,7 +42,7 @@ UninstPage instfiles
 ;--------------------------------
 
 ; The stuff to install
-Section "eProDrums (required)"
+Section "${APPLICATION_NAME} (required)"
 
   SectionIn RO
   
@@ -47,7 +50,7 @@ Section "eProDrums (required)"
   SetOutPath $INSTDIR
   
   ; Put file there
-  File "Release\eProDrums.exe"
+  File "Release\${APPLICATION_NAME}.exe"
   File "..\install\assistant.exe"
   File "..\install\QtGui4.dll"
   File "..\install\QtCore4.dll"
@@ -57,14 +60,17 @@ Section "eProDrums (required)"
   File "..\install\msvcr100.dll"
   File "..\install\portmidi.dll"
 
+  ; Create user settings directories
+  SetOutPath "$LOCALAPPDATA\${ORGANIZATION_NAME}\${APPLICATION_NAME}\Kits"
+
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\eProDrums "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "Software\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\eProDrums" "DisplayName" "eProDrums"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\eProDrums" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\eProDrums" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\eProDrums" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "DisplayName" "${APPLICATION_NAME}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ORGANIZATION_NAME}\${APPLICATION_NAME}" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -72,9 +78,9 @@ SectionEnd
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts"
 
-  CreateDirectory "$SMPROGRAMS\eProDrums"
-  CreateShortCut "$SMPROGRAMS\eProDrums\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\eProDrums\eProDrums.lnk" "$INSTDIR\eProDrums.exe" "" "$INSTDIR\eProDrums.exe" 0
+  CreateDirectory "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
+  CreateShortCut "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\${APPLICATION_NAME}.lnk" "$INSTDIR\${APPLICATION_NAME}.exe" "" "$INSTDIR\${APPLICATION_NAME}.exe" 0
   
 SectionEnd
 
@@ -85,11 +91,11 @@ SectionEnd
 Section "Uninstall"
   
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\eProDrums"
-  DeleteRegKey HKLM SOFTWARE\eProDrums
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
+  DeleteRegKey HKLM "Software\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
 
   ; Remove files and uninstaller
-  Delete $INSTDIR\eProDrums.exe
+  Delete $INSTDIR\${APPLICATION_NAME}.exe
   Delete $INSTDIR\assistant.exe
   Delete $INSTDIR\QtGui4.dll
   Delete $INSTDIR\QtCore4.dll
@@ -101,10 +107,10 @@ Section "Uninstall"
   Delete $INSTDIR\uninstall.exe
 
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\eProDrums\*.*"
+  Delete "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\*.*"
 
   ; Remove directories used
-  RMDir "$SMPROGRAMS\eProDrums"
+  RMDir "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
   RMDir "$INSTDIR"
 
 SectionEnd

@@ -30,6 +30,9 @@ int main(int argc, char** argv)
 {
 	int programResult = EXIT_FAILURE;
 	QApplication theApp(argc, argv);
+	QApplication::setOrganizationName("FromtonRouge");	// Same in .nsi file (WIN32)
+	QApplication::setApplicationName("eProDrums");		// Same in .nsi file (WIN32)
+	QApplication::setApplicationVersion("dev");
 
 	try
     {

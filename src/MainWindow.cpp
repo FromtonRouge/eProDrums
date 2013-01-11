@@ -31,6 +31,7 @@
 #include "HiHatPedalElement.h"
 #include "HiHatPositionCurve.h"
 
+#include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 #include <QtGui/QFileDialog>
 #include <QtGui/QHBoxLayout>
@@ -54,9 +55,6 @@ namespace fs = boost::filesystem;
 
 BOOST_CLASS_EXPORT(HiHatPedalElement); 
 
-std::string MainWindow::APPLICATION_NAME("eProDrums");
-std::string MainWindow::APPLICATION_VERSION("dev");
-
 Q_DECLARE_METATYPE(Slot::Ptr)
 Q_DECLARE_METATYPE(MidiMessage)
 
@@ -74,7 +72,7 @@ MainWindow::MainWindow():
 	qRegisterMetaType<MidiMessage>();
 
 	setupUi(this);
-	setWindowTitle((boost::format("%s")%APPLICATION_NAME).str().c_str());
+	setWindowTitle(QApplication::applicationName());
 
 	// Setup std::cout redirection
 	_streamBuffer.open(StreamSink(boost::bind(&MainWindow::toLog, this, _1)));
@@ -613,7 +611,7 @@ void MainWindow::loadUserSettings(const std::string& szFilePath)
 			_pSettings->reloadDrumKitMidiMap();
 
 			_pSettings->setUserSettingsFile(pathConfig.generic_string());
-			setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
+			setWindowTitle(QString("%1 - [%2]").arg(QApplication::applicationName()).arg(pathConfig.filename().string().c_str()));
 			_pSpinBoxInputBuffer->setValue(_userSettings.bufferLength);
 
 			// Set curve visibility
@@ -642,7 +640,7 @@ void MainWindow::saveUserSettings(const std::string& szFilePath)
 		oa << BOOST_SERIALIZATION_NVP(_userSettings);
 		_userSettings.filePath = pathConfig.generic_string();
 		_pSettings->setUserSettingsFile(pathConfig.generic_string());
-		setWindowTitle((boost::format("%s - [%s]")%APPLICATION_NAME%pathConfig.filename()).str().c_str());
+		setWindowTitle(QString("%1 - [%2]").arg(QApplication::applicationName()).arg(pathConfig.filename().string().c_str()));
 	}
 	catch (const std::exception& e)
 	{
@@ -1168,7 +1166,7 @@ void MainWindow::on_actionAssistant_triggered()
 void MainWindow::on_actionAbout_triggered()
 {
 	boost::format fmtMsg("%s (beta) %s");
-	fmtMsg%APPLICATION_NAME%APPLICATION_VERSION;
+	fmtMsg%QApplication::applicationName().toStdString()%QApplication::applicationVersion().toStdString();
 	DialogAbout dlgAbout(this, fmtMsg.str(), "FromtonRouge");
 	dlgAbout.exec();
 }

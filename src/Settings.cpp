@@ -22,6 +22,7 @@
 #include "Settings.h"
 #include <QtGui/QMessageBox>
 #include <QtGui/QApplication>
+#include <QtGui/QDesktopServices>
 
 #include <boost/format.hpp>
 #include <fstream>
@@ -29,7 +30,7 @@
 namespace fs = boost::filesystem;
 
 Settings::Settings():
-	_qSettings("FromtonRouge", "eProDrums")
+	_qSettings(QApplication::organizationName(), QApplication::applicationName())
 {
 	// Load the drum kit midi configuration
 	loadDrumKitMidiMap(getDrumKitConfigPath());
@@ -41,7 +42,7 @@ Settings::~Settings()
 
 fs::path Settings::getUserSettingsFile() const
 {
-	return fs::path(_qSettings.value("UserSettingsFile", "").toString().toStdString());
+	return fs::path(_qSettings.value("UserSettingsFile", QDesktopServices::storageLocation(QDesktopServices::DataLocation) + "/").toString().toStdString());
 }
 
 void Settings::setUserSettingsFile(const std::string& szUserSettingsFile)
@@ -51,7 +52,7 @@ void Settings::setUserSettingsFile(const std::string& szUserSettingsFile)
 
 fs::path Settings::getDrumKitConfigPath() const
 {
-	return fs::path(_qSettings.value("DrumKitConfigFile", "").toString().toStdString());
+	return fs::path(_qSettings.value("DrumKitConfigFile", QDesktopServices::storageLocation(QDesktopServices::DataLocation) + "/Kits/").toString().toStdString());
 }
 
 void Settings::setDrumKitConfigFile(const std::string& szDrumKitConfigFile)

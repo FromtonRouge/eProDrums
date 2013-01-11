@@ -44,8 +44,6 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
     Q_OBJECT
 
 public:
-	static std::string APPLICATION_NAME;
-	static std::string APPLICATION_VERSION;
 	typedef boost::recursive_mutex Mutex;
 
 public:
