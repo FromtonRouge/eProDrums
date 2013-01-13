@@ -78,9 +78,9 @@ SectionEnd
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts"
 
-  CreateDirectory "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
-  CreateShortCut "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\${APPLICATION_NAME}.lnk" "$INSTDIR\${APPLICATION_NAME}.exe" "" "$INSTDIR\${APPLICATION_NAME}.exe" 0
+  CreateDirectory "$SMPROGRAMS\${APPLICATION_NAME}"
+  CreateShortCut "$SMPROGRAMS\${APPLICATION_NAME}\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+  CreateShortCut "$SMPROGRAMS\${APPLICATION_NAME}\${APPLICATION_NAME}.lnk" "$INSTDIR\${APPLICATION_NAME}.exe" "" "$INSTDIR\${APPLICATION_NAME}.exe" 0
   
 SectionEnd
 
@@ -107,10 +107,10 @@ Section "Uninstall"
   Delete $INSTDIR\uninstall.exe
 
   ; Remove shortcuts, if any
-  Delete "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}\*.*"
+  Delete "$SMPROGRAMS\${APPLICATION_NAME}\*.*"
 
   ; Remove directories used
-  RMDir "$SMPROGRAMS\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
+  RMDir "$SMPROGRAMS\${APPLICATION_NAME}"
   RMDir "$INSTDIR"
 
 SectionEnd
