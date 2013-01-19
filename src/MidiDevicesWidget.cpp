@@ -161,6 +161,12 @@ void MidiDevicesWidget::setMidiInDevices(const MidiDevice::List& devices)
 		_pComboBoxMidiIn->addItem(device.szName.c_str(), device.id);
 	}
 	_pComboBoxMidiIn->blockSignals(false);
+
+	if (_pComboBoxMidiIn->count() && _pComboBoxMidiOut->count())
+	{
+		_pPushButtonStart->setEnabled(true);
+		_pPushButtonStop->setEnabled(false);
+	}
 }
 
 void MidiDevicesWidget::setMidiOutDevices(const MidiDevice::List& devices)
@@ -173,4 +179,10 @@ void MidiDevicesWidget::setMidiOutDevices(const MidiDevice::List& devices)
 		_pComboBoxMidiOut->addItem(device.szName.c_str(), device.id);
 	}
 	_pComboBoxMidiOut->blockSignals(false);
+
+	if (_pComboBoxMidiIn->count() && _pComboBoxMidiOut->count())
+	{
+		_pPushButtonStart->setEnabled(true);
+		_pPushButtonStop->setEnabled(false);
+	}
 }
