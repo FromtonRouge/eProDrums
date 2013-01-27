@@ -24,18 +24,18 @@ Note:	To generate .vcxproj and .vcxproj.filters
 
 		qmake -spec win32-msvc2010 -tp vc
 
-Linux (debian/ubuntu)
-=====================
+Linux (debian/ubuntu/raspbian)
+==============================
 
 1.	Get portmidi
 
-		apt-get install libportmidi-dev
+		sudo apt-get install libportmidi-dev
 
 2.	Get Qt
 
-		apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig
+		sudo apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig
 
-3.	Get Qwt
+3.	Get Qwt from sources (at this time 27/01/2013, there is no Qwt6 dev package)
 
 		-	Download Qwt source code from : http://qwt.sourceforge.net
 		-	Edit qwtconfig.pri and change QWT_INSTALL_PREFIX like below
@@ -50,7 +50,7 @@ Linux (debian/ubuntu)
 
 4.	Get Boost
 
-		apt-get install libboost1.50-all-dev
+		sudo apt-get install libboost1.50-all-dev
 
 5.	Build eProDrums
 	
