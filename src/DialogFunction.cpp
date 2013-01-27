@@ -45,8 +45,8 @@ QwtText DialogFunction::FunctionPlotPicker::trackerText(const QPoint& pointInPix
 }
 
 DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
-								const LinearFunction::List& functions,
-								QWidget* pParent):QDialog(pParent),
+		const LinearFunction::List& functions,
+		QWidget* pParent):QDialog(pParent),
 	_pFunctionItemModel(new FunctionItemModel(pDescription, functions)),
 	_pFunctionItemDelegate(new FunctionItemDelegate(pDescription)),
 	_pDescription(pDescription)
@@ -56,13 +56,13 @@ DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescrip
 	connect(_pFunctionItemModel.get(), SIGNAL(dataChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(onModelChanged()));
 
 	_pPlot = new QwtPlot(this);
-    _pPlot->setAxisScale(QwtPlot::xBottom, _pDescription->xMin, _pDescription->xMax);
-    _pPlot->setAxisScale(QwtPlot::yLeft, _pDescription->yMin, _pDescription->yMax);
-    _pPlot->setAxisMaxMinor(QwtPlot::yLeft, 2);
-    _pPlot->setAxisMaxMinor(QwtPlot::xBottom, 2);
-    _pPlot->setCanvasBackground(QColor(Qt::black));
-    _pPlot->setAxisTitle(QwtPlot::xBottom, _pDescription->szLabelX.c_str());
-    _pPlot->setAxisTitle(QwtPlot::yLeft, _pDescription->szLabelY.c_str());
+	_pPlot->setAxisScale(QwtPlot::xBottom, _pDescription->xMin, _pDescription->xMax);
+	_pPlot->setAxisScale(QwtPlot::yLeft, _pDescription->yMin, _pDescription->yMax);
+	_pPlot->setAxisMaxMinor(QwtPlot::yLeft, 2);
+	_pPlot->setAxisMaxMinor(QwtPlot::xBottom, 2);
+	_pPlot->setCanvasBackground(QColor(Qt::black));
+	_pPlot->setAxisTitle(QwtPlot::xBottom, _pDescription->szLabelX.c_str());
+	_pPlot->setAxisTitle(QwtPlot::yLeft, _pDescription->szLabelY.c_str());
 
 	QColor inColor(255, 0, 0);
 	QColor outColor(255, 255, 255);
@@ -70,19 +70,19 @@ DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescrip
 	_pPlotMarker->setLineStyle(QwtPlotMarker::Cross);
 	_pPlotMarker->setLabelAlignment(Qt::AlignLeft|Qt::AlignTop);
 	_pPlotMarker->setLinePen(QPen(QColor(Qt::white), 0, Qt::DashDotLine));
-    _pPlotMarker->setSymbol(new QwtSymbol(QwtSymbol::Diamond, inColor, outColor, QSize(4,4)));
+	_pPlotMarker->setSymbol(new QwtSymbol(QwtSymbol::Diamond, inColor, outColor, QSize(4,4)));
 	_pPlotMarker->attach(_pPlot);
 	_pPlotMarker->setVisible(false);
 
 	gridLayout->addWidget(_pPlot, 0, 0);
 
-    QwtPlotGrid* pGrid = new QwtPlotGrid;
-    pGrid->setMajPen(QPen(Qt::gray, 0, Qt::DotLine));
-    pGrid->attach(_pPlot);
+	QwtPlotGrid* pGrid = new QwtPlotGrid;
+	pGrid->setMajPen(QPen(Qt::gray, 0, Qt::DotLine));
+	pGrid->attach(_pPlot);
 
 	_pPlotPicker = new FunctionPlotPicker(_pPlot->canvas());
-    _pPlotPicker->setRubberBandPen(QColor(Qt::white));
-    _pPlotPicker->setTrackerPen(QColor(Qt::white));
+	_pPlotPicker->setRubberBandPen(QColor(Qt::white));
+	_pPlotPicker->setTrackerPen(QColor(Qt::white));
 	_pPlotPicker->setTrackerMode(FunctionPlotPicker::AlwaysOn);
 	_pPlotPicker->onTrackerPosChanged.connect(boost::bind(&DialogFunction::onTrackerPosChanged, this, _1));
 

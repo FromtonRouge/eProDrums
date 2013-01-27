@@ -140,6 +140,11 @@ win32 {
 }
 
 unix {
-	LIBS += -L$${BOOST_DIR}/lib -lboost_system -lboost_serialization -lboost_thread -lboost_chrono -lboost_filesystem
+	LIBS += -L$${BOOST_DIR}/lib -lboost_system -lboost_serialization -lboost_thread -lboost_chrono -lboost_filesystem -lboost_program_options
 	LIBS += -L$${PORTMIDI_DIR}/lib -lporttime
+}
+
+unix {
+	target.path = /usr/bin
+	INSTALLS += target
 }

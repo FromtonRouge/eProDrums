@@ -24,25 +24,88 @@
 #include <QtGui/QApplication>
 #include <QtGui/QMessageBox>
 
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/variables_map.hpp>
+
 #include <iostream>
 
 int main(int argc, char** argv)
 {
 	int programResult = EXIT_FAILURE;
-	QApplication theApp(argc, argv);
+
+	// Program options
+	bool bUseGui = true;
+
+	// Program options definition
+	namespace po = boost::program_options;
+	po::options_description desc("Allowed options");
+	desc.add_options()
+		("help", "This help message")
+		("gui", po::value<bool>(&bUseGui)->default_value(true), "Enable/Disable the gui")
+		;
+
+	// Program options parsing
+	po::variables_map vm;
+	try
+	{
+		po::store(po::parse_command_line(argc, argv, desc), vm);
+		po::notify(vm);
+	}
+	catch (const std::exception& e)
+	{
+		std::cerr << "Option error : " << e.what() << std::endl;
+		std::cerr << desc << std::endl;
+		return programResult;
+	}
+
+	// Qt initialization
+	QApplication theApp(argc, argv, bUseGui);
 	QApplication::setOrganizationName("FromtonRouge");	// Same in .nsi file (WIN32)
 	QApplication::setApplicationName("eProDrums");		// Same in .nsi file (WIN32)
 	QApplication::setApplicationVersion("dev");
 
+	// Program option help
+	if (vm.count("help"))
+	{
+		if (bUseGui)
+		{
+			std::stringstream str;
+			str << desc << std::endl;
+			QMessageBox::information(NULL, "Allowed options", str.str().c_str());
+		}
+		else
+		{
+			std::cout << desc << std::endl;
+		}
+		return programResult;
+	}
+
 	try
-    {
-        MainWindow mainWindow;
-        mainWindow.show();
-        programResult = theApp.exec();
-    }
+	{
+		if (bUseGui)
+		{
+			MainWindow mainWindow;
+			mainWindow.show();
+			programResult = theApp.exec();
+		}
+		else
+		{
+			// Not implemented yet
+			std::cerr << "Not yet implemented..." << std::endl;
+			programResult = theApp.exec();
+		}
+	}
 	catch (const std::exception& e)
 	{
-		QMessageBox::critical(NULL, "Error while starting application", e.what());
+		if (bUseGui)
+		{
+			QMessageBox::critical(NULL, "Error while starting application", e.what());
+		}
+		else
+		{
+			std::cerr << "Error while starting application : " << e.what() << std::endl;
+		}
 	}
 
 	return programResult;

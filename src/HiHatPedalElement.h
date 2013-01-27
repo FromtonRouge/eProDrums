@@ -60,14 +60,14 @@ public:
 	HiHatPedalElement& operator=(const HiHatPedalElement& rOther);
 
 public:
-    int getCurrentControlPos() const;
-    void setCurrentControlPos(int value);
+	int getCurrentControlPos() const;
+	void setCurrentControlPos(int value);
 	int getCurrentDeltaPos() const;
 	void setCurrentDeltaPos(int value);
-    float getCurrentControlSpeed() const;
-    MovingState setCurrentControlSpeed(float value);
-    float getCurrentControlAcceleration() const;
-    void setCurrentControlAcceleration(float value);
+	float getCurrentControlSpeed() const;
+	MovingState setCurrentControlSpeed(float value);
+	float getCurrentControlAcceleration() const;
+	void setCurrentControlAcceleration(float value);
 	float getCurrentJerk() const;
 	void setCurrentJerk(float value);
 
@@ -81,15 +81,15 @@ public:
 	void setBlueDetectionByAcceleration(const Parameter::Value& state);
 	bool isHalfOpenModeEnabled() const;
 	void setHalfOpenModeEnabled(const Parameter::Value& state);
-    int getControlPosThreshold() const;
-    void setControlPosThreshold(const Parameter::Value& value);
+	int getControlPosThreshold() const;
+	void setControlPosThreshold(const Parameter::Value& value);
 	int getControlPosDelayTime() const;
 	void setControlPosDelayTime(const Parameter::Value& value);
 
-    int getOpenSpeed() const;
-    void setOpenSpeed(const Parameter::Value& value);
-    int getCloseSpeed() const;
-    void setCloseSpeed(const Parameter::Value& value);
+	int getOpenSpeed() const;
+	void setOpenSpeed(const Parameter::Value& value);
+	int getCloseSpeed() const;
+	void setCloseSpeed(const Parameter::Value& value);
 
 	int getOpenAcceleration() const;
 	void setOpenAcceleration(const Parameter::Value& value);
@@ -172,9 +172,9 @@ private:
 	int		_footCancelTimeLimit;
 	int		_halfOpenEnteringTime;
 	int		_blueStateEnteringTime;
-    int		_previousControlPos;
-    int		_currentControlPos;
-    int		_currentDeltaPos;
+	int		_previousControlPos;
+	int		_currentControlPos;
+	int		_currentDeltaPos;
 	float	_currentControlSpeed;			// in unit/s
 	float	_previousControlSpeed;			// in unit/s
 	float 	_currentControlAcceleration;	// in unit/s²
@@ -228,8 +228,8 @@ private:
 	OnFootCancelAfterPedalHitVelocityChanged	_onFootCancelAfterPedalHitVelocityChanged;
 
 private:
-    friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive & ar, const unsigned int)
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		// Base class serialization
 		ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Pad);

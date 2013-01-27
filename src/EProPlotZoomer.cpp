@@ -44,11 +44,11 @@ EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 	_pPlotMagnifier = new QwtPlotMagnifier(pCanvas);
 	_pPlotMagnifier->setMouseButton(Qt::NoButton); // Zoom when clicking Qt::RightButton disabled
 
-    setRubberBandPen(QColor(Qt::white));
-    setTrackerPen(QColor(Qt::white));
+	setRubberBandPen(QColor(Qt::white));
+	setTrackerPen(QColor(Qt::white));
 	setTrackerMode(AlwaysOn);
 
-    connect(this, SIGNAL(appended(const QPoint&)), this, SLOT(onPlotSelectionAppended(const QPoint&)));
+	connect(this, SIGNAL(appended(const QPoint&)), this, SLOT(onPlotSelectionAppended(const QPoint&)));
 	connect(this, SIGNAL(moved(const QPoint&)), this, SLOT(onPlotSelectionMoved(const QPoint&)));
 }
 
@@ -64,7 +64,7 @@ void EProPlotZoomer::moveWindow(double x, double width, bool bSaveWindow)
 		_savedWindowWidth = width;
 	}
 
-    plot()->setAxisScale(QwtPlot::xBottom, 0, x+width);
+	plot()->setAxisScale(QwtPlot::xBottom, 0, x+width);
 	setZoomBase(QRectF(x, 0, width, 127));
 	zoom(QRectF(x, 0, width, 127));
 }
@@ -205,23 +205,23 @@ QwtText EProPlotZoomer::trackerText(const QPoint& pointInPixel) const
 
 void EProPlotZoomer::onPlotSelectionAppended(const QPoint& pointInPixel)
 {
-    if (_plotSelectionPoints.size()>=2)
-    {
-        _plotSelectionPoints.clear();
-    }
-    _plotSelectionPoints.push_back(invTransform(pointInPixel));
+	if (_plotSelectionPoints.size()>=2)
+	{
+		_plotSelectionPoints.clear();
+	}
+	_plotSelectionPoints.push_back(invTransform(pointInPixel));
 }
 
 void EProPlotZoomer::onPlotSelectionMoved(const QPoint& pointInPixel)
 {
-    if (_plotSelectionPoints.size()==2)
-    {
-        const QPointF& p1 = _plotSelectionPoints[0];
-        const QPointF& p2 = invTransform(pointInPixel);
+	if (_plotSelectionPoints.size()==2)
+	{
+		const QPointF& p1 = _plotSelectionPoints[0];
+		const QPointF& p2 = invTransform(pointInPixel);
 
 		_rect.first = int(std::abs(p2.x()-p1.x()));
 		_rect.second = int(std::abs(p2.y()-p1.y()));
-    }
+	}
 	else
 	{
 		_rect.first = 0;

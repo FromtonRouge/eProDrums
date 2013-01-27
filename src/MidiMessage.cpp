@@ -25,7 +25,7 @@
 
 std::string MidiMessage::str() const
 {
-    boost::format fmtMsg("hex=0x%X type=%d chan=%d note=%d vel=%d timestamp=%d");
+	boost::format fmtMsg("hex=0x%X type=%d chan=%d note=%d vel=%d timestamp=%d");
 	PmMessage message = Pm_Message(getStatus(), getOriginalNote(), getValue());
 	return (fmtMsg%message%getMsgType()%getChannel()%getOriginalNote()%getValue()%getTimestamp()).str();
 }

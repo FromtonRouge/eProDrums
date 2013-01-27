@@ -29,8 +29,8 @@ class QwtPlotHistogram;
 class HiHatPedalCurve : public EProPlotCurve
 {
 public:
-    HiHatPedalCurve(QwtPlot* pPlot);
-    virtual ~HiHatPedalCurve();
+	HiHatPedalCurve(QwtPlot* pPlot);
+	virtual ~HiHatPedalCurve();
 
 	virtual void setVisible(bool state);
 	virtual void clear();

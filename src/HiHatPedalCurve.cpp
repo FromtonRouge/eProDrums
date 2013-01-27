@@ -33,12 +33,12 @@ HiHatPedalCurve::HiHatPedalCurve(QwtPlot* pPlot): EProPlotCurve("Hi Hat Pedal", 
 {
 	setStyle(EProPlotCurve::Sticks);
 
-    QColor colorMask(Qt::magenta);
+	QColor colorMask(Qt::magenta);
 	colorMask.setAlpha(150);
 	_pLayerFootCancelMask = new QwtPlotHistogram("Foot Cancel Mask Time");
 	_pLayerFootCancelMask->setPen(QPen(QColor(Qt::magenta)));
 	_pLayerFootCancelMask->setBrush(colorMask);
-    _pLayerFootCancelMask->setStyle(QwtPlotHistogram::Outline);
+	_pLayerFootCancelMask->setStyle(QwtPlotHistogram::Outline);
 	_pLayerFootCancelMask->setData(new EProPlotIntervalData());
 	_pLayerFootCancelMask->setItemAttribute(Legend, false);
 	_pLayerFootCancelMask->attach(pPlot);

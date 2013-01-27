@@ -71,7 +71,7 @@ public:
 
 public Q_SLOTS:
 	void onTimeChange(int ms);
-    void onUpdatePlot(const MidiMessage&);
+	void onUpdatePlot(const MidiMessage&);
 	void onLeftMouseClicked(const QPoint&);
 	void onRedrawCurves();
 	void onHiHatStartMoving(int movingState, int pos, int timestamp);
@@ -88,17 +88,17 @@ private:
 private:
 	UserSettings*		_pUserSettings;
 
-    EProPlot*			_pPlot;
-    EProPlotZoomer*		_pPlotZoomer;
+	EProPlot*			_pPlot;
+	EProPlotZoomer*		_pPlotZoomer;
 
 	bool				_bRedrawState;
 	QTimer*				_pRedrawTimer;
 	int					_redrawPeriod;
 
 	int					_curveWindowLength;
-    HiHatPositionCurve*	_curveHiHatPosition;
-    EProPlotCurve*		_curveHiHatAcceleration;
-    EProPlotCurve*		_curveLatency;
+	HiHatPositionCurve*	_curveHiHatPosition;
+	EProPlotCurve*		_curveHiHatAcceleration;
+	EProPlotCurve*		_curveLatency;
 	EProPlotCurve::Dict	_curves;
 
 	QwtPlotMarker*		_pPlotMarker;

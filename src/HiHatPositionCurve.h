@@ -39,8 +39,8 @@ public:
 	};
 
 public:
-    HiHatPositionCurve(QwtPlot* pPlot);
-    virtual ~HiHatPositionCurve();
+	HiHatPositionCurve(QwtPlot* pPlot);
+	virtual ~HiHatPositionCurve();
 
 	void addOpenInfo(const QPointF& point);
 	void addCloseInfo(const QPointF& point);

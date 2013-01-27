@@ -32,7 +32,7 @@ public:
 	virtual ~DoubleValueControl();
 
 	double getValue() const;
-    void setValue(double value);
+	void setValue(double value);
 
 signals:
 	void valueChanged(double);

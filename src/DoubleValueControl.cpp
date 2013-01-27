@@ -49,7 +49,7 @@ void DoubleValueControl::on_doubleSpinBox_valueChanged(double value)
 	slider->blockSignals(true);
 	slider->setValue(int(value*100));
 	slider->blockSignals(false);
-	
+
 	emit valueChanged(value);
 }
 
@@ -59,5 +59,5 @@ double DoubleValueControl::getValue() const
 }
 void DoubleValueControl::setValue(double value)
 {
-    doubleSpinBox->setValue(value);
+	doubleSpinBox->setValue(value);
 }

@@ -66,10 +66,10 @@ public slots:
 	void stop();
 
 private:
-    void sendMidiMessage(MidiMessage& midiMessage, bool bForce = false);
+	void sendMidiMessage(MidiMessage& midiMessage, bool bForce = false);
 	bool classify(MidiMessage& midiMessage);
 	void computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistory& lastMsgSent);
-    MidiMessage* getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType = 9);
+	MidiMessage* getNextMessage(const boost::shared_ptr<Pad>& pElement, int msgType = 9);
 	void sendMidiMessages(MidiMessage::List& midiMessages, bool bForce);
 	void clearAverageLatency();
 	void popInputBuffer(PtTimestamp t);

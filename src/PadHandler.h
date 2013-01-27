@@ -29,10 +29,10 @@ public:
 	PadHandler(const Pad::Ptr& pPad): _pPad(pPad) { }
 	virtual ~PadHandler() {}
 
-    virtual void updateControl() = 0;
+	virtual void updateControl() = 0;
 
 	Pad* getPad() const {return _pPad.get();}
-    void setPad(const Pad::Ptr& pPad) {_pPad = pPad; updateControl();}
+	void setPad(const Pad::Ptr& pPad) {_pPad = pPad; updateControl();}
 
 private:
 	Pad::Ptr _pPad;

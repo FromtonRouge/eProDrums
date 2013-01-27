@@ -345,55 +345,55 @@ void HiHatPedalElement::setHalfOpen(bool state)
 int HiHatPedalElement::getControlPosThreshold() const
 {
 	Mutex::scoped_lock lock(_mutex);
-    return boost::get<int>(_controlPosThreshold);
+	return boost::get<int>(_controlPosThreshold);
 }
 
 void HiHatPedalElement::setControlPosThreshold(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-    _controlPosThreshold = value;
+	_controlPosThreshold = value;
 }
 
 int HiHatPedalElement::getControlPosDelayTime() const
 {
 	Mutex::scoped_lock lock(_mutex);
-    return boost::get<int>(_controlPosDelayTime);
+	return boost::get<int>(_controlPosDelayTime);
 }
 
 void HiHatPedalElement::setControlPosDelayTime(const Parameter::Value& value)
 {
 	Mutex::scoped_lock lock(_mutex);
-    _controlPosDelayTime = value;
+	_controlPosDelayTime = value;
 }
 
 int HiHatPedalElement::getCurrentControlPos() const
 {
 	Mutex::scoped_lock lock(_mutex);
-    return _currentControlPos;
+	return _currentControlPos;
 }
 
 void HiHatPedalElement::setCurrentControlPos(int value)
 {
 	Mutex::scoped_lock lock(_mutex);
-    _currentControlPos = value;
+	_currentControlPos = value;
 }
 
 int HiHatPedalElement::getCurrentDeltaPos() const
 {
 	Mutex::scoped_lock lock(_mutex);
-    return _currentDeltaPos;
+	return _currentDeltaPos;
 }
 
 void HiHatPedalElement::setCurrentDeltaPos(int value)
 {
 	Mutex::scoped_lock lock(_mutex);
-    _currentDeltaPos = value;
+	_currentDeltaPos = value;
 }
 
 float HiHatPedalElement::getCurrentControlSpeed() const
 {
 	Mutex::scoped_lock lock(_mutex);
-    return _currentControlSpeed;
+	return _currentControlSpeed;
 }
 
 int HiHatPedalElement::getPositionOnCloseBegin() const
@@ -412,7 +412,7 @@ HiHatPedalElement::MovingState HiHatPedalElement::setCurrentControlSpeed(float v
 {
 	Mutex::scoped_lock lock(_mutex);
 	MovingState movingState = MS_NO_CHANGE;
-    _currentControlSpeed = value;
+	_currentControlSpeed = value;
 	if (_currentControlSpeed <= 0.f)
 	{
 		if (_previousControlSpeed > 0.f)

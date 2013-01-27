@@ -42,12 +42,12 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	QColor qHiHatControl(245, 255, 166);
 	setSymbol(new QwtSymbol(QwtSymbol::Ellipse, qHiHatControl, qHiHatControl, QSize(2,2)));
 
-    QColor colorMask(Qt::magenta);
+	QColor colorMask(Qt::magenta);
 	colorMask.setAlpha(150);
 	_pLayerFootCanceMaskTime = new QwtPlotHistogram("Foot Cancel Mask Time");
 	_pLayerFootCanceMaskTime->setPen(QPen(QColor(Qt::magenta)));
 	_pLayerFootCanceMaskTime->setBrush(colorMask);
-    _pLayerFootCanceMaskTime->setStyle(QwtPlotHistogram::Outline);
+	_pLayerFootCanceMaskTime->setStyle(QwtPlotHistogram::Outline);
 	_pLayerFootCanceMaskTime->setData(new EProPlotIntervalData());
 	_pLayerFootCanceMaskTime->setItemAttribute(Legend, false);
 	_pLayerFootCanceMaskTime->attach(pPlot);
@@ -57,7 +57,7 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	QColor securedColor(255, 255, 150);
 	securedColor.setAlpha(170);
 	_pLayerStateSecured->setBrush(securedColor);
-    _pLayerStateSecured->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateSecured->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateSecured->setData(new EProPlotIntervalData());
 	_pLayerStateSecured->setItemAttribute(Legend, false);
 	_pLayerStateSecured->attach(pPlot);
@@ -66,25 +66,25 @@ HiHatPositionCurve::HiHatPositionCurve(QwtPlot* pPlot):
 	QColor closedColor(255, 255, 150);
 	closedColor.setAlpha(150);
 	_pLayerStateClosed->setBrush(closedColor);
-    _pLayerStateClosed->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateClosed->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateClosed->setData(new EProPlotIntervalData());
 	_pLayerStateClosed->setItemAttribute(Legend, false);
 	_pLayerStateClosed->attach(pPlot);
-	
+
 	_pLayerStateHalfOpen = new QwtPlotIntervalCurve("Hi Hat half open");
 	QColor halfOpenColor(150, 255, 150);
 	halfOpenColor.setAlpha(150);
 	_pLayerStateHalfOpen->setBrush(halfOpenColor);
-    _pLayerStateHalfOpen->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateHalfOpen->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateHalfOpen->setData(new EProPlotIntervalData());
 	_pLayerStateHalfOpen->setItemAttribute(Legend, false);
 	_pLayerStateHalfOpen->attach(pPlot);
-	
+
 	_pLayerStateOpen = new QwtPlotIntervalCurve("Hi Hat open");
-    QColor openColor(100, 150, 255);
+	QColor openColor(100, 150, 255);
 	openColor.setAlpha(150);
 	_pLayerStateOpen->setBrush(openColor);
-    _pLayerStateOpen->setStyle(QwtPlotIntervalCurve::Tube);
+	_pLayerStateOpen->setStyle(QwtPlotIntervalCurve::Tube);
 	_pLayerStateOpen->setData(new EProPlotIntervalData());
 	_pLayerStateOpen->setItemAttribute(Legend, false);
 	_pLayerStateOpen->attach(pPlot);
@@ -116,7 +116,7 @@ void HiHatPositionCurve::setClosedColor(const QColor& color)
 
 void HiHatPositionCurve::setOpenedColor(const QColor& color)
 {
-    QColor openColor(color);
+	QColor openColor(color);
 	openColor.setAlpha(150);
 	_pLayerStateOpen->setBrush(openColor);
 }

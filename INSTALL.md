@@ -56,7 +56,8 @@ Linux (debian/ubuntu/raspbian)
 	
 		qmake
 		make
+		sudo make install
 
 6.	Run eProDrums
 
-		./eProDrums
+		eProDrums
