@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en_US" lang="en_US">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>Installation</title>
+  <link rel="stylesheet" type="text/css" href="style/eProDrums.css" />
+</head>
+<body>
+	<h1 class="title">Windows</h1>
+	<ol>
+		<li>Get the latest Windows installer from : www.github.com/FromtonRouge/eProDrums</li>
+		<li>Install the software</li>
+	</ol>
+
+	<h1 class="title">Linux (debian/ubuntu/raspbian)</h1>
+	<p>There is no package (don't know how to do that yet). So you'll have to build eProDrums from source.</p>
+	<ol>
+		<li>Get the source code from : www.github.com/FromtonRouge/eProDrums</li>
+		<li>Get portmidi : sudo apt-get install libportmidi-dev</li>
+		<li>Get Qt : sudo apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig</li>
+		<li>Get Qwt from source (at this time 27/01/2013, there is no Qwt6 dev package)</li>
+		<ul>
+			<li>Download Qwt source code from : http://qwt.sourceforge.net</li>
+			<li>Edit qwtconfig.pri and change QWT_INSTALL_PREFIX like this : QWT_INSTALL_PREFIX    = /usr</li>
+			<li>qmake</li>
+			<li>make</li>
+			<li>sudo make install</li>
+		</ul>
+		<li>Get Boost : sudo apt-get install libboost1.50-all-dev</li>
+		<li>Build eProDrums</li>
+		<ul>
+			<li>qmake</li>
+			<li>make</li>
+			<li>sudo make install</li>
+		</ul>
+	</ol>
+
+	<p>Note: on a Raspberry Pi (raspbian), the installation is really long (3 or 4 hours).</p>
+
+	<h1 class="title">Mac OS X</h1>
+	<p>Not tested... eProDrums is portable (in theory). You should build it from source.</p>
+
+</body>
+</html>

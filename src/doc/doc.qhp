@@ -11,7 +11,8 @@
 		<filterAttribute>0.8</filterAttribute>
 		<toc>
 			<section title="eProDrums manual" ref="index.html">
-				<section title="Description" ref="description.html" />
+				<section title="Introduction" ref="introduction.html" />
+				<section title="Installation" ref="installation.html" />
 				<section title="Quick Start" ref="quickstart.html" />
 			</section>
 		</toc>

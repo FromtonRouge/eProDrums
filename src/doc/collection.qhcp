@@ -7,7 +7,7 @@
 		 <applicationIcon>../EProDrums.png</applicationIcon>
          <enableFilterFunctionality>false</enableFilterFunctionality>
          <enableDocumentationManager>false</enableDocumentationManager>
-         <enableAddressBar visible="true">true</enableAddressBar>
+         <enableAddressBar visible="false">false</enableAddressBar>
          <cacheDirectory>FromtonRouge/eProDrums</cacheDirectory>
          <aboutMenuText>
              <text>About eProDrums</text>
