@@ -60,6 +60,10 @@ Section "${APPLICATION_NAME} (required)"
   File "..\install\msvcr100.dll"
   File "..\install\portmidi.dll"
 
+  ; Documentation
+  SetOutPath $INSTDIR\doc
+  File "doc\collection.qhc"
+
   ; Create user settings directories
   SetOutPath "$LOCALAPPDATA\${ORGANIZATION_NAME}\${APPLICATION_NAME}\Kits"
 
