@@ -12,12 +12,14 @@
 		<toc>
 			<section title="eProDrums manual" ref="index.html">
 				<section title="Introduction" ref="introduction.html" />
-				<section title="Installation" ref="installation.html" />
+				<section title="Harware Requirements" ref="hardware-requirements.html" />
+				<section title="Software Installation" ref="software-installation.html" />
 				<section title="Quick Start" ref="quickstart.html" />
 			</section>
 		</toc>
 		<files>
 			<file>*.html</file>
+			<file>images/*.png</file>
 		</files>
 	</filterSection>
 </QtHelpProject>

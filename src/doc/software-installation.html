@@ -3,17 +3,19 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en_US" lang="en_US">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>Installation</title>
+  <title>Software Installation</title>
   <link rel="stylesheet" type="text/css" href="style/eProDrums.css" />
 </head>
 <body>
-	<h1 class="title">Windows</h1>
+	<h1 class="title">Software installation</h1>
+	<h2 class="title">Windows</h2>
 	<ol>
 		<li>Get the latest Windows installer from : www.github.com/FromtonRouge/eProDrums</li>
 		<li>Install the software</li>
 	</ol>
 
-	<h1 class="title">Linux (debian/ubuntu/raspbian)</h1>
+	<h2 class="title">Linux</h2>
+	<h3 class="title">Debian distributions (debian/ubuntu/raspbian etc...)</h3>
 	<p>There is no package (don't know how to do that yet). So you'll have to build eProDrums from source.</p>
 	<ol>
 		<li>Get the source code from : www.github.com/FromtonRouge/eProDrums</li>
@@ -21,7 +23,7 @@
 		<li>Get Qt : sudo apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig</li>
 		<li>Get Qwt from source (at this time 27/01/2013, there is no Qwt6 dev package)</li>
 		<ul>
-			<li>Download Qwt source code from : http://qwt.sourceforge.net</li>
+			<li>Download Qwt source code from : <a href="http://qwt.sourceforge.net" class="classLink">http://qwt.sourceforge.net</a></li>
 			<li>Edit qwtconfig.pri and change QWT_INSTALL_PREFIX like this : QWT_INSTALL_PREFIX    = /usr</li>
 			<li>qmake</li>
 			<li>make</li>
@@ -36,10 +38,22 @@
 		</ul>
 	</ol>
 
-	<p>Note: on a Raspberry Pi (raspbian), the installation is really long (3 or 4 hours).</p>
+	<p>Note: on a Raspberry Pi (raspbian), the installation and compilation is really long (3 or 4 hours).</p>
 
-	<h1 class="title">Mac OS X</h1>
+	<h3 class="title">Other distributions</h3>
+
+	<ol>
+		<li>Get, build and install the portmidi library from source : <a href="http://sourceforge.net/apps/trac/portmedia/wiki/portmidi">http://sourceforge.net/apps/trac/portmedia/wiki/portmidi</a></li>
+		<li>Get, build and install Qt from source : <a href="http://qt.digia.com">http://qt.digia.com</a></li>
+		<li>Get, build and install Qwt from source : <a href="http://qwt.sourceforge.net">http://qwt.sourceforge.net</a></li>
+		<li>Get, build and install Boost from source : <a href="http://www.boost.org">http://www.boost.org</a></li>
+		<li>Get, build and install eProDrums from source : <a href="http://www.github.com/FromtonRouge/eProDrums">http://www.github.com/FromtonRouge/eProDrums</a></li>
+	</ol>
+
+	<h2 class="title">Mac OS X</h2>
 	<p>Not tested... eProDrums is portable (in theory). You should build it from source.</p>
 
+	<a href="hardware-requirements.html" class="classLink"><span>Previous</span></a>
+	<a href="quickstart.html" class="classLink"><span>Next</span></a>
 </body>
 </html>

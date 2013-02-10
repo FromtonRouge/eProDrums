@@ -7,23 +7,47 @@
   <link rel="stylesheet" type="text/css" href="style/eProDrums.css" />
 </head>
 <body>
-	<h1 class="title">What is this software ?</h1>
+	<h1 class="title">Introduction</h1>
+	<h2 class="title">What is this software ?</h2>
 
 	<p>This software is a bridge between your electronic drum kit and the Rock Band Madcatz Midi Pro Adapter.</p>
 
-	<p>It reads midi notes sent by your drum kit, transform those notes (if needed), and then sends new data to the Madcatz Midi Pro Adapter.</p>
-	<p>But why to transform midi notes ? The main purpose is to translate some real drum techniques (eg: flams, hi-hat close/half-open/open, ghost notes etc...) and produce valid Rock Band midi notes to avoid a choke...</p>
+	<p>It reads midi notes sent by your drum kit, analyse your inputs, process/transform those notes and then sends new data to the Madcatz Midi Pro Adapter.</p>
 
-	<p>A basic example are flams : in Rock Band, snare flams are charted in [red+yellow] pads (for a righty drummer), but if you want to do a real flam on your electronic snare you'll produce 2 red notes.</p>
+	<p><center><img src="images/flow.png" alt="" /></center></p>
 
-	<p>eProDrums can interpret those hits and transform them to a [red+yellow] notes. Obviously, it can do more things...</p>
+	<p>But why to analyse/transform your drum hits ? The main purpose is to translate some real drum techniques you can't do normally in the game (eg: flams, hi-hat close/half-open/open, ghost notes etc...)</p>
 
-	<h1 class="title">Who should use this software ?</h1>
+	<p>A basic example are flams : in Rock Band, snare flams are charted in [red,yellow] pads (for a righty drummer), but if you want to do a real flam on your electronic snare you'll produce [red,red] notes instead of [red,yellow] and you will break the combo.</p>
+	<p><center><img src="images/various.png" alt="" /></center></p>
+
+	<p>eProDrums can analyse your hits and transform your [red,red] notes into [red,yellow] notes and you won't break the combo by doing a real flam. Obviously, it can do more things. Actually the features are :
+	<ul>
+		<li><b>Advanced Hi-Hat Settings</b> : Blue note detection from hi-hat position or by studying the hi-hat control speed. The speed detection method allows you to play more naturally with open/close hi-hat. There is also a specific "half-open" state (in green, see below) detected when the hi-hat is in a specific zone during a specific time. When hi-hat is "half-open" all notes are yellow until the hi-hat is closed.</li>
+
+		<p><center><img src="images/screen-hi-hat.png" alt="" width="400" height="350"/> <img src="images/screen-half-open.png" alt="" width="400" height="350" /></center></p>
+
+		<li><b>Hi-Hat Foot Splash cancel</b> : Only usefull for VH-11, VH-12 (or other same kind of eHiHat). Overhits caused by foot splashes are ignored. The filtering is done by studying speed and acceleration during a close movement and a mask window is created to ignore all hi-hat hits under a specific value.</li>
+
+		<p><center><img src="images/screen-footsplash.png" alt="" width="400" height="350"/></center></p>
+		<li><b>Flams detection</b> : When you do a flam on the snare the software convert the flam in [red,yellow] (for a righty drummer). This feature is not limited to the snare, you can add flams detection on all elements (toms, hi-hat, cymbals).</li>
+
+		<li><b>Ghost notes</b> : It can be usefull if you play with your drum module sound and want to add ghost notes to easy songs. The software just ignores notes under a velocity threshold.</li>
+
+		<li><b>Green to Yellow Crash conversion</b> : In Rock Band, for a righty drummer, the left crash is often mapped to the yellow cymbal. If you have a left green crash on your set, this green crash can be converted automatically into a yellow crash. eg: If you hit both left and right green crash, one is converted to yellow cymbal. If you hit the ride and the left green crash, the crash is converted to yellow cymbal too.</li>
+
+		<li><b>Curves Monitor</b> : To help you in your settings, you can see your hits, the curve of the hi-hat controller (position, speed, acceleration), you can zoom in and zoom out and you can measure time windows.</li>
+		<p><center><img src="images\screen-curves-monitor.png" alt="" width="400" height="350"/></center></p>
+	</ul>
+
+	</p>
+
+	<h2 class="title">Who should use this software ?</h2>
 
 	<p>You should use this software if :
 	<ul>
-		<li>You play with the sound of your electronic drum kit and thus you have to play as real as possible (flams, open hi-hat etc...)</li>
-		<li>You don't play with the drum kit sound but you want to keep your playing as real as possible (flams, open hi-hat etc...)</li>
+		<li>You play with the sound of your electronic drum kit and thus you have to play as real as possible to sound correctly (flams, open hi-hat etc...)</li>
+		<li>You don't play with the drum kit sound but you want to keep your playing as real as possible in a gaming configuration (flams, open hi-hat etc...)</li>
 		<li>You just want to use the hi-hat feature (close/half/open)</li>
 		<li>You have a Roland VH-11 or VH-12 and want to use them with Rock Band (close/half/open)</li>
 		<li>You want to add ghost notes in the chart</li>
@@ -31,28 +55,6 @@
 	</ul>
 	</p>
 
-	<h1 class="title">What do I need ?</h1>
-
-	<p> You need : </p>
-	<ol>
-		<li>A computer under :</li>
-		<ul>
-			<li>Windows</li>
-			<li>Linux</li>
-			<ul>
-				<li>Debian</li>
-				<li>Ubuntu</li>
-				<li>Raspbian</li>
-			</ul>
-		</ul>
-		<li>A midi to usb adapter. If you want to use the software on Linux be sure to buy a compatible cable</li>
-		<li>The Madcatz Midi Pro Adapter</li>
-		<li>Sticks...</li>
-	</ol>
-
-	<p>As you can see above, eProDrums works on a Raspberry Pi (Raspbian). A Raspberry Pi cost 30$ so don't buy an expensive computer just for eProDrums.</p>
-
-	<p>There is no mention of Mac OX X. It's just because I can't test it (no hardware).</p>
-
+	<a href="hardware-requirements.html" class="classLink"><span>Next</span></a>
 </body>
 </html>

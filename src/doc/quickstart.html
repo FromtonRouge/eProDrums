@@ -8,6 +8,66 @@
 </head>
 <body>
 	<h1 class="title">Quickstart</h1>
-	<p>TODO</p>
+	<ol>
+		<li>Check first your hardware and connections here <a href="hardware-requirements.html" class="classLink"><span>Hardware requirements</span></a></li>
+
+		<li>Once your midi device is connected to the computer, in eProDrums you will find available midi in and midi out devices on the toolbar (see below)
+		<center><img src="images\quickstart-available-devices.png" alt="" /></center>
+		</li>
+
+		<li>Select your midi in and out devices then click on button "Start"
+		<center><img src="images\quickstart-click-start.png" alt="" /></center>
+		</li>
+
+		<li>Now go the settings by clicking on "Settings" in the "Edit" menu
+		<center><img src="images\quickstart-edit-settings.png" alt="" /></center>
+		</li>
+
+		<li>You see a settings dialog where you can assign midi notes to each eProDrums pad. CC# is defined to 4 (standard value), color and output notes are already defined you don't have to change them. If you are left handed, click on "Left Handed" mode.
+		<p><center><img src="images\quickstart-settings-dialog.png" alt="" /></center></p>
+		</li>
+
+		<li>Let's assign midi notes for the "Snare", click on the "+" button to add midi notes to the snare
+		<center><img src="images\quickstart-click-plus-snare.png" alt="" /></center>
+		</li>
+
+		<li>Now you see a "Snare" dialog where you can add/remove midi notes.
+		<center><img src="images\quickstart-enter-snare-notes.png" alt="" /></center>
+		</li>
+
+		<li>To add a note automatically, you just have to hit your snare. Hit first the head of the snare
+		<p><center><img src="images\snare-head.png" alt="" /></center></p>
+		<p>You see a new midi note value in the dialog. Mine is 38 it's possible that this value is different on your drum kit. The "Hit zone" is set to "None" by default, you can change it to "Head" but at the moment this information is not used on the "Snare" pad (it's only used on the "Hi-hat").</p>
+		<p><center><img src="images\quickstart-first-snare-note.png" alt="" /><img src="images\quickstart-first-snare-note-head.png" alt="" /></center></p>
+		<p>Now hit the snare rim (if any)</p>
+		<p><center><img src="images\snare-rim.png" alt="" /></center></p>
+		<p>You see a new midi note in the dialog again. Mine is 37.</p>
+		<p><center><img src="images\quickstart-snare-rim.png" alt="" /></center></p>
+		<p>We are done with the snare. By doing this we are telling to eProDrums that midi notes 38 and 37 will be converted to the "Snare" in the Rock Band game (red color for a righty drummer)</p>
+		<p>Click on "Ok", now you see this on the settings dialog</p>
+		<p><center><img src="images\quickstart-snare-done.png" alt="" /></center></p>
+		</li>
+
+ 		<li>Now let's do the same thing with the "Hi-hat", click on the "+" button on the "Hi-hat" line
+		<center><img src="images\quickstart-hi-hat-begin.png" alt="" /></center>
+		<p>This time, as we do on the snare with head and rim, we'll hit the bow and edge of the hi-hat</p>
+		<center><img src="images\hi-hat-bow.png" alt="" /><img src="images\hi-hat-edge.png" alt="" /></center>
+
+		<p>Value on my drum kit are 46 and 26. This time setting the "Hit-zone" is important for the hi-hat. Some features in the software use this hit-zone information.</p>
+		<center><img src="images\quickstart-hi-hat-midi-notes.png" alt="" /></center>
+		</li>
+
+		<li>Now that you understand how it works, repeat the process for each eProDrums pad. You can ignore "Hi-hat pedal", "Chameleon Crash" and "Alternate Crash" at the moment.
+		<center><img src="images\quickstart-all-pads-done.png" alt="" /></center>
+		</li>
+
+		<li>Click on the "Ok" button of the "Settings" dialog and now just hit some pads on your drum kit, you should see your hits in the main window.
+		<p><center><img src="images\quickstart-final-check.png" alt="" /></center></p>
+		<p>Now you can play Rock Band without using eProDrums specific features</p>
+		</li>
+	</ol>
+
+	<a href="software-installation.html" class="classLink"><span>Previous</span></a>
+	<a href="software-installation.html" class="classLink"><span>Next</span></a>
 </body>
 </html>
