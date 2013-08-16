@@ -4,7 +4,7 @@ Windows
 Visual Studio 2010 Express
 --------------------------
 
-1.	Get the last portmidi library here (Windows section): http://sourceforge.net/apps/trac/portmedia/wiki/portmidi
+1.	Get the last portmidi library here (Windows section): http://sourceforge.net/p/portmedia/wiki/portmidi
 	
 		-	Build the portmidi.dll
 		-	Move manually portmidi.h and porttime.h files into an include directory of your choice
