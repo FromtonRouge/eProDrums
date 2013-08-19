@@ -22,6 +22,7 @@
 #include "EProPlotZoomer.h"
 #include "qwt_plot_panner.h"
 #include "qwt_plot_magnifier.h"
+#include "qwt_plot_canvas.h"
 #include "qwt_plot.h"
 #include <QMouseEvent>
 #include <boost/format.hpp>

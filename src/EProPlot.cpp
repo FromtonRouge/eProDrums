@@ -25,7 +25,6 @@
 #include "qwt_plot_grid.h"
 #include "qwt_plot_marker.h"
 #include "qwt_legend.h"
-#include "qwt_legend_item.h"
 
 #include <QPen>
 
@@ -41,11 +40,11 @@ EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow): QwtPlot(pParent)
     setCanvasBackground(QColor(Qt::black));
 
     QwtPlotGrid* pGrid = new QwtPlotGrid;
-    pGrid->setMajPen(QPen(Qt::gray, 0, Qt::DotLine));
+	pGrid->setMajorPen(QPen(Qt::gray, 0, Qt::DotLine));
     pGrid->attach(this);
 
     QwtLegend *pLegend = new QwtLegend;
-    pLegend->setItemMode(QwtLegend::CheckableItem);
+    pLegend->setDefaultItemMode(QwtLegendData::Checkable);
     insertLegend(pLegend, QwtPlot::RightLegend);
 
     connect(this, SIGNAL(legendChecked(QwtPlotItem*, bool)), SLOT(showCurve(QwtPlotItem*, bool)));
@@ -67,6 +66,7 @@ void EProPlot::showCurve(QwtPlotItem* pPlotItem, bool bState)
 
 void EProPlot::showAll()
 {
+	/* TODO
     const QList<QWidget*>& legendItems = legend()->legendItems();
     QList<QWidget*>::const_iterator it = legendItems.begin();
     while (it!=legendItems.end())
@@ -77,6 +77,7 @@ void EProPlot::showAll()
             p->setChecked(true);
         }
     } 
+	*/
 }
 
 void EProPlot::clear()

@@ -4,9 +4,9 @@
 
 # Define your paths here
 win32 {
-	BOOST_DIR = E:/Dev/Cpp/Common/boost_1_49_0
-	QWT_DIR = E:/Dev/Cpp/Common/Qwt-6.0.0-svn
-	PORTMIDI_DIR = E:/Dev/Cpp/Common/portmidi
+	BOOST_DIR = D:/vneang/dev/boost_1_54_0
+	QWT_DIR = D:/vneang/dev/Qwt-6.1.0-svn
+	PORTMIDI_DIR = D:/vneang/dev/portmidi
 }
 
 # Define your paths here
@@ -132,14 +132,23 @@ QMAKE_EXTRA_TARGETS += manual
 PRE_TARGETDEPS += doc/collection.qhc
 
 LIBS += -L$${PORTMIDI_DIR}/lib -lportmidi
-LIBS += -L$${QWT_DIR}/lib -lqwt
+LIBS += -L$${QWT_DIR}/lib
 
 win32 {
 	RC_FILE = EProDrums.rc
-	LIBS += -L$${BOOST_DIR}/stage/lib -lqtmain
+	LIBS += -L$${BOOST_DIR}/stage/lib
+
+	debug {
+		LIBS += -lqwtd
+	}
+
+	release {
+		LIBS += -lqwt
+	}
 }
 
 unix {
+	LIBS += -lqwt
 	LIBS += -L$${BOOST_DIR}/lib -lboost_system -lboost_serialization -lboost_thread -lboost_chrono -lboost_filesystem -lboost_program_options
 	LIBS += -L$${PORTMIDI_DIR}/lib -lporttime
 }

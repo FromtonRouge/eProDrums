@@ -41,7 +41,6 @@ EProPlotCurve::EProPlotCurve(const std::string& szName, const QColor& color, int
 
 	_pMarkerInformation = new EProPlotMarker(pPlot, QwtSymbol::Diamond, color);
 	setPaintAttribute(ClipPolygons, true);
-	setPaintAttribute(CacheSymbols, false);
 
 	setData(new EProPlotData());
 }

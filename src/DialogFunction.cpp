@@ -26,6 +26,7 @@
 #include <qwt_symbol.h>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_grid.h>
+#include <qwt_plot_canvas.h>
 #include <qwt_plot_intervalcurve.h>
 #include <qwt_series_data.h>
 #include <QtGui/QPen>
@@ -77,10 +78,10 @@ DialogFunction::DialogFunction(	const LinearFunction::Description::Ptr& pDescrip
 	gridLayout->addWidget(_pPlot, 0, 0);
 
 	QwtPlotGrid* pGrid = new QwtPlotGrid;
-	pGrid->setMajPen(QPen(Qt::gray, 0, Qt::DotLine));
+	pGrid->setMajorPen(QPen(Qt::gray, 0, Qt::DotLine));
 	pGrid->attach(_pPlot);
 
-	_pPlotPicker = new FunctionPlotPicker(_pPlot->canvas());
+	_pPlotPicker = new FunctionPlotPicker(static_cast<QwtPlotCanvas*>(_pPlot->canvas()));
 	_pPlotPicker->setRubberBandPen(QColor(Qt::white));
 	_pPlotPicker->setTrackerPen(QColor(Qt::white));
 	_pPlotPicker->setTrackerMode(FunctionPlotPicker::AlwaysOn);

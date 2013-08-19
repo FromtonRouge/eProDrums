@@ -32,8 +32,9 @@
 #include "HiHatPedalElement.h"
 
 #include <qwt_symbol.h>
+#include <qwt_legend.h>
 #include <qwt_scale_div.h>
-#include <qwt_legend_item.h>
+#include <qwt_plot_canvas.h>
 
 #include <QtGui/QMdiArea>
 #include <QtGui/QCloseEvent>
@@ -58,7 +59,7 @@ GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QM
 	setWidget(_pPlot);
 
     // Plot zoomer
-    _pPlotZoomer = new EProPlotZoomer(_pPlot->canvas());
+    _pPlotZoomer = new EProPlotZoomer(static_cast<QwtPlotCanvas*>(_pPlot->canvas()));
 	connect(_pPlotZoomer, SIGNAL(inRectSelection(bool)), this, SLOT(onRectSelection(bool)));
 	connect(_pPlotZoomer, SIGNAL(leftMouseClicked(const QPoint&)), this, SLOT(onLeftMouseClicked(const QPoint&)));
 	_pPlotZoomer->setEnabled(true);
@@ -125,10 +126,12 @@ void GraphSubWindow::clearPlots()
 
 void GraphSubWindow::setCurveVisibility(EProPlotCurve* pCurve, bool state)
 {
-	QwtLegend* pLegend = _pPlot->legend();
+	/* TODO
+	QwtLegend* pLegend = static_cast<QwtLegend*>(_pPlot->legend());
 	QwtLegendItem* pLegendItem = dynamic_cast<QwtLegendItem*>(pLegend->find(pCurve));
-	pCurve->setVisible(state);
 	pLegendItem->setChecked(state);
+	*/
+	pCurve->setVisible(state);
 }
 
 void GraphSubWindow::replot()
@@ -138,9 +141,9 @@ void GraphSubWindow::replot()
 
 void GraphSubWindow::onCurveWindowLengthChanged(int value)
 {
-	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
+	const QwtScaleDiv& scaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
 	_curveWindowLength = value*1000;
-	int maxValue = pScaleDiv->interval().maxValue();
+	int maxValue = scaleDiv.interval().maxValue();
 	_pPlotZoomer->moveWindow(maxValue-_curveWindowLength, _curveWindowLength, false);
 }
 
@@ -430,9 +433,9 @@ void GraphSubWindow::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::file
 
 void GraphSubWindow::onTimeChange(int ms)
 {
-	QwtScaleDiv* pScaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	int minValue = pScaleDiv->interval().minValue();
-	int maxValue = pScaleDiv->interval().maxValue();
+	const QwtScaleDiv& scaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
+	int minValue = scaleDiv.interval().minValue();
+	int maxValue = scaleDiv.interval().maxValue();
 
 	_pPlotMarker->setVisible(true);
 	_pPlotMarker->setValue(ms, 0);

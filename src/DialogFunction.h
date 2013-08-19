@@ -35,6 +35,7 @@
 class FunctionItemModel;
 class FunctionItemDelegate;
 class QwtPlotIntervalCurve;
+class QwtPlotCanvas;
 class QwtPlotMarker;
 class QMenu;
 
