@@ -34,15 +34,11 @@ int main(int argc, char** argv)
 {
 	int programResult = EXIT_FAILURE;
 
-	// Program options
-	bool bUseGui = true;
-
 	// Program options definition
 	namespace po = boost::program_options;
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		("help", "This help message")
-		("gui", po::value<bool>(&bUseGui)->default_value(true), "Enable/Disable the gui")
 		;
 
 	// Program options parsing
@@ -60,7 +56,7 @@ int main(int argc, char** argv)
 	}
 
 	// Qt initialization
-	QApplication theApp(argc, argv, bUseGui);
+	QApplication theApp(argc, argv);
 	QApplication::setOrganizationName("FromtonRouge");	// Same in .nsi file (WIN32)
 	QApplication::setApplicationName("eProDrums");		// Same in .nsi file (WIN32)
 	QApplication::setApplicationVersion("dev");
@@ -68,44 +64,21 @@ int main(int argc, char** argv)
 	// Program option help
 	if (vm.count("help"))
 	{
-		if (bUseGui)
-		{
-			std::stringstream str;
-			str << desc << std::endl;
-			QMessageBox::information(NULL, "Allowed options", str.str().c_str());
-		}
-		else
-		{
-			std::cout << desc << std::endl;
-		}
+		std::stringstream str;
+		str << desc << std::endl;
+		QMessageBox::information(NULL, "Allowed options", str.str().c_str());
 		return programResult;
 	}
 
 	try
 	{
-		if (bUseGui)
-		{
-			MainWindow mainWindow;
-			mainWindow.show();
-			programResult = theApp.exec();
-		}
-		else
-		{
-			// Not implemented yet
-			std::cerr << "Not yet implemented..." << std::endl;
-			programResult = theApp.exec();
-		}
+		MainWindow mainWindow;
+		mainWindow.show();
+		programResult = theApp.exec();
 	}
 	catch (const std::exception& e)
 	{
-		if (bUseGui)
-		{
-			QMessageBox::critical(NULL, "Error while starting application", e.what());
-		}
-		else
-		{
-			std::cerr << "Error while starting application : " << e.what() << std::endl;
-		}
+		QMessageBox::critical(NULL, "Error while starting application", e.what());
 	}
 
 	return programResult;
