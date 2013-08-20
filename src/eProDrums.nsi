@@ -100,17 +100,19 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
 
   ; Remove files and uninstaller
-  Delete $INSTDIR\${APPLICATION_NAME}.exe
-  Delete $INSTDIR\assistant.exe
-  Delete $INSTDIR\QtGui4.dll
-  Delete $INSTDIR\QtCore4.dll
-  Delete $INSTDIR\QtSvg4.dll
-  Delete $INSTDIR\QtOpenGL4.dll
-  Delete $INSTDIR\qwt.dll
-  Delete $INSTDIR\msvcp100.dll
-  Delete $INSTDIR\msvcr100.dll
-  Delete $INSTDIR\portmidi.dll
-  Delete $INSTDIR\uninstall.exe
+  Delete "$INSTDIR\${APPLICATION_NAME}.exe"
+  Delete "$INSTDIR\assistant.exe"
+  Delete "$INSTDIR\QtGui4.dll"
+  Delete "$INSTDIR\QtCore4.dll"
+  Delete "$INSTDIR\QtSvg4.dll"
+  Delete "$INSTDIR\QtOpenGL4.dll"
+  Delete "$INSTDIR\qwt.dll"
+  Delete "$INSTDIR\msvcp100.dll"
+  Delete "$INSTDIR\msvcr100.dll"
+  Delete "$INSTDIR\portmidi.dll"
+  Delete "$INSTDIR\uninstall.exe"
+  Delete "$INSTDIR\doc\collection.qhc"
+  RMDir "$INSTDIR\doc"
 
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\${APPLICATION_NAME}\*.*"
