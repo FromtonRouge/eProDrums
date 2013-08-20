@@ -5,6 +5,7 @@ src/[r|R]elease/
 src/moc_*
 src/qrc_*
 src/eProDrums
+src/Thumbs.db
 *.obj
 *.o
 *.swp
