@@ -4,9 +4,9 @@
 
 # Define your paths here
 win32 {
-	BOOST_DIR = D:/vneang/dev/boost_1_54_0
-	QWT_DIR = D:/vneang/dev/Qwt-6.1.0-svn
-	PORTMIDI_DIR = D:/vneang/dev/portmidi
+	BOOST_DIR = F:/Dev/Cpp/Common/boost_1_54_0
+	QWT_DIR = F:/Dev/Cpp/Common/Qwt-6.1.0
+	PORTMIDI_DIR = F:/Dev/Cpp/Common/portmidi
 }
 
 # Define your paths here
@@ -138,11 +138,11 @@ win32 {
 	RC_FILE = EProDrums.rc
 	LIBS += -L$${BOOST_DIR}/stage/lib
 
-	debug {
+	build_pass:CONFIG(debug, debug|release) {
+		message(Debug build)
 		LIBS += -lqwtd
-	}
-
-	release {
+	} else:build_pass {
+		message(Release build)
 		LIBS += -lqwt
 	}
 }
