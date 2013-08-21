@@ -70,6 +70,7 @@ Section "${APPLICATION_NAME} (required)"
   ; Documentation
   SetOutPath $INSTDIR\doc
   File "doc\collection.qhc"
+  File "doc\doc.qch"
 
   ; Create user settings directories
   SetOutPath "$LOCALAPPDATA\${ORGANIZATION_NAME}\${APPLICATION_NAME}\Kits"
@@ -125,6 +126,7 @@ Section "Uninstall"
 
   Delete "$INSTDIR\uninstall.exe"
   Delete "$INSTDIR\doc\collection.qhc"
+  Delete "$INSTDIR\doc\doc.qch"
   RMDir "$INSTDIR\doc"
 
   ; Remove shortcuts, if any
