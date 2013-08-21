@@ -4,9 +4,9 @@
 
 # Define your paths here
 win32 {
-	BOOST_DIR = F:/Dev/Cpp/Common/boost_1_54_0
-	QWT_DIR = F:/Dev/Cpp/Common/Qwt-6.1.0
-	PORTMIDI_DIR = F:/Dev/Cpp/Common/portmidi
+	BOOST_DIR = $(BOOST_DIR)
+	QWT_DIR = $(QWT_DIR)
+	PORTMIDI_DIR = $(PORTMIDI_DIR)
 }
 
 # Define your paths here
@@ -139,10 +139,8 @@ win32 {
 	LIBS += -L$${BOOST_DIR}/stage/lib
 
 	build_pass:CONFIG(debug, debug|release) {
-		message(Debug build)
 		LIBS += -lqwtd
 	} else:build_pass {
-		message(Release build)
 		LIBS += -lqwt
 	}
 }

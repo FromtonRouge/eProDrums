@@ -21,9 +21,9 @@ Visual Studio 2010 Express
 
 		-	Build Qt
 
-3.	Get and build the last Qwt library here : http://qwt.sourceforge.net
+3.	Get and build Qwt 6.1.0 library here : http://qwt.sourceforge.net
 
-4.	Get and build the last Boost library here : http://www.boost.org
+4.	Get and build Boost 1.54.0 library here : http://www.boost.org
 
 5.	Define PORTMIDI\_DIR QWT\_DIR and BOOST\_DIR variable in the file eProDrums.pro (win32 section)
 
@@ -47,7 +47,7 @@ Linux (debian/ubuntu/raspbian)
 
 		sudo apt-get install qt4-qmake qt4-dev-tools qt4-qtconfig
 
-3.	Get Qwt from sources (at this time 27/01/2013, there is no Qwt6 dev package)
+3.	Get Qwt 6.1.0 from sources (at this time 27/01/2013, there is no Qwt6 dev package)
 
 		-	Download Qwt source code from : http://qwt.sourceforge.net
 		-	Edit qwtconfig.pri and change QWT_INSTALL_PREFIX like below
