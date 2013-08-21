@@ -35,6 +35,7 @@
 #include <qwt_legend.h>
 #include <qwt_scale_div.h>
 #include <qwt_plot_canvas.h>
+#include <qwt_legend_label.h>
 
 #include <QtGui/QMdiArea>
 #include <QtGui/QCloseEvent>
@@ -126,11 +127,13 @@ void GraphSubWindow::clearPlots()
 
 void GraphSubWindow::setCurveVisibility(EProPlotCurve* pCurve, bool state)
 {
-	/* TODO
+	QVariant itemInfo;
+	itemInfo.setValue<QwtPlotItem*>(pCurve);
+
 	QwtLegend* pLegend = static_cast<QwtLegend*>(_pPlot->legend());
-	QwtLegendItem* pLegendItem = dynamic_cast<QwtLegendItem*>(pLegend->find(pCurve));
-	pLegendItem->setChecked(state);
-	*/
+	QwtLegendLabel* pLegendLabel = static_cast<QwtLegendLabel*>(pLegend->legendWidget(itemInfo));
+	pLegendLabel->setChecked(state);
+
 	pCurve->setVisible(state);
 }
 

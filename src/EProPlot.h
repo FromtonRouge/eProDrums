@@ -36,5 +36,5 @@ public:
 	void clear();
 
 private slots:
-    void showCurve(QwtPlotItem*, bool);
+    void showCurve(const QVariant &, bool, int);
 };

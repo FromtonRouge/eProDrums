@@ -22,9 +22,10 @@
 #include "EProPlot.h"
 #include "EProPlotCurve.h"
 
-#include "qwt_plot_grid.h"
-#include "qwt_plot_marker.h"
-#include "qwt_legend.h"
+#include <qwt_plot_grid.h>
+#include <qwt_plot_marker.h>
+#include <qwt_legend.h>
+#include <qwt_legend_label.h>
 
 #include <QPen>
 
@@ -46,38 +47,43 @@ EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow): QwtPlot(pParent)
     QwtLegend *pLegend = new QwtLegend;
     pLegend->setDefaultItemMode(QwtLegendData::Checkable);
     insertLegend(pLegend, QwtPlot::RightLegend);
-
-    connect(this, SIGNAL(legendChecked(QwtPlotItem*, bool)), SLOT(showCurve(QwtPlotItem*, bool)));
+    connect(pLegend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(const QVariant &, bool, int)));
 }
 
 EProPlot::~EProPlot()
 {
 }
 
-void EProPlot::showCurve(QwtPlotItem* pPlotItem, bool bState)
+void EProPlot::showCurve(const QVariant& itemInfo, bool bChecked, int)
 {
-	EProPlotCurve* p = dynamic_cast<EProPlotCurve*>(pPlotItem);
-	if (p)
+	if (itemInfo.canConvert<QwtPlotItem *>())
 	{
-		p->setVisible(bState);
-		replot();
+		EProPlotCurve* p = dynamic_cast<EProPlotCurve*>(qvariant_cast<QwtPlotItem *>(itemInfo));
+		if (p)
+		{
+			p->setVisible(bChecked);
+			replot();
+		}
 	}
 }
 
 void EProPlot::showAll()
 {
-	/* TODO
-    const QList<QWidget*>& legendItems = legend()->legendItems();
-    QList<QWidget*>::const_iterator it = legendItems.begin();
-    while (it!=legendItems.end())
-    {
-        QwtLegendItem* p = dynamic_cast<QwtLegendItem*>(*(it++));
-        if (p)
-        {
-            p->setChecked(true);
-        }
-    } 
-	*/
+	QwtLegend* pLegend = static_cast<QwtLegend*>(legend());
+	const QwtPlotItemList& list = itemList();
+	QwtPlotItemList::const_iterator it = list.begin();
+	while (it!=list.end())
+	{
+		QwtPlotItem* p = *(it++);
+		EProPlotCurve* pCurve = dynamic_cast<EProPlotCurve*>(p);
+		if (pCurve)
+		{
+			QVariant itemInfo;
+			itemInfo.setValue<QwtPlotItem*>(pCurve);
+			QwtLegendLabel* pLegendLabel = static_cast<QwtLegendLabel*>(pLegend->legendWidget(itemInfo));
+			pLegendLabel->setChecked(true);
+		}
+	}
 }
 
 void EProPlot::clear()

@@ -51,15 +51,21 @@ Section "${APPLICATION_NAME} (required)"
   
   ; Put file there
   File "Release\${APPLICATION_NAME}.exe"
-  File "..\install\assistant.exe"
-  File "..\install\QtGui4.dll"
+
+  File "..\install\QtCLucene4.dll"
   File "..\install\QtCore4.dll"
-  File "..\install\QtSvg4.dll"
+  File "..\install\QtGui4.dll"
+  File "..\install\QtHelp4.dll"
+  File "..\install\QtNetwork4.dll"
   File "..\install\QtOpenGL4.dll"
-  File "..\install\qwt.dll"
+  File "..\install\QtSql4.dll"
+  File "..\install\QtSvg4.dll"
+  File "..\install\QtWebKit4.dll"
+  File "..\install\assistant.exe"
   File "..\install\msvcp100.dll"
   File "..\install\msvcr100.dll"
   File "..\install\portmidi.dll"
+  File "..\install\qwt.dll"
 
   ; Documentation
   SetOutPath $INSTDIR\doc
@@ -100,16 +106,23 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\${ORGANIZATION_NAME}\${APPLICATION_NAME}"
 
   ; Remove files and uninstaller
+
   Delete "$INSTDIR\${APPLICATION_NAME}.exe"
-  Delete "$INSTDIR\assistant.exe"
-  Delete "$INSTDIR\QtGui4.dll"
+  Delete "$INSTDIR\QtCLucene4.dll"
   Delete "$INSTDIR\QtCore4.dll"
-  Delete "$INSTDIR\QtSvg4.dll"
+  Delete "$INSTDIR\QtGui4.dll"
+  Delete "$INSTDIR\QtHelp4.dll"
+  Delete "$INSTDIR\QtNetwork4.dll"
   Delete "$INSTDIR\QtOpenGL4.dll"
-  Delete "$INSTDIR\qwt.dll"
+  Delete "$INSTDIR\QtSql4.dll"
+  Delete "$INSTDIR\QtSvg4.dll"
+  Delete "$INSTDIR\QtWebKit4.dll"
+  Delete "$INSTDIR\assistant.exe"
   Delete "$INSTDIR\msvcp100.dll"
   Delete "$INSTDIR\msvcr100.dll"
   Delete "$INSTDIR\portmidi.dll"
+  Delete "$INSTDIR\qwt.dll"
+
   Delete "$INSTDIR\uninstall.exe"
   Delete "$INSTDIR\doc\collection.qhc"
   RMDir "$INSTDIR\doc"
