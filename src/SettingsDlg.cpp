@@ -172,6 +172,10 @@ void SettingsDlg::on_pushButtonSave_clicked(bool)
 	fileDlg.setAcceptMode(QFileDialog::AcceptSave);
 	if (fileDlg.exec())
 	{
+		DrumKitMidiMap drumKitMidiMap(_pDrumKitItemModel->getDrumKit());
+		drumKitMidiMap.setHiHatControlCC(spinBoxCC->value());
+		_pSettings->setDrumKitMidiMap(drumKitMidiMap);
+
 		const QStringList& files = fileDlg.selectedFiles();
 		_pSettings->saveDrumKitMidiMap(fs::path(files[0].toStdString()));
 		lineEditPath->setText(files[0]);
