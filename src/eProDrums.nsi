@@ -67,6 +67,10 @@ Section "${APPLICATION_NAME} (required)"
   File "..\install\portmidi.dll"
   File "..\install\qwt.dll"
 
+  ; Sql drivers for assistant
+  SetOutPath $INSTDIR\sqldrivers
+  File "..\install\sqldrivers\qsqlite4.dll"
+
   ; Documentation
   SetOutPath $INSTDIR\doc
   File "doc\collection.qhc"
@@ -125,6 +129,10 @@ Section "Uninstall"
   Delete "$INSTDIR\qwt.dll"
 
   Delete "$INSTDIR\uninstall.exe"
+
+  Delete "$INSTDIR\sqldrivers\qsqlite4.dll"
+  RMDir "$INSTDIR\sqldrivers"
+
   Delete "$INSTDIR\doc\collection.qhc"
   Delete "$INSTDIR\doc\doc.qch"
   RMDir "$INSTDIR\doc"
