@@ -446,11 +446,11 @@ void GraphSubWindow::onTimeChange(int ms)
 
 	if (ms<=minValue)
 	{
-		_pPlotZoomer->onTimeChange(ms);
+		_pPlot->setAxisScale(QwtPlot::xBottom, ms, maxValue-(minValue-ms));
 	}
 	else if (ms >=maxValue)
 	{
-		_pPlotZoomer->onTimeChange(ms-_curveWindowLength);
+		_pPlot->setAxisScale(QwtPlot::xBottom, minValue+(ms-maxValue), ms);
 	}
 }
 

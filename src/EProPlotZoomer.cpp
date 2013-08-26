@@ -230,9 +230,3 @@ void EProPlotZoomer::onPlotSelectionMoved(const QPoint& pointInPixel)
 	}
 	emit inRectSelection(true);
 }
-
-void EProPlotZoomer::onTimeChange(int ms)
-{
-	moveTo(QPointF(ms, 0));
-	emit zoomed(zoomRect());
-}

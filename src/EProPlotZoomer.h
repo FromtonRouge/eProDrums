@@ -43,9 +43,6 @@ signals:
 	void inRectSelection(bool);
 	void leftMouseClicked(const QPoint&);
 
-public slots:
-	void onTimeChange(int ms);
-
 protected slots:
 	void onPlotSelectionMoved(const QPoint& point);
 	void onPlotSelectionAppended(const QPoint& point);
