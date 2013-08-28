@@ -95,7 +95,6 @@ private:
 	QTimer*				_pRedrawTimer;
 	int					_redrawPeriod;
 
-	int					_curveWindowLength;
 	HiHatPositionCurve*	_curveHiHatPosition;
 	EProPlotCurve*		_curveHiHatAcceleration;
 	EProPlotCurve*		_curveLatency;

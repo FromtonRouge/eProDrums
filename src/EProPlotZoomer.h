@@ -37,7 +37,9 @@ public:
     EProPlotZoomer(QwtPlotCanvas* pCanvas);
     virtual ~EProPlotZoomer();
 
-	void moveWindow(double x, double width, bool bSaveWindow = true);
+	void setDefaultScaleLength(int length) {_defaultScaleLength = length;}
+	int getDefaultScaleLength() const {return _defaultScaleLength;}
+	void setLastTime(int t) {_lastTime = t;}
 
 signals:
 	void inRectSelection(bool);
@@ -56,11 +58,11 @@ protected:
 	virtual QwtText trackerText(const QPoint &) const;
 
 private:
-    mutable bool _bModifierPressed;
-    std::vector<QPointF> _plotSelectionPoints;
-	std::pair<int, int> _rect;
-	QwtPlotPanner* _plotPanner;
-	QwtPlotMagnifier* _pPlotMagnifier;
-	double _savedWindowX;
-	double _savedWindowWidth;
+    mutable bool			_bModifierPressed;
+    std::vector<QPointF>	_plotSelectionPoints;
+	std::pair<int, int>		_rect;
+	QwtPlotPanner*			_plotPanner;
+	QwtPlotMagnifier*		_pPlotMagnifier;
+	int						_defaultScaleLength;
+	int						_lastTime;
 };

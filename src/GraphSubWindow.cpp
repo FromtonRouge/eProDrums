@@ -47,8 +47,7 @@
 GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QMdiSubWindow(pParent),
 	_pUserSettings(pUserSettings),
 	_bRedrawState(true),
-	_redrawPeriod(25),
-	_curveWindowLength(5000)
+	_redrawPeriod(25)
 {
 	setAttribute(Qt::WA_DeleteOnClose);
 
@@ -116,7 +115,9 @@ GraphSubWindow::~GraphSubWindow()
 
 void GraphSubWindow::clearPlots()
 {
-	_pPlotZoomer->moveWindow(0, _curveWindowLength);
+	// Reset axis scale
+	_pPlot->setAxisScale(QwtPlot::xBottom, 0, _pPlotZoomer->getDefaultScaleLength());
+	_pPlot->setAxisScale(QwtPlot::yLeft, 0, 127);
 
 	_curveHiHatPosition->showMarkers(false);
 	_curveHiHatAcceleration->showMarkers(false);
@@ -144,10 +145,7 @@ void GraphSubWindow::replot()
 
 void GraphSubWindow::onCurveWindowLengthChanged(int value)
 {
-	const QwtScaleDiv& scaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	_curveWindowLength = value*1000;
-	int maxValue = scaleDiv.interval().maxValue();
-	_pPlotZoomer->moveWindow(maxValue-_curveWindowLength, _curveWindowLength, false);
+	_pPlotZoomer->setDefaultScaleLength(value*1000);
 }
 
 void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
@@ -164,10 +162,18 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
    	float hiHatControlSpeed = midiMessage.hiHatSpeed;
 	float hiHatAcceleration = midiMessage.hiHatAcceleration;
 
-	const QRectF& rectBase = _pPlotZoomer->zoomBase();
-	if (sentTime>rectBase.right())
+	// Auto pan if the time of the midi message is above the maximum axis value
+	// Note: Should be configurable
+	const QwtScaleDiv& scaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
+	const int minValue = scaleDiv.interval().minValue();
+	const int maxValue = scaleDiv.interval().maxValue();
+	if (sentTime>=maxValue)
 	{
-		_pPlotZoomer->moveWindow(sentTime, _curveWindowLength);
+		_pPlot->setAxisScale(QwtPlot::xBottom, sentTime, sentTime+(maxValue-minValue));
+	}
+	else if (sentTime<minValue)
+	{
+		_pPlot->setAxisScale(QwtPlot::xBottom, sentTime, sentTime+(maxValue-minValue));
 	}
 
     // CC#4
@@ -196,6 +202,8 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 	{
 		_pRedrawTimer->start(_redrawPeriod);
 	}
+
+	_pPlotZoomer->setLastTime(sentTime);
 }
 
 void GraphSubWindow::onLeftMouseClicked(const QPoint& pos)
@@ -437,8 +445,8 @@ void GraphSubWindow::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::file
 void GraphSubWindow::onTimeChange(int ms)
 {
 	const QwtScaleDiv& scaleDiv = _pPlot->axisScaleDiv(QwtPlot::xBottom);
-	int minValue = scaleDiv.interval().minValue();
-	int maxValue = scaleDiv.interval().maxValue();
+	const int minValue = scaleDiv.interval().minValue();
+	const int maxValue = scaleDiv.interval().maxValue();
 
 	_pPlotMarker->setVisible(true);
 	_pPlotMarker->setValue(ms, 0);

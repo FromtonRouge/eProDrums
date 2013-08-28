@@ -29,11 +29,11 @@
 #include <cmath>
 #include <iostream>
 
-EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
-	QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, pCanvas),
-	_bModifierPressed(false),
-	_savedWindowX(0),
-	_savedWindowWidth(0)
+EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas)
+	: QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, pCanvas)
+	, _bModifierPressed(false)
+	, _defaultScaleLength(5000)
+	, _lastTime(0)
 {
 	_plotPanner = new QwtPlotPanner(pCanvas);
 	_plotPanner->setAxisEnabled(QwtPlot::xBottom, true);
@@ -55,19 +55,6 @@ EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas):
 
 EProPlotZoomer::~EProPlotZoomer()
 {
-}
-
-void EProPlotZoomer::moveWindow(double x, double width, bool bSaveWindow)
-{
-	if (bSaveWindow)
-	{
-		_savedWindowX = x;
-		_savedWindowWidth = width;
-	}
-
-	plot()->setAxisScale(QwtPlot::xBottom, 0, x+width);
-	setZoomBase(QRectF(x, 0, width, 127));
-	zoom(QRectF(x, 0, width, 127));
 }
 
 void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
@@ -100,7 +87,9 @@ void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
 
 	case Qt::RightButton:
 		{
-			moveWindow(_savedWindowX, _savedWindowWidth, true);
+			plot()->setAxisScale(QwtPlot::xBottom, _lastTime, _lastTime+_defaultScaleLength);
+			plot()->setAxisScale(QwtPlot::yLeft, 0, 127);
+			plot()->replot();
 			break;
 		}
 
