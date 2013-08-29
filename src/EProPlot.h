@@ -35,6 +35,19 @@ public:
     void showAll();
 	void clear();
 
+	void setDefaultScaleLength(int length) {_defaultScaleLength = length;}
+	int getDefaultScaleLength() const {return _defaultScaleLength;}
+	void setLastTime(int t) {_lastTime = t;}
+
+protected:
+	virtual void mousePressEvent(QMouseEvent* pEvent);
+
 private slots:
     void showCurve(const QVariant &, bool, int);
+	void onResetZoom();
+	void onCurveVisibilityTriggered();
+
+private:
+	int	_defaultScaleLength;
+	int	_lastTime;
 };

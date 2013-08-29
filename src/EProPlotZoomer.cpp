@@ -32,8 +32,6 @@
 EProPlotZoomer::EProPlotZoomer(QwtPlotCanvas* pCanvas)
 	: QwtPlotZoomer( QwtPlot::xBottom, QwtPlot::yLeft, pCanvas)
 	, _bModifierPressed(false)
-	, _defaultScaleLength(5000)
-	, _lastTime(0)
 {
 	_plotPanner = new QwtPlotPanner(pCanvas);
 	_plotPanner->setAxisEnabled(QwtPlot::xBottom, true);
@@ -87,9 +85,6 @@ void EProPlotZoomer::widgetMousePressEvent(QMouseEvent*	pMouseEvent)
 
 	case Qt::RightButton:
 		{
-			plot()->setAxisScale(QwtPlot::xBottom, _lastTime, _lastTime+_defaultScaleLength);
-			plot()->setAxisScale(QwtPlot::yLeft, 0, 127);
-			plot()->replot();
 			break;
 		}
 

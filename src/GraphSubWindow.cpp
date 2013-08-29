@@ -32,10 +32,8 @@
 #include "HiHatPedalElement.h"
 
 #include <qwt_symbol.h>
-#include <qwt_legend.h>
 #include <qwt_scale_div.h>
 #include <qwt_plot_canvas.h>
-#include <qwt_legend_label.h>
 
 #include <QtGui/QMdiArea>
 #include <QtGui/QCloseEvent>
@@ -116,7 +114,7 @@ GraphSubWindow::~GraphSubWindow()
 void GraphSubWindow::clearPlots()
 {
 	// Reset axis scale
-	_pPlot->setAxisScale(QwtPlot::xBottom, 0, _pPlotZoomer->getDefaultScaleLength());
+	_pPlot->setAxisScale(QwtPlot::xBottom, 0, _pPlot->getDefaultScaleLength());
 	_pPlot->setAxisScale(QwtPlot::yLeft, 0, 127);
 
 	_curveHiHatPosition->showMarkers(false);
@@ -128,13 +126,6 @@ void GraphSubWindow::clearPlots()
 
 void GraphSubWindow::setCurveVisibility(EProPlotCurve* pCurve, bool state)
 {
-	QVariant itemInfo;
-	itemInfo.setValue<QwtPlotItem*>(pCurve);
-
-	QwtLegend* pLegend = static_cast<QwtLegend*>(_pPlot->legend());
-	QwtLegendLabel* pLegendLabel = static_cast<QwtLegendLabel*>(pLegend->legendWidget(itemInfo));
-	pLegendLabel->setChecked(state);
-
 	pCurve->setVisible(state);
 }
 
@@ -145,7 +136,7 @@ void GraphSubWindow::replot()
 
 void GraphSubWindow::onCurveWindowLengthChanged(int value)
 {
-	_pPlotZoomer->setDefaultScaleLength(value*1000);
+	_pPlot->setDefaultScaleLength(value*1000);
 }
 
 void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
@@ -203,7 +194,7 @@ void GraphSubWindow::onUpdatePlot(const MidiMessage& midiMessage)
 		_pRedrawTimer->start(_redrawPeriod);
 	}
 
-	_pPlotZoomer->setLastTime(sentTime);
+	_pPlot->setLastTime(sentTime);
 }
 
 void GraphSubWindow::onLeftMouseClicked(const QPoint& pos)

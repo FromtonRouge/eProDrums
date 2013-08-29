@@ -37,10 +37,6 @@ public:
     EProPlotZoomer(QwtPlotCanvas* pCanvas);
     virtual ~EProPlotZoomer();
 
-	void setDefaultScaleLength(int length) {_defaultScaleLength = length;}
-	int getDefaultScaleLength() const {return _defaultScaleLength;}
-	void setLastTime(int t) {_lastTime = t;}
-
 signals:
 	void inRectSelection(bool);
 	void leftMouseClicked(const QPoint&);
@@ -63,6 +59,4 @@ private:
 	std::pair<int, int>		_rect;
 	QwtPlotPanner*			_plotPanner;
 	QwtPlotMagnifier*		_pPlotMagnifier;
-	int						_defaultScaleLength;
-	int						_lastTime;
 };

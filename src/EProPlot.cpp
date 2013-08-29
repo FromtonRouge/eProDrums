@@ -24,30 +24,32 @@
 
 #include <qwt_plot_grid.h>
 #include <qwt_plot_marker.h>
-#include <qwt_legend.h>
-#include <qwt_legend_label.h>
 
 #include <QPen>
+#include <QMenu>
+#include <QMouseEvent>
 
 #include <boost/format.hpp>
 
-EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow): QwtPlot(pParent)
-{
-	setAutoReplot(false);
+Q_DECLARE_METATYPE(EProPlotCurve*);
 
+EProPlot::EProPlot(QWidget* pParent, int plotTimeWindow)
+	: QwtPlot(pParent)
+	, _defaultScaleLength(5000)
+	, _lastTime(0)
+{
+	setMinimumSize(1,1);
+	setAutoReplot(false);
+	
     setAxisScale(QwtPlot::yLeft, 0, 127, 30);
     setAxisMaxMinor(QwtPlot::yLeft, 2);
     setAxisScale(QwtPlot::xBottom, 0, plotTimeWindow, 1000);
+
     setCanvasBackground(QColor(Qt::black));
 
     QwtPlotGrid* pGrid = new QwtPlotGrid;
 	pGrid->setMajorPen(QPen(Qt::gray, 0, Qt::DotLine));
     pGrid->attach(this);
-
-    QwtLegend *pLegend = new QwtLegend;
-    pLegend->setDefaultItemMode(QwtLegendData::Checkable);
-    insertLegend(pLegend, QwtPlot::RightLegend);
-    connect(pLegend, SIGNAL(checked(const QVariant &, bool, int)), this, SLOT(showCurve(const QVariant &, bool, int)));
 }
 
 EProPlot::~EProPlot()
@@ -69,7 +71,6 @@ void EProPlot::showCurve(const QVariant& itemInfo, bool bChecked, int)
 
 void EProPlot::showAll()
 {
-	QwtLegend* pLegend = static_cast<QwtLegend*>(legend());
 	const QwtPlotItemList& list = itemList();
 	QwtPlotItemList::const_iterator it = list.begin();
 	while (it!=list.end())
@@ -78,10 +79,7 @@ void EProPlot::showAll()
 		EProPlotCurve* pCurve = dynamic_cast<EProPlotCurve*>(p);
 		if (pCurve)
 		{
-			QVariant itemInfo;
-			itemInfo.setValue<QwtPlotItem*>(pCurve);
-			QwtLegendLabel* pLegendLabel = static_cast<QwtLegendLabel*>(pLegend->legendWidget(itemInfo));
-			pLegendLabel->setChecked(true);
+			pCurve->setVisible(true);
 		}
 	}
 }
@@ -99,4 +97,57 @@ void EProPlot::clear()
 			pCurve->clear();
 		}
 	}
+}
+
+void EProPlot::onResetZoom()
+{
+	setAxisScale(QwtPlot::xBottom, _lastTime, _lastTime+_defaultScaleLength);
+	setAxisScale(QwtPlot::yLeft, 0, 127);
+	replot();
+}
+
+void EProPlot::onCurveVisibilityTriggered()
+{
+	QAction* pAction = qobject_cast<QAction*>(sender());
+	EProPlotCurve* p = pAction->data().value<EProPlotCurve*>();
+	p->setVisible(!p->isVisible());
+	replot();
+}
+
+void EProPlot::mousePressEvent(QMouseEvent* pEvent)
+{
+	Qt::MouseButtons buttons = pEvent->buttons();
+	if (buttons & Qt::RightButton)
+	{
+		QMenu menu(this);
+		menu.addAction(tr("Reset Zoom"), this, SLOT(onResetZoom()));
+		menu.addSeparator();
+		
+		// Build the menu used to control curve visibility
+		QPixmap pixmap(12,12);
+		const QwtPlotItemList& list = itemList();
+		QwtPlotItemList::const_iterator it = list.begin();
+		while (it!=list.end())
+		{
+			QwtPlotItem* p = *(it++);
+			EProPlotCurve* pCurve = dynamic_cast<EProPlotCurve*>(p);
+			if (pCurve)
+			{
+				QAction* p = new QAction(pCurve->title().text(), &menu);
+				connect(p, SIGNAL(triggered(bool)), this, SLOT(onCurveVisibilityTriggered()));
+				pixmap.fill(pCurve->pen().color());
+				p->setIcon(QIcon(pixmap));
+				p->setIconVisibleInMenu(true);
+				p->setCheckable(true);
+				p->setChecked(pCurve->isVisible());
+				QVariant v;
+				v.setValue(pCurve);
+				p->setData(v);
+				menu.addAction(p);
+			}
+		}
+
+		menu.exec(QCursor::pos());
+	}
+	QwtPlot::mousePressEvent(pEvent);
 }
