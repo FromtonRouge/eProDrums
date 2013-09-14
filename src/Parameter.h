@@ -24,6 +24,7 @@
 #include "LinearFunction.h"
 
 #include <QtGui/QColor>
+#include <QtGui/QPolygonF>
 
 #include <boost/variant.hpp>
 #include <boost/shared_ptr.hpp>
@@ -44,7 +45,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	typedef boost::shared_ptr<Parameter> Ptr;
 	typedef std::vector<Ptr> List;
 	typedef std::map<int, std::string> DictEnums;
-	typedef boost::variant<bool, int, float, std::string, LinearFunction::List> Value;
+	typedef boost::variant<bool, int, float, std::string, QPolygonF> Value;
 	typedef boost::signals2::signal<void (const Value&)> OnValueChanged;
 
 	Parameter(	const std::string& szLabel = std::string(),
@@ -126,7 +127,7 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 
 	Parameter(	const std::string& szLabel,
 				const LinearFunction::Description::Ptr& pDescription,
-		   		const LinearFunction::List& value,
+		   		const QPolygonF& value,
 				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
 				const std::string& szDescription = std::string()):
 		label(szLabel),

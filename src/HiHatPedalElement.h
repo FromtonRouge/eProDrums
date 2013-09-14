@@ -159,7 +159,7 @@ public:
 	void setHalfOpenMaximumPosition(const Parameter::Value& value);
 	int getHalfOpenActivationTime() const;
 	void setHalfOpenActivationTime(const Parameter::Value& value);
-	LinearFunction::List getBlueAccentFunctions() const;
+	QPolygonF getBlueAccentFunctions() const;
 	void setBlueAccentFunctions(const Parameter::Value& value);
 	void setBlueAccentOverride(const Parameter::Value& value);
 	bool isBlueAccentOverride() const;

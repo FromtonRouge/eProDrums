@@ -24,60 +24,40 @@
 #include "LinearFunction.h"
 
 #include "ui_DialogFunction.h"
+
 #include <qwt_plot.h>
 #include <qwt_plot_picker.h>
 
 #include <boost/scoped_ptr.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/signals2.hpp>
-#include <vector>
 
-class FunctionItemModel;
-class FunctionItemDelegate;
-class QwtPlotIntervalCurve;
-class QwtPlotCanvas;
-class QwtPlotMarker;
-class QMenu;
+class QwtPlotCurve;
 
 class DialogFunction : public QDialog, private Ui::DialogFunction
 {
 	Q_OBJECT
-private:
-	struct FunctionPlotPicker : public QwtPlotPicker
-	{
-		typedef boost::signals2::signal<void (const QPointF&)> OnTrackerPosChanged;
-		OnTrackerPosChanged onTrackerPosChanged;
-
-		FunctionPlotPicker(QwtPlotCanvas*);
-
-	protected:
-		virtual QwtText trackerText(const QPoint &) const;
-	};
 
 public:
 	DialogFunction(	const LinearFunction::Description::Ptr& pDescription,
-					const LinearFunction::List& functions, QWidget* pParent=NULL);
+					const QPolygonF& curveSamples,
+					QWidget* pParent=NULL);
 	virtual ~DialogFunction();
 
-	const LinearFunction::List& getFunctions();
+	QPolygonF getCurveSamples() const;
+
+	virtual bool eventFilter(QObject* watched, QEvent* event);
 
 private slots:
-	void onModelChanged();
-	void onCustomContextMenuRequested(const QPoint&);
-	void onActionAddTriggered(bool checked=false);
-	void onActionRemoveTriggered(bool checked=false);
+	void onInsertPoint();
+	void onRemovePoint();
 
 protected:
-	void onTrackerPosChanged(const QPointF&);
+	void updatePoint(const QPointF& point, QPolygonF& rSamples, int indexPoint);
+	void updateBranch(const QPointF& point, QPolygonF& rSamples, int indexPoint1, int indexPoint2);
 
 private:
-	QwtPlot*			_pPlot;
-	QwtPlotMarker*		_pPlotMarker;
-	FunctionPlotPicker*	_pPlotPicker;
-	QMenu*				_pMenu;
-	boost::scoped_ptr<FunctionItemModel>			_pFunctionItemModel;
-	boost::scoped_ptr<FunctionItemDelegate>			_pFunctionItemDelegate;
-	std::vector< boost::shared_ptr<QwtPlotIntervalCurve> >	_curves;
-	LinearFunction::List	_functions;
+	boost::scoped_ptr<QwtPlotCurve>		_pCurve;
 	LinearFunction::Description::Ptr	_pDescription;
+	int									_indexSelectedPoint;
+	int									_relativeIndex;
+	QPoint								_lastPosition;
 };

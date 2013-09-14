@@ -29,11 +29,57 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/variant.hpp>
+#include <boost/serialization/split_free.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
 #include <vector>
+
+/**
+ * Custom serialization for some Qt types
+ */
+namespace boost
+{
+	namespace serialization
+	{
+		template<class Archive> void serialize(Archive& ar, QPointF& point, const unsigned int)
+		{
+			ar & boost::serialization::make_nvp("x", point.rx());
+			ar & boost::serialization::make_nvp("y", point.ry());
+		}
+
+		template<class Archive> void serialize(Archive& ar, QPolygonF& points, const unsigned int version)
+		{
+			boost::serialization::split_free(ar, points, version);
+		}
+
+		template<class Archive> void load(Archive& ar, QPolygonF& points, const unsigned int)
+		{
+			int size = 0;
+			ar >> boost::serialization::make_nvp("size", size);
+			points.resize(size);
+			for (int i=0; i<points.size();++i)
+			{
+				QPointF& rPoint = points[i];
+				ar >> boost::serialization::make_nvp("point", rPoint);
+			}
+		}
+
+		template<class Archive> void save(Archive& ar, const QPolygonF& points, const unsigned int)
+		{
+			int size = points.size();
+			ar << boost::serialization::make_nvp("size", size);
+			for (int i=0; i<points.size();++i)
+			{
+				ar << boost::serialization::make_nvp("point", points[i]);
+			}
+		}
+	}
+}
+
+BOOST_CLASS_VERSION(QPointF, 0)
+BOOST_CLASS_VERSION(QPolygonF, 0)
 
 /**
  * Note: Thread safe
@@ -139,7 +185,7 @@ public:
 	void setGhostVelocityLimit(const Parameter::Value& velocity);
 	bool isFlamActivated() const;
 	void setFlamActivated(const Parameter::Value& value);
-	LinearFunction::List getFlamFunctions() const;
+	QPolygonF getFlamFunctions() const;
 	void setFlamFunctions(const Parameter::Value& value);
 	int getFlamCancelDuringRoll() const;
 	void setFlamCancelDuringRoll(const Parameter::Value& value);

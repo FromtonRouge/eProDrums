@@ -69,12 +69,14 @@ HiHatPedalElement::HiHatPedalElement():
 	_halfOpenMaximumPosition(65),
 	_halfOpenActivationTime(50)
 {
-	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 127, 127));
-	functions.push_back(LinearFunction(45, 48, 90, 80));
-	functions.push_back(LinearFunction(48, 60, 80, 80));
-	functions.push_back(LinearFunction(60, 127, 80, 80));
-	_blueAccentFunctions = functions;
+	QPolygonF points;
+	points.push_back(QPointF(0, 127));
+	points.push_back(QPointF(45, 127));
+	points.push_back(QPointF(45, 90));
+	points.push_back(QPointF(48, 80));
+	points.push_back(QPointF(60, 80));
+	points.push_back(QPointF(127, 80));
+	_blueAccentFunctions = points;
 }
 
 HiHatPedalElement::HiHatPedalElement(const HiHatPedalElement& rOther):Pad(rOther)
@@ -698,10 +700,10 @@ void HiHatPedalElement::setHalfOpenActivationTime(const Parameter::Value& value)
 	_halfOpenActivationTime = value;
 }
 
-LinearFunction::List HiHatPedalElement::getBlueAccentFunctions() const
+QPolygonF HiHatPedalElement::getBlueAccentFunctions() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<LinearFunction::List>(_blueAccentFunctions);
+	return boost::get<QPolygonF>(_blueAccentFunctions);
 }
 
 void HiHatPedalElement::setBlueAccentFunctions(const Parameter::Value& value)

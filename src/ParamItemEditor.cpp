@@ -98,7 +98,7 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
 	_pStackedWidget->addWidget(_pComboBox);
 
-	// For LinearFunction::List
+	// For QPolygonF
 	_pPushButton = new QPushButton(this);
 	_pPushButton->setIcon(QIcon(":/FunctionEdit.png"));
 	_pPushButton->setText(tr("Edit parameters..."));
@@ -279,7 +279,7 @@ void ParamItemEditor::setData(Parameter* pData)
 		_pStackedWidget->setCurrentIndex(3);
 		_pLineEdit->setText(boost::get<std::string>(value).c_str());
 	}
-	else if (boost::get<LinearFunction::List>(&value))
+	else if (boost::get<QPolygonF>(&value))
 	{
 		_pStackedWidget->setCurrentIndex(5);
 	}
@@ -287,11 +287,11 @@ void ParamItemEditor::setData(Parameter* pData)
 
 void ParamItemEditor::onPushButtonClicked()
 {
-	const LinearFunction::List& functions = boost::get<LinearFunction::List>(_pData->getValue());
-	DialogFunction dlg(_pData->getFunctionDescription(), functions, this);
+	const QPolygonF& curveSamples = boost::get<QPolygonF>(_pData->getValue());
+	DialogFunction dlg(_pData->getFunctionDescription(), curveSamples, this);
 	if (dlg.exec())
 	{
-		_pData->setValue(dlg.getFunctions());
+		_pData->setValue(dlg.getCurveSamples());
 		emit editFinished(this);
 	}
 }

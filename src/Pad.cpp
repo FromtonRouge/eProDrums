@@ -58,10 +58,12 @@ Pad::Pad():
 	_isFlamActivated(false),
 	_flamCancelDuringRoll(100)
 {
-	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 1.0f, 1.0f));
-	functions.push_back(LinearFunction(45, 80, 1.15f, 1.20f));
-	_flamFunctions = functions;
+	QPolygonF points;
+	points.push_back(QPointF(0, 1.0));
+	points.push_back(QPointF(45, 1.0));
+	points.push_back(QPointF(45, 1.15));
+	points.push_back(QPointF(80, 1.20));
+	_flamFunctions = points;
 }
 
 Pad::Pad(Type type, int defaultMidiNote):
@@ -73,10 +75,13 @@ Pad::Pad(Type type, int defaultMidiNote):
 	_flamCancelDuringRoll(100)
 {
 	_color = DICT_COLORS[_type];
-	LinearFunction::List functions;
-	functions.push_back(LinearFunction(0, 45, 1.0f, 1.0f));
-	functions.push_back(LinearFunction(45, 80, 1.15f, 1.20f));
-	_flamFunctions = functions;
+
+	QPolygonF points;
+	points.push_back(QPointF(0, 1.0));
+	points.push_back(QPointF(45, 1.0));
+	points.push_back(QPointF(45, 1.15));
+	points.push_back(QPointF(80, 1.20));
+	_flamFunctions = points;
 }
 
 std::string Pad::getName(Type type)
@@ -226,10 +231,10 @@ void Pad::setFlamActivated(const Parameter::Value& value)
 	_isFlamActivated = value;
 }
 
-LinearFunction::List Pad::getFlamFunctions() const
+QPolygonF Pad::getFlamFunctions() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<LinearFunction::List>(_flamFunctions);
+	return boost::get<QPolygonF>(_flamFunctions);
 }
 
 void Pad::setFlamFunctions(const Parameter::Value& value)

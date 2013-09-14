@@ -21,16 +21,21 @@
 
 #include "LinearFunction.h"
 
-bool LinearFunction::apply(const LinearFunction::List& functions, float x, float& y)
+bool LinearFunction::apply(const QPolygonF& curveSamples, float x, float& y)
 {
-	List::const_iterator it = functions.begin();
-	while (it!=functions.end())
+	const int nbSamples = curveSamples.size();
+	for (int i=0; i<nbSamples; ++i)
 	{
-		const LinearFunction& f = *(it++);
-		if (f.canApply(x))
+		const QPointF& point1 = curveSamples[i];
+		if (i+1 < nbSamples)
 		{
-			y = f(x);
-			return true;
+			const QPointF& point2 = curveSamples[i+1];
+			if (point1.x()!=point2.x() && x>=point1.x() && x<=point2.x())
+			{
+				LinearFunction f(point1, point2);
+				y = f(x);
+				return true;
+			}
 		}
 	}
 	return false;
