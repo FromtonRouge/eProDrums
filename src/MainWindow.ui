@@ -89,8 +89,14 @@
     <addaction name="actionAssistant"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuWindows">
+    <property name="title">
+     <string>Windows</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuWindows"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -102,7 +108,7 @@
     </sizepolicy>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetVerticalTitleBar</set>
+    <set>QDockWidget::DockWidgetFeatureMask</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::BottomDockWidgetArea</set>
@@ -190,14 +196,7 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="pushButtonStressTest">
-            <property name="text">
-             <string>Stress Test</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
+          <item row="0" column="0" colspan="2">
            <widget class="QPushButton" name="pushButtonClearLogs">
             <property name="text">
              <string>Clear</string>
@@ -243,7 +242,7 @@
   <action name="actionOpen">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Open.png</normaloff>:/Open.png</iconset>
+     <normaloff>:/icons/folder-open-document.png</normaloff>:/icons/folder-open-document.png</iconset>
    </property>
    <property name="text">
     <string>Open...</string>
@@ -255,7 +254,7 @@
   <action name="actionSave">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Save.png</normaloff>:/Save.png</iconset>
+     <normaloff>:/icons/disk.png</normaloff>:/icons/disk.png</iconset>
    </property>
    <property name="text">
     <string>Save</string>
@@ -267,7 +266,7 @@
   <action name="actionSave_As">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Save.png</normaloff>:/Save.png</iconset>
+     <normaloff>:/icons/disk--pencil.png</normaloff>:/icons/disk--pencil.png</iconset>
    </property>
    <property name="text">
     <string>Save As...</string>
@@ -276,7 +275,7 @@
   <action name="actionQuit">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Quit.png</normaloff>:/Quit.png</iconset>
+     <normaloff>:/icons/cross.png</normaloff>:/icons/cross.png</iconset>
    </property>
    <property name="text">
     <string>Quit</string>
@@ -288,7 +287,7 @@
   <action name="actionAdd_Slot">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Add.png</normaloff>:/Add.png</iconset>
+     <normaloff>:/icons/blue-document--plus.png</normaloff>:/icons/blue-document--plus.png</iconset>
    </property>
    <property name="text">
     <string>Add Slot</string>
@@ -300,7 +299,7 @@
   <action name="actionRemove_Slot">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Remove.png</normaloff>:/Remove.png</iconset>
+     <normaloff>:/icons/blue-document--minus.png</normaloff>:/icons/blue-document--minus.png</iconset>
    </property>
    <property name="text">
     <string>Remove Slot</string>
@@ -312,7 +311,7 @@
   <action name="actionDuplicate_Slot">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Copy.png</normaloff>:/Copy.png</iconset>
+     <normaloff>:/icons/blue-documents.png</normaloff>:/icons/blue-documents.png</iconset>
    </property>
    <property name="text">
     <string>Duplicate Slot</string>
@@ -322,6 +321,10 @@
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="EProDrums.qrc">
+     <normaloff>:/icons/question-white.png</normaloff>:/icons/question-white.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
@@ -349,7 +352,7 @@
   <action name="actionSettings">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Settings.png</normaloff>:/Settings.png</iconset>
+     <normaloff>:/icons/gear--pencil.png</normaloff>:/icons/gear--pencil.png</iconset>
    </property>
    <property name="text">
     <string>Settings</string>
@@ -358,7 +361,7 @@
   <action name="actionAssistant">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
-     <normaloff>:/Help.png</normaloff>:/Help.png</iconset>
+     <normaloff>:/icons/book-question.png</normaloff>:/icons/book-question.png</iconset>
    </property>
    <property name="text">
     <string>Help</string>

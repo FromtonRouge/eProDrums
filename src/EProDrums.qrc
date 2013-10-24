@@ -1,14 +1,25 @@
 <RCC>
-    <qresource prefix="/" >
-	<file>EProDrums.png</file>
-	<file>Add.png</file>
-	<file>Copy.png</file>
-	<file>Help.png</file>
-	<file>Open.png</file>
-	<file>Quit.png</file>
-	<file>Remove.png</file>
-	<file>Save.png</file>
-	<file>Settings.png</file>
-	<file>FunctionEdit.png</file>
-    </qresource>
+  <qresource prefix="/">
+    <file>icons/application-wave.png</file>
+    <file>icons/control-stop-square.png</file>
+    <file>icons/control.png</file>
+    <file>icons/magnifier-zoom-fit.png</file>
+    <file>icons/plus.png</file>
+    <file>icons/minus.png</file>
+    <file>icons/layer-shape-curve.png</file>
+    <file>icons/plus-button.png</file>
+    <file>icons/minus-button.png</file>
+    <file>icons/book-question.png</file>
+    <file>icons/question-white.png</file>
+    <file>icons/gear--pencil.png</file>
+    <file>icons/blue-document--minus.png</file>
+    <file>icons/blue-documents.png</file>
+    <file>icons/blue-document--plus.png</file>
+    <file>icons/disk.png</file>
+    <file>icons/disk--pencil.png</file>
+    <file>icons/cross.png</file>
+    <file>icons/folder-open-document.png</file>
+    <file>EProDrums.png</file>
+    <file>icons/application-dock-270.png</file>
+  </qresource>
 </RCC>

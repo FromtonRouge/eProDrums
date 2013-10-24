@@ -49,6 +49,8 @@ public:
 	Settings();
 	virtual ~Settings();
 
+	QSettings* getQSettings() {return &_qSettings;}
+
 public:
 	boost::filesystem::path getUserSettingsFile() const;
 	void setUserSettingsFile(const std::string& szPadConfigFile);

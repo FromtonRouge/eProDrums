@@ -100,7 +100,7 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 
 	// For QPolygonF
 	_pPushButton = new QPushButton(this);
-	_pPushButton->setIcon(QIcon(":/FunctionEdit.png"));
+	_pPushButton->setIcon(QIcon(":/icons/application-wave.png"));
 	_pPushButton->setText(tr("Edit parameters..."));
 	connect(_pPushButton, SIGNAL(clicked(bool)), this, SLOT(onPushButtonClicked()));
 	_pStackedWidget->addWidget(_pPushButton);

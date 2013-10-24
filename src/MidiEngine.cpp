@@ -928,25 +928,6 @@ void MidiEngine::sendMidiMessages(MidiMessage::List& midiMessages, bool bForce)
 	}
 }
 
-void MidiEngine::stressTest()
-{
-	PtTimestamp tBegin = Pt_Time();
-	MidiMessage::Data control = 0;
-	for (size_t i=0; i<1000; ++i)
-	{
-		PtTimestamp t = Pt_Time();
-		float v = std::sin(float(i)/100)+1;
-		control = static_cast<MidiMessage::Data>((v*127)/2);
-		MidiMessage midiMessage(t, 0xB3, 4, 127-control);
-		if (classify(midiMessage))
-		{
-			transform(midiMessage);
-		}
-	}
-	PtTimestamp tEnd = Pt_Time();
-	std::cout << (boost::format("Time elapsed : %d ms")%(tEnd-tBegin)) << std::endl;
-}
-
 void MidiEngine::popInputBuffer(PtTimestamp timestamp)
 {
 	if (_inputBufferLength)

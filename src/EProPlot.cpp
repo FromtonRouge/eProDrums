@@ -120,7 +120,7 @@ void EProPlot::mousePressEvent(QMouseEvent* pEvent)
 	if (buttons & Qt::RightButton)
 	{
 		QMenu menu(this);
-		menu.addAction(tr("Reset Zoom"), this, SLOT(onResetZoom()));
+		menu.addAction(QIcon(":/icons/magnifier-zoom-fit.png"), tr("Reset Zoom"), this, SLOT(onResetZoom()));
 		menu.addSeparator();
 		
 		// Build the menu used to control curve visibility

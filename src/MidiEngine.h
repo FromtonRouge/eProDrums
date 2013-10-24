@@ -55,7 +55,6 @@ public:
 
 	void processMidi(PtTimestamp timestamp);
 	void transform(MidiMessage& currentMsg);
-	void stressTest();
 
 	void onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::path&);
 

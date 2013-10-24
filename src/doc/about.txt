@@ -1,4 +1,4 @@
 Icons
+	Fugue Icons (C) 2013 Yusuke Kamiyamane. All rights reserved.
 	Aha-Soft : http://www.aha-soft.com
-	Deleket : http://www.deleket.com
-	Fatcow Web Hosting : http://www.fatcow.com/free-icons
+

@@ -80,6 +80,8 @@ MainWindow::MainWindow():
 	connect(this, SIGNAL(signalLog(const QString&)), textEditLog, SLOT(append(const QString&)));
 
 	// Building the first toolbar
+	toolBar->setWindowTitle(tr("Main toolbar"));
+	toolBar->setIconSize(QSize(16, 16));
 	toolBar->addAction(actionOpen);
 	toolBar->addAction(actionSave);
 	toolBar->addAction(actionSettings);
@@ -115,6 +117,7 @@ MainWindow::MainWindow():
 	// Building the time toolbar
 	TimeBar* pTimeBar = new TimeBar(this);
 	connect(&_midiEngine, SIGNAL(signalMidiOut(const MidiMessage&)), pTimeBar, SLOT(onMidiOut(const MidiMessage&)), Qt::QueuedConnection);
+	toolBarTime->setWindowTitle(tr("Time toolbar"));
 	toolBarTime->addWidget(pTimeBar);
 
 	// Process "assistant" for help
@@ -487,6 +490,16 @@ MainWindow::MainWindow():
 	_pSettings->signalCurveWindowLengthChanged.connect(boost::bind(&GraphSubWindow::onCurveWindowLengthChanged, _pGrapSubWindow, _1));
 	_pGrapSubWindow->onRedrawPeriodChanged(_pSettings->getRedrawPeriod());
 	_pGrapSubWindow->onCurveWindowLengthChanged(_pSettings->getCurveWindowLength());
+
+	// Restore saved docks, toolbars, geometry etc.
+	QSettings* pSettings = _pSettings->getQSettings();
+	restoreGeometry(pSettings->value("geometry").toByteArray());
+	restoreState(pSettings->value("windowState").toByteArray());
+
+	QMenu* pDocksMenu = createPopupMenu();
+	pDocksMenu->setTitle(tr("Docks and Toolbars"));
+	pDocksMenu->setIcon(QIcon(":/icons/application-dock-270.png"));
+	menuWindows->addMenu(pDocksMenu);
 }
 
 MainWindow::~MainWindow()
@@ -1176,11 +1189,6 @@ void MainWindow::on_pushButtonClearLogs_clicked(bool)
 	textEditLog->clear();
 }
 
-void MainWindow::on_pushButtonStressTest_clicked(bool)
-{
-	_midiEngine.stressTest();
-}
-
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
 	switch(index)
@@ -1227,4 +1235,12 @@ Slot::Ptr MainWindow::getCurrentSlot() const
 	{
 		return Slot::Ptr();
 	}
+}
+
+void MainWindow::closeEvent(QCloseEvent* pEvent)
+{
+	QSettings* pSettings = _pSettings->getQSettings();
+    pSettings->setValue("geometry", saveGeometry());
+    pSettings->setValue("windowState", saveState());
+    QMainWindow::closeEvent(pEvent);
 }

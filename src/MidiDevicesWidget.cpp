@@ -42,11 +42,11 @@ MidiDevicesWidget::MidiDevicesWidget(QWidget* pParent):QWidget(pParent)
 	_pComboBoxMidiOut->setToolTip(tr("Midi out"));
 	pLayout->addWidget(_pComboBoxMidiOut);
 
-	_pPushButtonStart = new QPushButton(tr("Start"), this);
+	_pPushButtonStart = new QPushButton(QIcon(":/icons/control.png"), tr("Start"), this);
 	_pPushButtonStart->setToolTip(tr("Start the Midi engine"));
 	connect(_pPushButtonStart, SIGNAL(clicked(bool)), this, SLOT(onMidiStart()));
 	pLayout->addWidget(_pPushButtonStart);
-	_pPushButtonStop = new QPushButton(tr("Stop"), this);
+	_pPushButtonStop = new QPushButton(QIcon(":/icons/control-stop-square.png"), tr("Stop"), this);
 	_pPushButtonStop->setToolTip(tr("Stop the Midi engine"));
 	connect(_pPushButtonStop, SIGNAL(clicked(bool)), this, SLOT(onMidiStop()));
 	pLayout->addWidget(_pPushButtonStop);

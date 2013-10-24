@@ -33,7 +33,7 @@
      </property>
      <property name="icon">
       <iconset resource="EProDrums.qrc">
-       <normaloff>:/Add.png</normaloff>:/Add.png</iconset>
+       <normaloff>:/icons/plus.png</normaloff>:/icons/plus.png</iconset>
      </property>
     </widget>
    </item>
@@ -50,7 +50,7 @@
      </property>
      <property name="icon">
       <iconset resource="EProDrums.qrc">
-       <normaloff>:/Remove.png</normaloff>:/Remove.png</iconset>
+       <normaloff>:/icons/minus.png</normaloff>:/icons/minus.png</iconset>
      </property>
     </widget>
    </item>

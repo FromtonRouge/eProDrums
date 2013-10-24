@@ -77,12 +77,14 @@ private slots:
 	void on_tabWidget_currentChanged(int index);
 
 	void on_pushButtonClearLogs_clicked(bool checked=false);
-	void on_pushButtonStressTest_clicked(bool checked=false);
 
 	void onInputBufferChanged(int);
 
 	void onMidiEngineStarted();
 	void onMidiEngineStopped();
+
+protected:
+	void closeEvent(QCloseEvent*);
 
 private:
 	void toLog(const std::string&);
