@@ -20,9 +20,9 @@
 // ============================================================ 
 
 #include "Settings.h"
-#include <QtGui/QMessageBox>
-#include <QtGui/QApplication>
-#include <QtGui/QDesktopServices>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtCore/QStandardPaths>
 
 #include <boost/format.hpp>
 #include <fstream>
@@ -42,7 +42,8 @@ Settings::~Settings()
 
 fs::path Settings::getUserSettingsFile() const
 {
-	return fs::path(_qSettings.value("UserSettingsFile", QDesktopServices::storageLocation(QDesktopServices::DataLocation) + "/").toString().toStdString());
+	const QStringList& paths = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
+	return fs::path(_qSettings.value("UserSettingsFile", paths.front() + "/").toString().toStdString());
 }
 
 void Settings::setUserSettingsFile(const std::string& szUserSettingsFile)
@@ -52,7 +53,8 @@ void Settings::setUserSettingsFile(const std::string& szUserSettingsFile)
 
 fs::path Settings::getDrumKitConfigPath() const
 {
-	return fs::path(_qSettings.value("DrumKitConfigFile", QDesktopServices::storageLocation(QDesktopServices::DataLocation) + "/Kits/").toString().toStdString());
+	const QStringList& paths = QStandardPaths::standardLocations(QStandardPaths::DataLocation);
+	return fs::path(_qSettings.value("DrumKitConfigFile", paths.front() + "/Kits/").toString().toStdString());
 }
 
 void Settings::setDrumKitConfigFile(const std::string& szDrumKitConfigFile)

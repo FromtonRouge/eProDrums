@@ -20,6 +20,7 @@ TEMPLATE = app
 TARGET = eProDrums
 DEPENDPATH += .
 INCLUDEPATH += .
+QT += widgets
 CONFIG += debug_and_release
 
 win32 {
@@ -44,7 +45,12 @@ win32 {
 }
 
 # Input
-HEADERS += AddMidiNote.h \
+HEADERS += AbstractItemModel.h \
+		   AddMidiNote.h \
+		   AnyProperty.h \
+		   CmdAddSlot.h \
+		   CmdRemoveSlot.h \
+		   CmdSetData.h \
            DialogAbout.h \
            DialogFunction.h \
            DrumKitItemDelegate.h \
@@ -61,6 +67,7 @@ HEADERS += AddMidiNote.h \
            EProPlotMarker.h \
            EProPlotZoomer.h \
 		   GraphSubWindow.h \
+		   GroupData.h \
            HiHatPedalCurve.h \
            HiHatPedalElement.h \
            HiHatPositionCurve.h \
@@ -71,16 +78,25 @@ HEADERS += AddMidiNote.h \
            Pad.h \
            PadHandler.h \
            PadNotesWidget.h \
+		   ParameterData.h \
 		   ParamItemDelegate.h \
 		   ParamItemEditor.h \
 		   ParamItemModel.h \
+		   ParamItemProxyModel.h \
+		   Property.h \
            Settings.h \
            SettingsDlg.h \
            Slot.h \
+		   SlotItemModel.h \
+		   SlotListView.h \
 		   TimeBar.h \
 		   TimeSlider.h \
 		   TimeSpinBox.h \
+		   TreeNode.h \
+		   TreeNodeData.h \
+		   TreeNodeItemModel.h \
 		   TreeViewParameters.h \
+           UndoCommand.h \
            UserSettings.h
 FORMS += AddMidiNote.ui \
          DialogAbout.ui \
@@ -88,7 +104,11 @@ FORMS += AddMidiNote.ui \
          MainWindow.ui \
          PadNotesWidget.ui \
          SettingsDlg.ui
-SOURCES += AddMidiNote.cpp \
+SOURCES += AbstractItemModel.cpp \
+		   AddMidiNote.cpp \
+		   CmdAddSlot.cpp \
+		   CmdRemoveSlot.cpp \
+		   CmdSetData.cpp \
            DialogAbout.cpp \
            DialogFunction.cpp \
            DrumNoteItemEditor.cpp \
@@ -110,13 +130,23 @@ SOURCES += AddMidiNote.cpp \
            MidiMessage.cpp \
            Pad.cpp \
            PadNotesWidget.cpp \
+		   Parameter.cpp \
+		   ParameterData.cpp \
+		   ParamItemDelegate.cpp \
 		   ParamItemEditor.cpp \
+		   ParamItemModel.cpp \
+		   ParamItemProxyModel.cpp \
            Settings.cpp \
            SettingsDlg.cpp \
            Slot.cpp \
+		   SlotItemModel.cpp \
+		   SlotListView.cpp \
 		   TimeBar.cpp \
 		   TimeSlider.cpp \
 		   TimeSpinBox.cpp \
+		   TreeNode.cpp \
+		   TreeNodeItemModel.cpp \
+		   TreeViewParameters.cpp \
            UserSettings.cpp
 RESOURCES += EProDrums.qrc
 

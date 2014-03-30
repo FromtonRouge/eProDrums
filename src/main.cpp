@@ -21,8 +21,8 @@
 
 #include "MainWindow.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/parsers.hpp>

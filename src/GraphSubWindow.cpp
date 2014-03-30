@@ -35,7 +35,7 @@
 #include <qwt_scale_div.h>
 #include <qwt_plot_canvas.h>
 
-#include <QtGui/QMdiArea>
+#include <QtWidgets/QMdiArea>
 #include <QtGui/QCloseEvent>
 #include <QtCore/QTimer>
 
@@ -79,17 +79,17 @@ GraphSubWindow::GraphSubWindow(UserSettings* pUserSettings, QWidget* pParent):QM
 	_curveLatency->setSymbol(new QwtSymbol(QwtSymbol::Ellipse, colorLatency, colorLatency, QSize(2,2)));
 
 	_curves[Pad::UNKNOWN] = new EProPlotCurve("Unknown", QColor(Qt::lightGray), 2, _pPlot);
-	_curves[Pad::SNARE] = new EProPlotCurve("Snare", QColor(Pad::getDefaultColor(Pad::SNARE).c_str()), 2, _pPlot);
-	_curves[Pad::HIHAT] = new EProPlotCurve("Hi Hat", QColor(Pad::getDefaultColor(Pad::HIHAT).c_str()), 2, _pPlot);
+	_curves[Pad::SNARE] = new EProPlotCurve("Snare", QColor(Pad::getDefaultColor(Pad::SNARE)), 2, _pPlot);
+	_curves[Pad::HIHAT] = new EProPlotCurve("Hi Hat", QColor(Pad::getDefaultColor(Pad::HIHAT)), 2, _pPlot);
 	_curves[Pad::HIHAT_PEDAL] = new HiHatPedalCurve(_pPlot);
-	_curves[Pad::TOM1] = new EProPlotCurve("Tom 1", QColor(Pad::getDefaultColor(Pad::TOM1).c_str()), 2, _pPlot);
-	_curves[Pad::TOM2] = new EProPlotCurve("Tom 2", QColor(Pad::getDefaultColor(Pad::TOM2).c_str()), 2, _pPlot);
-	_curves[Pad::TOM3] = new EProPlotCurve("Tom 3", QColor(Pad::getDefaultColor(Pad::TOM3).c_str()), 2, _pPlot);
-	_curves[Pad::CRASH1] = new EProPlotCurve("Green Crash", QColor(Pad::getDefaultColor(Pad::CRASH1).c_str()), 2, _pPlot);
+	_curves[Pad::TOM1] = new EProPlotCurve("Tom 1", QColor(Pad::getDefaultColor(Pad::TOM1)), 2, _pPlot);
+	_curves[Pad::TOM2] = new EProPlotCurve("Tom 2", QColor(Pad::getDefaultColor(Pad::TOM2)), 2, _pPlot);
+	_curves[Pad::TOM3] = new EProPlotCurve("Tom 3", QColor(Pad::getDefaultColor(Pad::TOM3)), 2, _pPlot);
+	_curves[Pad::CRASH1] = new EProPlotCurve("Green Crash", QColor(Pad::getDefaultColor(Pad::CRASH1)), 2, _pPlot);
 	_curves[Pad::CRASH2] = _curves[Pad::CRASH1];
-	_curves[Pad::CRASH3] = new EProPlotCurve("Yellow Crash", QColor(Pad::getDefaultColor(Pad::CRASH3).c_str()), 2, _pPlot);
-	_curves[Pad::RIDE] = new EProPlotCurve("Ride", QColor(Pad::getDefaultColor(Pad::RIDE).c_str()), 2, _pPlot);
-	_curves[Pad::BASS_DRUM] = new EProPlotCurve("Bass Drum", QColor(Pad::getDefaultColor(Pad::BASS_DRUM).c_str()), 2, _pPlot);
+	_curves[Pad::CRASH3] = new EProPlotCurve("Yellow Crash", QColor(Pad::getDefaultColor(Pad::CRASH3)), 2, _pPlot);
+	_curves[Pad::RIDE] = new EProPlotCurve("Ride", QColor(Pad::getDefaultColor(Pad::RIDE)), 2, _pPlot);
+	_curves[Pad::BASS_DRUM] = new EProPlotCurve("Bass Drum", QColor(Pad::getDefaultColor(Pad::BASS_DRUM)), 2, _pPlot);
 
     _pPlot->showAll();
 
@@ -415,21 +415,21 @@ void GraphSubWindow::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::file
 		EProPlotCurve::Dict::const_iterator itCurve = _curves.find(padDesc.type);
 		if (itCurve!=_curves.end())
 		{
-			itCurve->second->setColor(QColor(padDesc.color.c_str()));
-			itCurve->second->setTitle(Pad::getName(padDesc.type).c_str());
+			itCurve->second->setColor(QColor(padDesc.color));
+			itCurve->second->setTitle(Pad::getName(padDesc.type));
 		}
 	}
 
 	DrumKitMidiMap::Description::Pads::const_iterator itClosedHiHat = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==Pad::HIHAT);
 	if (itClosedHiHat!=pads.end())
 	{
-		_curveHiHatPosition->setClosedColor(QColor(itClosedHiHat->color.c_str()));
+		_curveHiHatPosition->setClosedColor(QColor(itClosedHiHat->color));
 	}
 
 	DrumKitMidiMap::Description::Pads::const_iterator itOpenHiHat = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==Pad::RIDE);
 	if (itOpenHiHat!=pads.end())
 	{
-		_curveHiHatPosition->setOpenedColor(QColor(itOpenHiHat->color.c_str()));
+		_curveHiHatPosition->setOpenedColor(QColor(itOpenHiHat->color));
 	}
 }
 

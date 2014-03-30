@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class QSpinBox;
 

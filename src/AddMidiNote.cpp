@@ -23,11 +23,11 @@
 #include "DrumNoteItemModel.h"
 #include "DrumNoteItemDelegate.h"
 #include "MidiMessage.h"
-#include <QtGui/QGridLayout>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QSpinBox>
-#include <QtGui/QTableWidgetItem>
-#include <QtGui/QMenu>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QTableWidgetItem>
+#include <QtWidgets/QMenu>
 #include <boost/lexical_cast.hpp>
 
 AddMidiNote::AddMidiNote(const Pad::MidiDescription& padDescription):

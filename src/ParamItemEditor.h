@@ -21,19 +21,20 @@
 
 #pragma once
 
-#include <QtGui/QWidget>
-#include <QtGui/QSlider>
-#include <QtGui/QWheelEvent>
-#include <QtGui/QApplication>
+#include "Parameter.h"
 
-struct Parameter;
-class QStackedWidget;
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QSlider>
+#include <QtGui/QWheelEvent>
+#include <QtWidgets/QApplication>
+
 class QCheckBox;
 class QSpinBox;
 class QDoubleSpinBox;
 class QLineEdit;
 class QComboBox;
 class QPushButton;
+class QHBoxLayout;
 
 /**
  * Slider that forward wheel events to the parent.
@@ -64,8 +65,8 @@ signals:
 public:
 	ParamItemEditor(QWidget* pParent=NULL);
 	virtual ~ParamItemEditor();
-	void setData(Parameter* pData);
-	Parameter* getData() const {return _pData;}
+	void setData(const Parameter& data);
+	const Parameter& getData() const {return _data;}
 
 private slots:
 	void onCheckBoxValueChanged(int);
@@ -78,8 +79,10 @@ private slots:
 	void onPushButtonClicked();
 
 private:
-	Parameter*			_pData;
-	QStackedWidget*		_pStackedWidget;
+	Parameter			_data;
+
+	QHBoxLayout*		_pLayout;
+
 	QCheckBox*			_pCheckBox;
 	QSpinBox*			_pSpinBox;
 	QDoubleSpinBox*		_pDoubleSpinBox;

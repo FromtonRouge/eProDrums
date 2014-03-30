@@ -23,11 +23,11 @@
 
 #include "PadNotesWidget.h"
 
-#include <QtGui/QWidget>
-#include <QtGui/QPushButton>
-#include <QtGui/QColorDialog>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QColorDialog>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QSpinBox>
 #include <QtCore/QModelIndex>
 
 class DrumKitItemEditor : public QWidget
@@ -91,10 +91,10 @@ private Q_SLOTS:
 
 	void onEditColor()
 	{
-		QColorDialog dlg(QColor(_padDescription.color.c_str()), this);
+		QColorDialog dlg(QColor(_padDescription.color), this);
 		if (dlg.exec())
 		{
-			_padDescription.color = dlg.selectedColor().name().toStdString();
+			_padDescription.color = dlg.selectedColor().name();
 			emit editFinished(this);
 		}
 	}

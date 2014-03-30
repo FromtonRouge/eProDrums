@@ -24,9 +24,9 @@
 #include "Pad.h"
 #include "DrumKitItemModel.h"
 #include "DrumKitItemEditor.h"
-#include <QtGui/QStyledItemDelegate>
+#include <QtWidgets/QStyledItemDelegate>
 #include <QtGui/QPainter>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QSpinBox>
 
 #ifndef Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
 #define Q_DECLARE_METATYPE_FOR_PAD_DESCRIPTION_DONE
@@ -54,7 +54,7 @@ public:
 		QSize result = QStyledItemDelegate::sizeHint(option, index);
 		if (index.column()==0)
 		{
-			int width = option.fontMetrics.width(Pad::getName(index.data().value<Pad::MidiDescription>().type).c_str());
+			int width = option.fontMetrics.width(Pad::getName(index.data().value<Pad::MidiDescription>().type));
 			result.rwidth() += width + INDENT;
 		}
 		return result;
@@ -70,7 +70,7 @@ public:
 
 				painter->save();
 				QRectF rect = option.rect;
-				QColor color(description.color.c_str());
+				QColor color(description.color);
 				const QColor& lighterColor = color.lighter(130);
 				painter->fillRect(rect, lighterColor);
 
@@ -84,7 +84,7 @@ public:
 				rect.moveLeft(point.x()+INDENT);			// Relative to up-left corner of the treeview
 				rect.setWidth(rect.width()-INDENT);
 
-				painter->drawText(rect, Qt::AlignLeft, Pad::getName(description.type).c_str());
+				painter->drawText(rect, Qt::AlignLeft, Pad::getName(description.type));
 				painter->restore();
 				break;
 			}
@@ -93,7 +93,7 @@ public:
 			{
 				painter->save();
 				const Pad::MidiDescription& description = index.data().value<Pad::MidiDescription>();
-				painter->fillRect(option.rect, QColor(description.color.c_str()));
+				painter->fillRect(option.rect, QColor(description.color));
 				painter->restore();
 				break;
 			}

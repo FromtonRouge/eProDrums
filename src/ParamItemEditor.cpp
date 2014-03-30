@@ -20,25 +20,21 @@
 // ============================================================ 
 
 #include "ParamItemEditor.h"
-#include "Parameter.h"
 #include "DialogFunction.h"
 
-#include <QtGui/QStackedWidget>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QCheckBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QSpinBox>
-#include <QtGui/QDoubleSpinBox>
-#include <QtGui/QComboBox>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QCheckBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QDoubleSpinBox>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QPushButton>
 
 #include <limits>
 
 const float SLIDER_FACTOR(1000);
 
 ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
-	_pData(NULL),
-	_pStackedWidget(NULL),
 	_pCheckBox(NULL),
 	_pSpinBox(NULL),
 	_pDoubleSpinBox(NULL),
@@ -48,73 +44,19 @@ ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
 	_pComboBox(NULL),
 	_pPushButton(NULL)
 {
-	_pStackedWidget = new QStackedWidget(this);
+	_pLayout = new QHBoxLayout;
+	_pLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
+	setLayout(_pLayout);
+}
 
-	// For bool values
-	_pCheckBox = new QCheckBox(this);
-	connect(_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onCheckBoxValueChanged(int)));
-	_pStackedWidget->addWidget(_pCheckBox);
-
-	// For int values
-	{
-		QWidget* pSubWidget = new QWidget(this);
-		QHBoxLayout* pSubLayout = new QHBoxLayout;
-		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
-		_pSlider = new Slider(Qt::Horizontal, this);
-		connect(_pSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
-		_pSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		pSubLayout->addWidget(_pSlider);
-		_pSpinBox = new QSpinBox(this);
-		connect(_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
-		pSubLayout->addWidget(_pSpinBox);
-		pSubWidget->setLayout(pSubLayout);
-		_pStackedWidget->addWidget(pSubWidget);
-	}
-
-	// For float values
-	{
-		QWidget* pSubWidget = new QWidget(this);
-		QHBoxLayout* pSubLayout = new QHBoxLayout;
-		pSubLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
-		_pDoubleSlider = new Slider(Qt::Horizontal, this);
-		connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
-		_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		pSubLayout->addWidget(_pDoubleSlider);
-		_pDoubleSpinBox = new QDoubleSpinBox(this);
-		_pDoubleSpinBox->setSingleStep(0.01);
-		connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onDoubleSpinBoxValueChanged(double)));
-		pSubLayout->addWidget(_pDoubleSpinBox);
-		pSubWidget->setLayout(pSubLayout);
-		_pStackedWidget->addWidget(pSubWidget);
-	}
-
-	// For string values
-	_pLineEdit = new QLineEdit(this);
-	connect(_pLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onLineEditValueChanged(const QString&)));
-	_pStackedWidget->addWidget(_pLineEdit);
-
-	// For enums
-	_pComboBox = new QComboBox(this);
-	connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
-	_pStackedWidget->addWidget(_pComboBox);
-
-	// For QPolygonF
-	_pPushButton = new QPushButton(this);
-	_pPushButton->setIcon(QIcon(":/icons/application-wave.png"));
-	_pPushButton->setText(tr("Edit parameters..."));
-	connect(_pPushButton, SIGNAL(clicked(bool)), this, SLOT(onPushButtonClicked()));
-	_pStackedWidget->addWidget(_pPushButton);
-
-	QHBoxLayout* pLayout = new QHBoxLayout;
-	pLayout->setContentsMargins(0,0,0,0);
-	pLayout->addWidget(_pStackedWidget);
-	setLayout(pLayout);
+ParamItemEditor::~ParamItemEditor()
+{
 }
 
 void ParamItemEditor::onCheckBoxValueChanged(int value)
 {
 	bool bChecked = value==Qt::Checked;
-	_pData->setValue(bChecked);
+	_data.setValue(bChecked);
 	emit editFinished(this);
 }
 
@@ -134,7 +76,7 @@ void ParamItemEditor::onSpinBoxValueChanged(int value)
 	_pSlider->setValue(value);
 	_pSlider->blockSignals(false);
 
-	const Parameter::InfiniteExtremities& extremities = _pData->getInfiniteExtremities();
+	const Parameter::InfiniteExtremities& extremities = _data.getInfiniteExtremities();
 	if (extremities.first && value==_pSpinBox->minimum())
 	{
 		_pSpinBox->setEnabled(false);
@@ -150,7 +92,7 @@ void ParamItemEditor::onSpinBoxValueChanged(int value)
 		_pSpinBox->setEnabled(true);
 	}
 
-	_pData->setValue(value);
+	_data.setValue(value);
 
 	emit editFinished(this);
 }
@@ -161,7 +103,7 @@ void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
 	_pDoubleSlider->setValue(value*SLIDER_FACTOR);
 	_pDoubleSlider->blockSignals(false);
 	
-	const Parameter::InfiniteExtremities& extremities = _pData->getInfiniteExtremities();
+	const Parameter::InfiniteExtremities& extremities = _data.getInfiniteExtremities();
 	if (extremities.first && value==_pDoubleSpinBox->minimum())
 	{
 		_pDoubleSpinBox->setEnabled(false);
@@ -177,14 +119,14 @@ void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
 		_pDoubleSpinBox->setEnabled(true);
 	}
 
-	_pData->setValue(float(value));
+	_data.setValue(float(value));
 
 	emit editFinished(this);
 }
 
 void ParamItemEditor::onLineEditValueChanged(const QString& value)
 {
-	_pData->setValue(value.toStdString());
+	_data.setValue(value);
 	emit editFinished(this);
 }
 
@@ -193,56 +135,58 @@ void ParamItemEditor::onComboBoxIndexChanged(int index)
 	const QVariant& variant = _pComboBox->itemData(index);
 	if (!variant.isNull())
 	{
-		_pData->setValue(variant.toInt());
+		_data.setValue(variant.toInt());
 	}
 	emit editFinished(this);
 }
 
-ParamItemEditor::~ParamItemEditor()
+void ParamItemEditor::setData(const Parameter& data)
 {
-}
+	_data = data;
 
-void ParamItemEditor::setData(Parameter* pData)
-{
-	_pData = pData;
+	setEnabled(_data.isEnabled());
 
-	if (_pData->isConnected())
-	{
-		setEnabled(_pData->isEnabled());
-	}
-	else
-	{
-		setEnabled(false);
-	}
+	const AnyProperty::Value& value = _data.getValue();
 
-	const Parameter::Value& value = _pData->getValue();
-
-	if (boost::get<bool>(&value))
+	if (value.type()==typeid(bool))
 	{
-		_pStackedWidget->setCurrentIndex(0);
-		_pCheckBox->setChecked(boost::get<bool>(value));
-	}
-	else if (boost::get<int>(&value))
-	{
-		if (_pData->hasEnums())
+		// For bool values
+		if (!_pCheckBox)
 		{
-			_pStackedWidget->setCurrentIndex(4);
+			_pCheckBox = new QCheckBox(this);
+			_pLayout->addWidget(_pCheckBox);
+			connect(_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onCheckBoxValueChanged(int)));
+		}
+
+		_pCheckBox->setChecked(boost::any_cast<bool>(value));
+	}
+	else if (value.type()==typeid(int))
+	{
+		if (_data.hasEnums())
+		{
+			// For enums
+			if (!_pComboBox)
+			{
+				_pComboBox = new QComboBox(this);
+				_pLayout->addWidget(_pComboBox);
+				connect(_pComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboBoxIndexChanged(int)));
+			}
 
 			// Fill the combo box if empty
 			_pComboBox->blockSignals(true);
 			if (_pComboBox->count()==0)
 			{
-				const Parameter::DictEnums& dictEnums = _pData->getEnums();
+				const Parameter::DictEnums& dictEnums = _data.getEnums();
 				Parameter::DictEnums::const_iterator it = dictEnums.begin();
 				while (it!=dictEnums.end())
 				{
 					const Parameter::DictEnums::value_type& v = *(it++);
-					_pComboBox->addItem(v.second.c_str(), v.first);
+					_pComboBox->addItem(v.second, v.first);
 				}
 			}
 
 			// Select the item that match the value
-			int index = _pComboBox->findData(boost::get<int>(value));
+			int index = _pComboBox->findData(boost::any_cast<int>(value));
 			if (index>=0)
 			{
 				_pComboBox->setCurrentIndex(index);
@@ -251,10 +195,21 @@ void ParamItemEditor::setData(Parameter* pData)
 		}
 		else
 		{
-			_pStackedWidget->setCurrentIndex(1);
-			int minimum = boost::get<int>(_pData->minimum);
-			int maximum = boost::get<int>(_pData->maximum);
-			int v = boost::get<int>(value);
+			// For int values
+			if (!_pSlider && !_pSpinBox)
+			{
+				_pSlider = new Slider(Qt::Horizontal, this);
+				connect(_pSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
+				_pSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+				_pLayout->addWidget(_pSlider);
+				_pSpinBox = new QSpinBox(this);
+				connect(_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
+				_pLayout->addWidget(_pSpinBox);
+			}
+
+			int minimum = boost::any_cast<int>(_data.getMinimum());
+			int maximum = boost::any_cast<int>(_data.getMaximum());
+			int v = boost::any_cast<int>(value);
 			_pSlider->setMinimum(minimum);
 			_pSlider->setMaximum(maximum);
 			_pSpinBox->setMinimum(minimum);
@@ -262,36 +217,60 @@ void ParamItemEditor::setData(Parameter* pData)
 			_pSpinBox->setValue(v);
 		}
 	}
-	else if (boost::get<float>(&value))
+	else if (value.type() == typeid(float))
 	{
-		_pStackedWidget->setCurrentIndex(2);
-		float minimum = boost::get<float>(_pData->minimum);
-		float maximum = boost::get<float>(_pData->maximum);
-		float v = boost::get<float>(value);
+		if (!_pDoubleSlider && !_pDoubleSpinBox)
+		{
+			_pDoubleSlider = new Slider(Qt::Horizontal, this);
+			connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
+			_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			_pLayout->addWidget(_pDoubleSlider);
+			_pDoubleSpinBox = new QDoubleSpinBox(this);
+			_pDoubleSpinBox->setSingleStep(0.01);
+			connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onDoubleSpinBoxValueChanged(double)));
+			_pLayout->addWidget(_pDoubleSpinBox);
+		}
+
+		float minimum = boost::any_cast<float>(_data.getMinimum());
+		float maximum = boost::any_cast<float>(_data.getMaximum());
+		float v = boost::any_cast<float>(value);
 		_pDoubleSlider->setMinimum(minimum*SLIDER_FACTOR);
 		_pDoubleSlider->setMaximum(maximum*SLIDER_FACTOR);
 		_pDoubleSpinBox->setMinimum(minimum);
 		_pDoubleSpinBox->setMaximum(maximum);
 		_pDoubleSpinBox->setValue(v);
 	}
-	else if (boost::get<std::string>(&value))
+	else if (value.type() == typeid(QString))
 	{
-		_pStackedWidget->setCurrentIndex(3);
-		_pLineEdit->setText(boost::get<std::string>(value).c_str());
+		if (!_pLineEdit)
+		{
+			_pLineEdit = new QLineEdit(this);
+			_pLayout->addWidget(_pLineEdit);
+			connect(_pLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onLineEditValueChanged(const QString&)));
+		}
+		_pLineEdit->setText(boost::any_cast<QString>(value));
 	}
-	else if (boost::get<QPolygonF>(&value))
+	else if (value.type() == typeid(QPolygonF))
 	{
-		_pStackedWidget->setCurrentIndex(5);
+		// For QPolygonF
+		if (!_pPushButton)
+		{
+			_pPushButton = new QPushButton(this);
+			_pPushButton->setIcon(QIcon(":/icons/application-wave.png"));
+			_pPushButton->setText(tr("Edit parameters..."));
+			_pLayout->addWidget(_pPushButton);
+			connect(_pPushButton, SIGNAL(clicked(bool)), this, SLOT(onPushButtonClicked()));
+		}
 	}
 }
 
 void ParamItemEditor::onPushButtonClicked()
 {
-	const QPolygonF& curveSamples = boost::get<QPolygonF>(_pData->getValue());
-	DialogFunction dlg(_pData->getFunctionDescription(), curveSamples, this);
+	const QPolygonF& curveSamples = boost::any_cast<QPolygonF>(_data.getValue());
+	DialogFunction dlg(_data.getFunctionDescription(), curveSamples, this);
 	if (dlg.exec())
 	{
-		_pData->setValue(dlg.getCurveSamples());
+		_data.setValue(dlg.getCurveSamples());
 		emit editFinished(this);
 	}
 }

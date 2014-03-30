@@ -24,7 +24,7 @@
 #include "TimeSpinBox.h"
 #include "MidiMessage.h"
 
-#include <QtGui/QHBoxLayout>
+#include <QtWidgets/QHBoxLayout>
 
 TimeBar::TimeBar(QWidget* pParent):QWidget(pParent)
 {

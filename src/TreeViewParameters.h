@@ -1,10 +1,30 @@
+// ============================================================
+// 
+// This file is a part of the eProDrums rock band project
+// 
+// Copyright (C) 2012 by Vissale Neang <fromtonrouge at gmail dot com>
+// 
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License as
+// published by the Free Software Foundation; either version 2 of
+// the License or (at your option) version 3 or any later version
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// ============================================================ 
+
 #pragma once
 
-#include "ParamItemModel.h"
-#include "ParamItemDelegate.h"
-#include "Parameter.h"
+#include <QtWidgets/QTreeView>
 
-#include <QtGui/QTreeView>
+class TreeNode;
+class QUndoStack;
 
 /**
  * TreeView displaying parameters.
@@ -12,47 +32,10 @@
 class TreeViewParameters : public QTreeView
 {
 	Q_OBJECT
+
 public:
-	TreeViewParameters(QWidget* pParent, const Parameter::Ptr& pRoot):
-		QTreeView(pParent),
-		_pRoot(pRoot)
-	{
-		ParamItemModel* pParamItemModel = new ParamItemModel(_pRoot);
-		ParamItemDelegate* pParamItemDelegate = new ParamItemDelegate();
-		setModel(pParamItemModel);
-		setItemDelegate(pParamItemDelegate);
-		setIndentation(0);
-		setRootIsDecorated(false);
+	TreeViewParameters(QWidget* pParent);
 
-		// Opening editors
-		for (int i=0; i<pParamItemModel->rowCount(); ++i)
-		{
-			const QModelIndex& parentIndex = pParamItemModel->index(i, 1);
-			for (int j=0; j<pParamItemModel->rowCount(parentIndex); ++j)
-			{
-				openPersistentEditor(pParamItemModel->index(j, 1, parentIndex));
-			}
-			openPersistentEditor(parentIndex);
-		}
-
-		expandAll();
-		resizeColumnToContents(0);
-	}
-
-	const Parameter::Ptr& getRoot() const {return _pRoot;}
-
-	/**
-	 * Update editor cells.
-	 */
-	void update()
-	{
-		ParamItemModel* pParamItemModel = dynamic_cast<ParamItemModel*>(model());
-		if (pParamItemModel)
-		{
-			pParamItemModel->update();
-		}
-	}
-
-private:
-	Parameter::Ptr _pRoot;
+	void openPersistentEditors();
+	void closePersistentEditors();
 };

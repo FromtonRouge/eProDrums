@@ -20,10 +20,11 @@
 // ============================================================ 
 
 #include "Pad.h"
+#include "LinearFunction.h"
 #include <boost/assign.hpp>
 #include <map>
 
-Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
+std::map<int, QString> Pad::DICT_NAMES = boost::assign::map_list_of
 	(SNARE, "Snare")
 	(HIHAT, "Hi-hat")
 	(HIHAT_PEDAL, "Hi-hat pedal")
@@ -36,7 +37,7 @@ Parameter::DictEnums Pad::DICT_NAMES = boost::assign::map_list_of
 	(RIDE, "Ride")
 	(BASS_DRUM, "Bass Drum");
 
-std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
+std::map<int, QString> Pad::DICT_COLORS = boost::assign::map_list_of
 	(SNARE, "#FF6060")
 	(HIHAT, "#FFFD70")
 	(HIHAT_PEDAL, "#FFFFFF")
@@ -49,58 +50,26 @@ std::map<int, std::string> Pad::DICT_COLORS = boost::assign::map_list_of
 	(RIDE, "#70A5FF")
 	(BASS_DRUM, "#FCCB42");
 
-Pad::Pad():
-	_color(DICT_COLORS[SNARE]),
-	_type(SNARE),
-	_typeFlam(SNARE),
-	_defaultOutputNote(0),
-	_ghostVelocityLimit(0),
-	_isFlamActivated(false),
-	_flamCancelDuringRoll(100)
+Pad::Pad(Type t, int defaultMidiNote)
+	: type(new Property<Type>(t))
+	, color(new Property<QString>(DICT_COLORS[t]))
+	, defaultOutputNote(new Property<int>(defaultMidiNote))
+	, typeFlam(new Property<int>(t))
+	, ghostVelocityLimit(new Property<int>(0))
+	, isFlamActivated(new Property<bool>(false))
+	, flamCancelDuringRoll(new Property<int>(100))
 {
-	QPolygonF points;
-	points.push_back(QPointF(0, 1.0));
-	points.push_back(QPointF(45, 1.0));
-	points.push_back(QPointF(45, 1.15));
-	points.push_back(QPointF(80, 1.20));
-	_flamFunctions = points;
-}
-
-Pad::Pad(Type type, int defaultMidiNote):
-	_type(type),
-	_typeFlam(type),
-	_defaultOutputNote(defaultMidiNote),
-	_ghostVelocityLimit(0),
-	_isFlamActivated(false),
-	_flamCancelDuringRoll(100)
-{
-	_color = DICT_COLORS[_type];
 
 	QPolygonF points;
 	points.push_back(QPointF(0, 1.0));
 	points.push_back(QPointF(45, 1.0));
 	points.push_back(QPointF(45, 1.15));
 	points.push_back(QPointF(80, 1.20));
-	_flamFunctions = points;
-}
-
-std::string Pad::getName(Type type)
-{
-	return DICT_NAMES[type];
-}
-
-std::string Pad::getDefaultColor(Type type)
-{
-	return DICT_COLORS[type];
-}
-
-Pad::~Pad()
-{
+	funcFlams.reset(new Property<QPolygonF>(points));
 }
 
 Pad::Pad(const Pad& rOther)
 {
-	Mutex::scoped_lock lock(_mutex);
 	this->operator=(rOther);
 }
 
@@ -110,64 +79,43 @@ Pad& Pad::operator=(const Pad& rOther)
 	if (this!=&rOther)
 	{
 		_drumNotes = rOther._drumNotes;
-		_color = rOther._color;
-		_type = rOther._type;
-		_typeFlam = rOther._typeFlam;
-		_defaultOutputNote = rOther._defaultOutputNote;
-		_ghostVelocityLimit = rOther._ghostVelocityLimit;
-		_isFlamActivated = rOther._isFlamActivated;
-		_flamFunctions = rOther._flamFunctions;
-		_flamCancelDuringRoll = rOther._flamCancelDuringRoll;
+
+		type = rOther.type;
+		color = rOther.color;
+		defaultOutputNote = rOther.defaultOutputNote;
+		typeFlam = rOther.typeFlam;
+		ghostVelocityLimit = rOther.ghostVelocityLimit;
+		isFlamActivated = rOther.isFlamActivated;
+		funcFlams = rOther.funcFlams;
+		flamCancelDuringRoll = rOther.flamCancelDuringRoll;
 	}
 	return *this;
 }
 
-std::string Pad::getName() const
+QString Pad::getName(Type t)
+{
+	return DICT_NAMES[t];
+}
+
+QString Pad::getDefaultColor(Type t)
+{
+	return DICT_COLORS[t];
+}
+
+Pad::~Pad()
+{
+}
+
+QString Pad::getName() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return DICT_NAMES[_type];
+	return DICT_NAMES[type->get()];
 }
 
 void Pad::setInputNotes(const DrumNotes& notes)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_drumNotes = notes;
-}
-
-void Pad::setColor(const std::string& color)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_color = color;
-}
-
-std::string Pad::getColor() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _color;
-}
-
-Pad::Type Pad::getType() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _type;
-}
-
-void Pad::setType(Type type)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_type = type;
-}
-
-void Pad::setTypeFlam(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_typeFlam = value;
-}
-
-Pad::Type Pad::getTypeFlam() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return static_cast<Type>(boost::get<int>(_typeFlam));
 }
 
 bool Pad::isA(int midiNote) const
@@ -183,91 +131,32 @@ bool Pad::isA(int midiNote, DrumNote::HitZone hitZone) const
 	return it!=_drumNotes.endMidiNote() && (it->hitZone == hitZone);
 }
 
-int Pad::getFlamCancelDuringRoll() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_flamCancelDuringRoll);
-}
-
-void Pad::setFlamCancelDuringRoll(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_flamCancelDuringRoll = value;
-}
-
-void Pad::setDefaultOutputNote(int outputNote)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_defaultOutputNote = outputNote;
-}
-
-int Pad::getDefaultOutputNote() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _defaultOutputNote;
-}
-
-int Pad::getGhostVelocityLimit() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_ghostVelocityLimit);
-}
-
-void Pad::setGhostVelocityLimit(const Parameter::Value& velocity)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_ghostVelocityLimit = velocity;
-} 
-
-bool Pad::isFlamActivated() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isFlamActivated);
-}
-
-void Pad::setFlamActivated(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isFlamActivated = value;
-}
-
-QPolygonF Pad::getFlamFunctions() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<QPolygonF>(_flamFunctions);
-}
-
-void Pad::setFlamFunctions(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_flamFunctions = value;
-}
-
 void Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory& lastMsgSent, MidiMessage* pCurrent, MidiMessage* pNext, MidiMessage::List& rResult)
 {
 	Mutex::scoped_lock lock(_mutex);
+
 	rResult.clear();
 
 	// Hits history for this element
-	const MidiMessage::History& history = lastMsgSent[_type];
+	const MidiMessage::History& history = lastMsgSent[type->get()];
 
-	const boost::shared_ptr<Pad>& pFlamElement = drumKit[getTypeFlam()];
+	const boost::shared_ptr<Pad>& pFlamElement = drumKit[typeFlam->get()];
 
 	// Note: In buffer case, pNext != NULL, NULL otherwise
-	if (pCurrent->getValue() <= getGhostVelocityLimit())
+	if (pCurrent->getValue() <= ghostVelocityLimit->get())
 	{
 		bool bDoGhostNoteTest = true;
-		if (isFlamActivated())
+		if (isFlamActivated->get())
 		{
 			// If the next hit is not a ghost note
-			if (pNext && pNext->getValue() > getGhostVelocityLimit())
+			if (pNext && pNext->getValue() > ghostVelocityLimit->get())
 			{
 				if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 				{
 					float y = 0.f;
 					int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
 					int nextValue = pNext->getValue();
-					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
+					if (LinearFunction::apply(funcFlams->get(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 					{
 						pNext->changeNoteTo(pFlamElement.get());
 						bDoGhostNoteTest = false;
@@ -281,17 +170,17 @@ void Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory&
 			pCurrent->ignore(MidiMessage::IGNORED_BECAUSE_GHOST);
 		}
 	}
-	else if (isFlamActivated())
+	else if (isFlamActivated->get())
 	{
 		// If the next hit is not a ghost note
-		if (pNext && pNext->getValue() > getGhostVelocityLimit())
+		if (pNext && pNext->getValue() > ghostVelocityLimit->get())
 		{
 			if (history.empty() || isFlamAllowed(history[0], *pCurrent))
 			{
 				float y = 0.f;
 				int timeDiff = pCurrent->getAbsTimeDiff(*pNext);
 				int nextValue = pNext->getValue();
-				if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
+				if (LinearFunction::apply(funcFlams->get(), timeDiff, y) && (nextValue==127 || nextValue >= int(pCurrent->getValue()*y)))
 				{
 					pNext->changeNoteTo(pFlamElement.get());
 				}
@@ -309,7 +198,7 @@ void Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory&
 					float y = 0.f;
 					int timeDiff = rLast.getAbsTimeDiff(*pCurrent);
 					int currentValue = pCurrent->getValue();
-					if (LinearFunction::apply(getFlamFunctions(), timeDiff, y) && (currentValue==127 || currentValue >= int(rLast.getValue()*y)))
+					if (LinearFunction::apply(funcFlams->get(), timeDiff, y) && (currentValue==127 || currentValue >= int(rLast.getValue()*y)))
 					{
 						pCurrent->changeNoteTo(pFlamElement.get());
 						if (rLast.getIgnoreReason()==MidiMessage::IGNORED_BECAUSE_GHOST)
@@ -327,5 +216,5 @@ void Pad::applyFlamAndGhost(const List& drumKit, const MidiMessage::DictHistory&
 bool Pad::isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return !beforeFlamHit.isInTimeWindow(flamHit, getFlamCancelDuringRoll());
+	return !beforeFlamHit.isInTimeWindow(flamHit, flamCancelDuringRoll->get());
 }

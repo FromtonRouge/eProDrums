@@ -23,6 +23,7 @@
 
 #include <QtCore/QPointF>
 #include <QtGui/QPolygonF>
+#include <QtCore/QString>
 
 #include <string>
 
@@ -45,8 +46,8 @@ struct LinearFunction
 			aDecimals(2)
 		{}
 
-		std::string szLabelX;
-		std::string szLabelY;
+		QString szLabelX;
+		QString szLabelY;
 		float xMin, xMax;
 		float yMin, yMax;
 		float x1Default, x2Default;

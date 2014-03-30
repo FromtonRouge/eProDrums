@@ -22,176 +22,62 @@
 #pragma once
 
 #include "LinearFunction.h"
+#include "AnyProperty.h"
 
 #include <QtGui/QColor>
-#include <QtGui/QPolygonF>
-
-#include <boost/variant.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/signals2.hpp>
+#include <QtCore/QMetaType>
 
 #include <utility>
 #include <vector>
 #include <map>
-#include <string>
 
 /**
  * Parameter used in pad settings.
  */
-struct Parameter : public boost::enable_shared_from_this<Parameter>
+struct Parameter
 {
 	typedef std::pair<bool, bool> InfiniteExtremities;
-	typedef boost::shared_ptr<Parameter> Ptr;
-	typedef std::vector<Ptr> List;
-	typedef std::map<int, std::string> DictEnums;
-	typedef boost::variant<bool, int, float, std::string, QPolygonF> Value;
-	typedef boost::signals2::signal<void (const Value&)> OnValueChanged;
+	typedef std::map<int, QString> DictEnums;
 
-	Parameter(	const std::string& szLabel = std::string(),
-		   		const QColor& color = QColor(150, 150, 250),
-				bool bEnabled = true,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string()):
-		label(szLabel),
-		_szDescription(szDescription),
-		_bEnabled(bEnabled),
-		_color(color),
-		_value(_bEnabled),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-	}
+	Parameter(	const QString& szName = QString(),
+				const QString& szDescription = QString(),
+				const AnyProperty::Ptr& pProperty = AnyProperty::Ptr(),
+				AnyProperty::Value minimum = AnyProperty::Value(),
+				AnyProperty::Value maximum = AnyProperty::Value(),
+				const DictEnums& dictEnums = DictEnums());
 
-	Parameter(	const std::string& szLabel,
-		   		int minimum,
-		   		int maximum,
-		   		int value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string(),
-				const DictEnums& dictEnums = DictEnums()):
-		label(szLabel),
-		minimum(minimum),
-		maximum(maximum),
-		_szDescription(szDescription),
-		_bEnabled(true),
-		_value(value),
-		_dictEnums(dictEnums),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-   	}
+	Parameter(	const QString& szName,
+				const QString& szDescription,
+				const AnyProperty::Ptr& pProperty,
+				AnyProperty::Value minimum,
+				AnyProperty::Value maximum,
+				bool bInfiniteMin,
+				bool bInfiniteMax);
 
-	Parameter(	const std::string& szLabel,
-		   		float minimum,
-		   		float maximum,
-		   		float value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string()):
-		label(szLabel),
-		minimum(minimum),
-		maximum(maximum),
-		_szDescription(szDescription),
-		_bEnabled(true),
-		_value(value),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-   	}
+	Parameter(	const QString& szName,
+				const QString& szDescription,
+				const AnyProperty::Ptr& pProperty,
+				const LinearFunction::Description::Ptr&	pFunctionDescription);
 
-	Parameter(	const std::string& szLabel,
-		   		bool value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string()):
-		label(szLabel),
-		_szDescription(szDescription),
-		_bEnabled(true),
-		_value(value),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-   	}
+	const QString&	getName() const {return _szName;}
+	void			setName(const QString& szName) {_szName = szName;}
+	void			setDescription(const QString& sz)  {_szDescription = sz;}
+	const QString&	getDescription() const {return _szDescription;}
+	const QColor&	getColor() const {return _color;}
+	void			setColor(const QColor& color) {_color=color;}
 
-	Parameter(	const std::string& szLabel,
-		   		const std::string& value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string()):
-		label(szLabel),
-		_szDescription(szDescription),
-		_bEnabled(true),
-		_value(value),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-	}
+	const AnyProperty::Value&	getValue() const {return _value;}
+	void						setValue(const AnyProperty::Value& value);
+	const AnyProperty::Value&	getMinimum() const {return _minimum;}
+	const AnyProperty::Value&	getMaximum() const {return _maximum;}
 
-	Parameter(	const std::string& szLabel,
-				const LinearFunction::Description::Ptr& pDescription,
-		   		const QPolygonF& value,
-				const OnValueChanged::slot_function_type& slot = OnValueChanged::slot_function_type(),
-				const std::string& szDescription = std::string()):
-		label(szLabel),
-		_pFunctionDescription(pDescription),
-		_szDescription(szDescription),
-		_bEnabled(true),
-		_value(value),
-		_infiniteExtremities(InfiniteExtremities(false, false))
-   	{
-		connect(slot);
-   	}
+	void			setEnabled(bool state) {_bEnabled = state;}
+	bool			isEnabled() const {return _bEnabled;}
 
-	size_t getIndex() const
-	{
-		size_t result = 0;
-		if (_pParent.get())
-		{
-			for (size_t i=0;i<_pParent->_children.size();++i)
-			{
-				if (_pParent->_children[i].get()==this)
-				{
-					result = i;
-					break;
-				}
-			}
-		}
-		return result;
-	}
+	void				setEnums(const DictEnums& dictEnums) {_dictEnums = dictEnums;}
+	const DictEnums&	getEnums() const {return _dictEnums;}
+	bool				hasEnums() const {return !_dictEnums.empty();}
 
-	void addChild(const Ptr& pParameter)
-	{
-		pParameter->_pParent = shared_from_this();
-		pParameter->setEnabled(isEnabled());
-		_children.push_back(pParameter);
-	}
-
-	void connect(const OnValueChanged::slot_function_type& slot)
-   	{
-		_onValueChanged.disconnect_all_slots();
-		if (!slot.empty())
-		{
-			_onValueChanged.connect(slot);
-		}
-	}
-
-	const Parameter::List& getChildren() const {return _children;}
-	bool hasParent() const {return _pParent.get()!=NULL;}
-	bool hasChildren() const {return !_children.empty();}
-	size_t getChildrenCount() const {return _children.size();}
-	const Ptr& getChildAt(size_t i) const {return _children[i];}
-	const Ptr& getParent() const {return _pParent;}
-	const QColor& getColor() const {return _color;}
-	void setColor(const QColor& color) {_color=color;}
-	const Value& getValue() const {return _value;}
-	void setValue(const Value& value) {_value = value; if (!_onValueChanged.empty())_onValueChanged(_value);}
-	bool isConnected() const {return !_onValueChanged.empty();}
-	void update(const Value& value, const OnValueChanged::slot_function_type& slot) {connect(slot); setValue(value);}
-	void setEnabled(bool state) {_bEnabled = state;}
-	bool isEnabled() const {return _bEnabled;}
-	void setDescription(const std::string& sz)  {_szDescription = sz;}
-	const std::string& getDescription() const {return _szDescription;}
-	void setEnums(const DictEnums& dictEnums) {_dictEnums = dictEnums;}
-	const DictEnums& getEnums() const {return _dictEnums;}
-	bool hasEnums() const {return !_dictEnums.empty();}
 	const LinearFunction::Description::Ptr& getFunctionDescription() const {return _pFunctionDescription;}
 
 	/**
@@ -200,22 +86,19 @@ struct Parameter : public boost::enable_shared_from_this<Parameter>
 	void setInfiniteExtremities(const InfiniteExtremities& extremities) {_infiniteExtremities = extremities;}
 	const InfiniteExtremities& getInfiniteExtremities() const {return _infiniteExtremities;}
 
-public:
-	std::string label;
-	Value minimum;
-	Value maximum;
-
 private:
-	LinearFunction::Description::Ptr	_pFunctionDescription;		// Only used on functions
-	std::string							_szDescription;
-
+	QString								_szName;
+	QString								_szDescription;
 	bool								_bEnabled;
-	Parameter::Ptr						_pParent;
-	Parameter::List						_children;
 	QColor								_color;
-	Value								_value;
+	AnyProperty::Ptr					_pProperty;
+	AnyProperty::Value					_value;
+	AnyProperty::Value					_minimum;
+	AnyProperty::Value					_maximum;
 	DictEnums							_dictEnums;
-	OnValueChanged						_onValueChanged;
 	InfiniteExtremities					_infiniteExtremities;
+
+	LinearFunction::Description::Ptr	_pFunctionDescription;		// Only used on functions
 };
 
+Q_DECLARE_METATYPE(Parameter)

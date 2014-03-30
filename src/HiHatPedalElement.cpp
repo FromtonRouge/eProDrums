@@ -38,36 +38,36 @@ HiHatPedalElement::HiHatPedalElement():
 	_blueStateChangeReason(INITIAL_STATE),
 	_posOnCloseBegin(127),
 	_posOnOpenBegin(0),
-	_isBlueDetectionByAccent(false),
-	_isBlueDetectionByPosition(false),
-	_isBlueDetectionBySpeed(false),
-	_isBlueDetectionByAcceleration(false),
-	_isHalfOpenModeEnabled(false),
-	_isFootCancel(false),
-	_isFootCancelAfterPedalHit(false),
-	_isCancelHitWhileOpen(false),
-	_isBlueAccentOverride(false),
-	_isBowAlwaysYellow(false),
-	_controlPosThreshold(127),
-	_controlPosDelayTime(0),
-	_openSpeed(330),
-	_closeSpeed(-200),
-	_openAcceleration(0),
-	_closeAcceleration(0),
-	_openPositionDelta(0),
-	_closePositionDelta(0),
-	_footCancelClosingSpeed(-1500),
-	_footCancelPos(90),
-	_footCancelPosDiff(5),
-	_footCancelMaskTime(30),
-	_footCancelVelocity(42),
-	_footCancelAfterPedalHitMaskTime(20),
-	_footCancelAfterPedalHitVelocity(25),
-	_cancelOpenHitThreshold(0),
-	_cancelOpenHitVelocity(0),
-	_securityPosition(0),
-	_halfOpenMaximumPosition(65),
-	_halfOpenActivationTime(50)
+	isBlueDetectionByAccent(new Property<bool>(false)),
+	isBlueDetectionByPosition(new Property<bool>(false)),
+	isBlueDetectionBySpeed(new Property<bool>(false)),
+	isBlueDetectionByAcceleration(new Property<bool>(false)),
+	isHalfOpenModeEnabled(new Property<bool>(false)),
+	isFootCancel(new Property<bool>(false)),
+	isFootCancelAfterPedalHit(new Property<bool>(false)),
+	isCancelHitWhileOpen(new Property<bool>(false)),
+	isBlueAccentOverride(new Property<bool>(false)),
+	isBowAlwaysYellow(new Property<bool>(false)),
+	controlPosThreshold(new Property<int>(127)),
+	controlPosDelayTime(new Property<int>(0)),
+	openSpeed(new Property<int>(330)),
+	closeSpeed(new Property<int>(-200)),
+	openAcceleration(new Property<int>(0)),
+	closeAcceleration(new Property<int>(0)),
+	openPositionDelta(new Property<int>(0)),
+	closePositionDelta(new Property<int>(0)),
+	footCancelClosingSpeed(new Property<int>(-1500)),
+	footCancelPos(new Property<int>(90)),
+	footCancelPosDiff(new Property<int>(5)),
+	footCancelMaskTime(new Property<int>(30)),
+	footCancelVelocity(new Property<int>(42)),
+	footCancelAfterPedalHitMaskTime(new Property<int>(20)),
+	footCancelAfterPedalHitVelocity(new Property<int>(25)),
+	cancelOpenHitThreshold(new Property<int>(0)),
+	cancelOpenHitVelocity(new Property<int>(0)),
+	securityPosition(new Property<int>(0)),
+	halfOpenMaximumPosition(new Property<int>(65)),
+	halfOpenActivationTime(new Property<int>(50))
 {
 	QPolygonF points;
 	points.push_back(QPointF(0, 127));
@@ -76,7 +76,7 @@ HiHatPedalElement::HiHatPedalElement():
 	points.push_back(QPointF(48, 80));
 	points.push_back(QPointF(60, 80));
 	points.push_back(QPointF(127, 80));
-	_blueAccentFunctions = points;
+	funcBlueAccent.reset(new Property<QPolygonF>(points));
 }
 
 HiHatPedalElement::HiHatPedalElement(const HiHatPedalElement& rOther):Pad(rOther)
@@ -107,180 +107,45 @@ HiHatPedalElement& HiHatPedalElement::operator=(const HiHatPedalElement& rOther)
 		_currentJerk = rOther._currentJerk;
 		_posOnCloseBegin = rOther._posOnCloseBegin; 
 		_posOnOpenBegin = rOther._posOnOpenBegin; 
-		_isBlueDetectionByAccent = rOther._isBlueDetectionByAccent;
-		_isBlueDetectionByPosition = rOther._isBlueDetectionByPosition;
-		_isBlueDetectionBySpeed = rOther._isBlueDetectionBySpeed;
-		_isBlueDetectionByAcceleration = rOther._isBlueDetectionByAcceleration;
-		_isHalfOpenModeEnabled = rOther._isHalfOpenModeEnabled;
-		_isFootCancel = rOther._isFootCancel;
-		_isFootCancelAfterPedalHit = rOther._isFootCancelAfterPedalHit;
-		_isCancelHitWhileOpen = rOther._isCancelHitWhileOpen;
-		_isBlueAccentOverride = rOther._isBlueAccentOverride;
-		_isBowAlwaysYellow = rOther._isBowAlwaysYellow;
-		_controlPosThreshold = rOther._controlPosThreshold; _controlPosDelayTime = rOther._controlPosDelayTime;
-		_openSpeed = rOther._openSpeed;
-		_closeSpeed = rOther._closeSpeed;
-		_openAcceleration = rOther._openAcceleration;
-		_closeAcceleration = rOther._closeAcceleration;
-		_openPositionDelta = rOther._openPositionDelta;
-		_closePositionDelta = rOther._closePositionDelta;
-		_footCancelClosingSpeed = rOther._footCancelClosingSpeed;
-		_footCancelPos = rOther._footCancelPos;
-		_footCancelPosDiff = rOther._footCancelPosDiff;
-		_footCancelMaskTime = rOther._footCancelMaskTime;
-		_footCancelVelocity = rOther._footCancelVelocity;
-		_footCancelAfterPedalHitMaskTime = rOther._footCancelAfterPedalHitMaskTime;
-		_footCancelAfterPedalHitVelocity = rOther._footCancelAfterPedalHitVelocity;
-		_cancelOpenHitThreshold = rOther._cancelOpenHitThreshold;
-		_cancelOpenHitVelocity = rOther._cancelOpenHitVelocity;
-		_securityPosition = rOther._securityPosition;
-		_halfOpenMaximumPosition = rOther._halfOpenMaximumPosition;
-		_halfOpenActivationTime = rOther._halfOpenActivationTime;
+
+		isBlueDetectionByAccent = rOther.isBlueDetectionByAccent;
+		isBlueDetectionByPosition = rOther.isBlueDetectionByPosition;
+		isBlueDetectionBySpeed = rOther.isBlueDetectionBySpeed;
+		isBlueDetectionByAcceleration = rOther.isBlueDetectionByAcceleration;
+		isHalfOpenModeEnabled = rOther.isHalfOpenModeEnabled;
+		isFootCancel = rOther.isFootCancel;
+		isFootCancelAfterPedalHit = rOther.isFootCancelAfterPedalHit;
+		isCancelHitWhileOpen = rOther.isCancelHitWhileOpen;
+		isBlueAccentOverride = rOther.isBlueAccentOverride;
+		isBowAlwaysYellow = rOther.isBowAlwaysYellow;
+		controlPosThreshold = rOther.controlPosThreshold;
+		controlPosDelayTime = rOther.controlPosDelayTime;
+		openSpeed = rOther.openSpeed;
+		closeSpeed = rOther.closeSpeed;
+		openAcceleration = rOther.openAcceleration;
+		closeAcceleration = rOther.closeAcceleration;
+		openPositionDelta = rOther.openPositionDelta;
+		closePositionDelta = rOther.closePositionDelta;
+		footCancelClosingSpeed = rOther.footCancelClosingSpeed;
+		footCancelPos = rOther.footCancelPos;
+		footCancelPosDiff = rOther.footCancelPosDiff;
+		footCancelMaskTime = rOther.footCancelMaskTime;
+		footCancelVelocity = rOther.footCancelVelocity;
+		footCancelAfterPedalHitMaskTime = rOther.footCancelAfterPedalHitMaskTime;
+		footCancelAfterPedalHitVelocity = rOther.footCancelAfterPedalHitVelocity;
+		cancelOpenHitThreshold = rOther.cancelOpenHitThreshold;
+		cancelOpenHitVelocity = rOther.cancelOpenHitVelocity;
+		securityPosition = rOther.securityPosition;
+		halfOpenMaximumPosition = rOther.halfOpenMaximumPosition;
+		halfOpenActivationTime = rOther.halfOpenActivationTime;
 		_blueStateChangeReason = rOther._blueStateChangeReason;
-		_blueAccentFunctions = rOther._blueAccentFunctions;
+		funcBlueAccent = rOther.funcBlueAccent;
 	}
 	return *this;
 }
 
 HiHatPedalElement::~HiHatPedalElement()
 {
-}
-
-bool HiHatPedalElement::isBlueDetectionByAccent() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBlueDetectionByAccent);
-}
-
-void HiHatPedalElement::setBlueDetectionByAccent(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBlueDetectionByAccent = state;
-}
-
-bool HiHatPedalElement::isBlueDetectionByPosition() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBlueDetectionByPosition);
-}
-
-void HiHatPedalElement::setBlueDetectionByPosition(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBlueDetectionByPosition = state;
-	if (!boost::get<bool>(_isBlueDetectionByPosition))
-	{
-		// Reset the blue state
-		setBlue(false, POSITION_THRESHOLD);
-	}
-}
-
-bool HiHatPedalElement::isBlueDetectionBySpeed() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBlueDetectionBySpeed);
-}
-
-void HiHatPedalElement::setBlueDetectionBySpeed(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBlueDetectionBySpeed = state;
-}
-
-bool HiHatPedalElement::isBlueDetectionByAcceleration() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBlueDetectionByAcceleration);
-}
-
-void HiHatPedalElement::setBlueDetectionByAcceleration(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBlueDetectionByAcceleration = state;
-}
-
-bool HiHatPedalElement::isHalfOpenModeEnabled() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isHalfOpenModeEnabled);
-}
-
-void HiHatPedalElement::setHalfOpenModeEnabled(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isHalfOpenModeEnabled = state;
-}
-
-int HiHatPedalElement::getOpenSpeed() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_openSpeed);
-}
-
-void HiHatPedalElement::setOpenSpeed(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_openSpeed = value;
-}
-
-int HiHatPedalElement::getCloseSpeed() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_closeSpeed);
-}
-
-void HiHatPedalElement::setCloseSpeed(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_closeSpeed = value;
-}
-
-int HiHatPedalElement::getOpenAcceleration() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_openAcceleration);
-}
-
-void HiHatPedalElement::setOpenAcceleration(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_openAcceleration = value;
-}
-
-int HiHatPedalElement::getCloseAcceleration() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_closeAcceleration);
-}
-
-void HiHatPedalElement::setCloseAcceleration(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_closeAcceleration = value;
-}
-
-int HiHatPedalElement::getOpenPositionDelta() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_openPositionDelta);
-}
-
-void HiHatPedalElement::setOpenPositionDelta(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_openPositionDelta = value;
-}
-
-int HiHatPedalElement::getClosePositionDelta() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_closePositionDelta);
-}
-
-void HiHatPedalElement::setClosePositionDelta(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_closePositionDelta = value;
 }
 
 bool HiHatPedalElement::isBlue() const
@@ -296,42 +161,6 @@ void HiHatPedalElement::setBlue(bool state, BlueStateChangeReason reason)
 	_blueStateChangeReason = reason;
 }
 
-HiHatPedalElement::BlueStateChangeReason HiHatPedalElement::getBlueStateChangeReason() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _blueStateChangeReason;
-}
-
-void HiHatPedalElement::setBlueAccentOverride(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBlueAccentOverride = value;
-}
-
-bool HiHatPedalElement::isBlueAccentOverride() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBlueAccentOverride);
-}
-
-void HiHatPedalElement::setBowAlwaysYellow(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isBowAlwaysYellow = value;
-}
-
-bool HiHatPedalElement::isBowAlwaysYellow() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isBowAlwaysYellow);
-}
-
-void HiHatPedalElement::setBlueStateChangeReason(BlueStateChangeReason reason)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_blueStateChangeReason = reason;
-}
-
 bool HiHatPedalElement::isHalfOpen() const
 {
 	Mutex::scoped_lock lock(_mutex);
@@ -342,255 +171,6 @@ void HiHatPedalElement::setHalfOpen(bool state)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_isHalfOpen = state;
-}
-
-int HiHatPedalElement::getControlPosThreshold() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_controlPosThreshold);
-}
-
-void HiHatPedalElement::setControlPosThreshold(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_controlPosThreshold = value;
-}
-
-int HiHatPedalElement::getControlPosDelayTime() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_controlPosDelayTime);
-}
-
-void HiHatPedalElement::setControlPosDelayTime(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_controlPosDelayTime = value;
-}
-
-int HiHatPedalElement::getCurrentControlPos() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _currentControlPos;
-}
-
-void HiHatPedalElement::setCurrentControlPos(int value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_currentControlPos = value;
-}
-
-int HiHatPedalElement::getCurrentDeltaPos() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _currentDeltaPos;
-}
-
-void HiHatPedalElement::setCurrentDeltaPos(int value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_currentDeltaPos = value;
-}
-
-float HiHatPedalElement::getCurrentControlSpeed() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _currentControlSpeed;
-}
-
-int HiHatPedalElement::getPositionOnCloseBegin() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _posOnCloseBegin;
-}
-
-int HiHatPedalElement::getPositionOnOpenBegin() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _posOnOpenBegin;
-}
-
-HiHatPedalElement::MovingState HiHatPedalElement::setCurrentControlSpeed(float value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	MovingState movingState = MS_NO_CHANGE;
-	_currentControlSpeed = value;
-	if (_currentControlSpeed <= 0.f)
-	{
-		if (_previousControlSpeed > 0.f)
-		{
-			_posOnCloseBegin = _previousControlPos;
-			movingState = MS_START_CLOSE;
-		}
-	}
-	else
-	{
-		if (_previousControlSpeed <= 0.f)
-		{
-			_posOnOpenBegin = _previousControlPos;
-			movingState = MS_START_OPEN;
-		}
-	}
-	_previousControlSpeed = _currentControlSpeed;
-	_previousControlPos = _currentControlPos;
-
-	return movingState;
-}
-
-float HiHatPedalElement::getCurrentControlAcceleration() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _currentControlAcceleration;
-}
-
-void HiHatPedalElement::setCurrentControlAcceleration(float value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_currentControlAcceleration = value;
-}
-
-float HiHatPedalElement::getCurrentJerk() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return _currentJerk;
-}
-
-void HiHatPedalElement::setCurrentJerk(float value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_currentJerk = value;
-}
-
-int HiHatPedalElement::getFootCancelClosingSpeed() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelClosingSpeed);
-}
-
-void HiHatPedalElement::setFootCancelClosingSpeed(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelClosingSpeed = value;
-}
-
-int HiHatPedalElement::getFootCancelPosDiff() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelPosDiff);
-}
-
-void HiHatPedalElement::setFootCancelPosDiff(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelPosDiff = value;
-}
-
-int HiHatPedalElement::getFootCancelPos() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelPos);
-}
-
-void HiHatPedalElement::setFootCancelPos(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelPos = value;
-}
-
-int HiHatPedalElement::getFootCancelMaskTime() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelMaskTime);
-}
-
-void HiHatPedalElement::setFootCancelMaskTime(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelMaskTime = value;
-	if (!_onFootCancelMaskTimeChanged.empty())
-	{
-		_onFootCancelMaskTimeChanged(boost::get<int>(_footCancelMaskTime));
-	}
-}
-
-int HiHatPedalElement::getFootCancelVelocity() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelVelocity);
-}
-
-void HiHatPedalElement::setFootCancelVelocity(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelVelocity = value;
-	if (!_onFootCancelVelocityChanged.empty())
-	{
-		_onFootCancelVelocityChanged(boost::get<int>(_footCancelVelocity));
-	}
-}
-
-int HiHatPedalElement::getFootCancelAfterPedalHitMaskTime() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelAfterPedalHitMaskTime);
-}
-
-void HiHatPedalElement::setFootCancelAfterPedalHitMaskTime(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelAfterPedalHitMaskTime = value;
-	if (!_onFootCancelAfterPedalHitMaskTimeChanged.empty())
-	{
-		_onFootCancelAfterPedalHitMaskTimeChanged(boost::get<int>(_footCancelAfterPedalHitMaskTime));
-	}
-}
-
-int HiHatPedalElement::getFootCancelAfterPedalHitVelocity() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_footCancelAfterPedalHitVelocity);
-}
-
-void HiHatPedalElement::setFootCancelAfterPedalHitVelocity(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_footCancelAfterPedalHitVelocity = value;
-	if (!_onFootCancelAfterPedalHitVelocityChanged.empty())
-	{
-		_onFootCancelAfterPedalHitVelocityChanged(boost::get<int>(_footCancelAfterPedalHitVelocity));
-	}
-}
-
-bool	HiHatPedalElement::isFootCancel() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isFootCancel);
-}
-
-void	HiHatPedalElement::setFootCancel(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isFootCancel = state;
-	if (!_onFootCancelActivated.empty())
-	{
-		_onFootCancelActivated(boost::get<bool>(_isFootCancel));
-	}
-}
-
-bool	HiHatPedalElement::isFootCancelAfterPedalHit() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isFootCancelAfterPedalHit);
-}
-
-void	HiHatPedalElement::setFootCancelAfterPedalHit(const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_isFootCancelAfterPedalHit = state;
-	if (!_onFootCancelAfterPedalHitActivated.empty())
-	{
-		_onFootCancelAfterPedalHitActivated(boost::get<bool>(_isFootCancelAfterPedalHit));
-	}
 }
 
 int HiHatPedalElement::getFootCancelTimeLimit() const
@@ -629,85 +209,120 @@ void HiHatPedalElement::setBlueStateEnteringTime(int value)
 	_blueStateEnteringTime = value;
 }
 
-int HiHatPedalElement::getCancelOpenHitThreshold() const
+float HiHatPedalElement::getCurrentControlSpeed() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_cancelOpenHitThreshold);
+	return _currentControlSpeed;
 }
 
-int HiHatPedalElement::getCancelOpenHitVelocity() const
+HiHatPedalElement::MovingState HiHatPedalElement::setCurrentControlSpeed(float value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_cancelOpenHitVelocity);
+	MovingState movingState = MS_NO_CHANGE;
+	_currentControlSpeed = value;
+	if (_currentControlSpeed <= 0.f)
+	{
+		if (_previousControlSpeed > 0.f)
+		{
+			_posOnCloseBegin = _previousControlPos;
+			movingState = MS_START_CLOSE;
+		}
+	}
+	else
+	{
+		if (_previousControlSpeed <= 0.f)
+		{
+			_posOnOpenBegin = _previousControlPos;
+			movingState = MS_START_OPEN;
+		}
+	}
+	_previousControlSpeed = _currentControlSpeed;
+	_previousControlPos = _currentControlPos;
+
+	return movingState;
 }
 
-void HiHatPedalElement::setCancelOpenHitThreshold(const Parameter::Value& value)
+int HiHatPedalElement::getCurrentControlPos() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	_cancelOpenHitThreshold = value;
+	return _currentControlPos;
 }
 
-void HiHatPedalElement::setCancelOpenHitVelocity(const Parameter::Value& value)
+void HiHatPedalElement::setCurrentControlPos(int value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_cancelOpenHitVelocity = value;
+	_currentControlPos = value;
 }
 
-bool HiHatPedalElement::isCancelHitWhileOpen() const
+int HiHatPedalElement::getCurrentDeltaPos() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<bool>(_isCancelHitWhileOpen);
+	return _currentDeltaPos;
 }
 
-void HiHatPedalElement::setCancelHitWhileOpen(const Parameter::Value& value)
+void HiHatPedalElement::setCurrentDeltaPos(int value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	_isCancelHitWhileOpen = value;
+	_currentDeltaPos = value;
 }
 
-int HiHatPedalElement::getSecurityPosition() const
+float HiHatPedalElement::getCurrentControlAcceleration() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_securityPosition);
-}
-void HiHatPedalElement::setSecurityPosition(const Parameter::Value& value)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_securityPosition = value;
+	return _currentControlAcceleration;
 }
 
-int HiHatPedalElement::getHalfOpenMaximumPosition() const
+void HiHatPedalElement::setCurrentControlAcceleration(float value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_halfOpenMaximumPosition);
+	_currentControlAcceleration = value;
 }
 
-void HiHatPedalElement::setHalfOpenMaximumPosition(const Parameter::Value& value)
+float HiHatPedalElement::getCurrentJerk() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	_halfOpenMaximumPosition = value;
+	return _currentJerk;
 }
 
-int HiHatPedalElement::getHalfOpenActivationTime() const
+void HiHatPedalElement::setCurrentJerk(float value)
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_halfOpenActivationTime);
+	_currentJerk = value;
 }
 
-void HiHatPedalElement::setHalfOpenActivationTime(const Parameter::Value& value)
+HiHatPedalElement::BlueStateChangeReason HiHatPedalElement::getBlueStateChangeReason() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	_halfOpenActivationTime = value;
+	return _blueStateChangeReason;
 }
 
-QPolygonF HiHatPedalElement::getBlueAccentFunctions() const
+void HiHatPedalElement::setBlueStateChangeReason(BlueStateChangeReason reason)
 {
 	Mutex::scoped_lock lock(_mutex);
-	return boost::get<QPolygonF>(_blueAccentFunctions);
+	_blueStateChangeReason = reason;
 }
 
-void HiHatPedalElement::setBlueAccentFunctions(const Parameter::Value& value)
+int HiHatPedalElement::getPositionOnCloseBegin() const
 {
 	Mutex::scoped_lock lock(_mutex);
-	_blueAccentFunctions = value;
+	return _posOnCloseBegin;
 }
+
+int HiHatPedalElement::getPositionOnOpenBegin() const
+{
+	Mutex::scoped_lock lock(_mutex);
+	return _posOnOpenBegin;
+}
+
+/* TODO
+void HiHatPedalElement::setBlueDetectionByPosition(const Property::Value& state)
+{
+	Mutex::scoped_lock lock(_mutex);
+	_isBlueDetectionByPosition = state;
+	if (!boost::get<bool>(_isBlueDetectionByPosition))
+	{
+		// Reset the blue state
+		setBlue(false, POSITION_THRESHOLD);
+	}
+}
+*/

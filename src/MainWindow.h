@@ -26,18 +26,22 @@
 #include "StreamSink.h"
 #include "GraphSubWindow.h"
 #include "UserSettings.h"
+#include "SlotItemModel.h"
 
 #include "ui_MainWindow.h"
 
-#include <QtGui/QMainWindow>
+#include <QtWidgets/QMainWindow>
 #include <QtCore/QProcess>
 
 #include <boost/iostreams/stream_buffer.hpp> 
 
+class QIdentityProxyModel;
+class ParamItemProxyModel;
 class Settings;
 class MidiDevicesWidget;
 class QSpinBox;
 class QDoubleSpinBox;
+class QUndoStack;
 
 class MainWindow : public QMainWindow, private Ui::MainWindow
 {
@@ -55,26 +59,18 @@ public:
 
 signals:
 	void signalLog(const QString&);
-	void signalSlotChanged(const Slot::Ptr&);
 
 private slots:
 	void on_actionOpen_triggered();
 	void on_actionSave_triggered();
 	void on_actionSave_As_triggered();
 	void on_actionQuit_triggered();
-	void on_actionAdd_Slot_triggered();
-	void on_actionDuplicate_Slot_triggered();
-	void on_actionRemove_Slot_triggered();
 	void on_actionAssistant_triggered();
 	void on_actionAbout_triggered();
 	void on_actionSettings_triggered();
 
-	void on_listWidgetSlots_customContextMenuRequested(const QPoint&);
-	void on_listWidgetSlots_itemSelectionChanged();
-	void on_listWidgetSlots_itemChanged(QListWidgetItem* pItem);
-
     void on_menuEdit_aboutToShow();
-	void on_tabWidget_currentChanged(int index);
+	void on_comboBoxPadSettingsType_currentIndexChanged(int index);
 
 	void on_pushButtonClearLogs_clicked(bool checked=false);
 
@@ -82,6 +78,8 @@ private slots:
 
 	void onMidiEngineStarted();
 	void onMidiEngineStopped();
+
+	void onSlotChanged(const Slot::Ptr&);
 
 protected:
 	void closeEvent(QCloseEvent*);
@@ -92,11 +90,10 @@ private:
 	void saveUserSettings(const std::string& szFilePath);
 	void loadUserSettings(const std::string& szFilePath);
 
-	Slot::Ptr createDefaultSlot();
-	std::string createNewSlotName(const std::string& szBaseName = std::string("slot")) const;
+	Slot::Ptr createDefaultSlot(const QString& szSlotName = QString("default"));
+	QString createNewSlotName(const QString& szBaseName = QString("slot")) const;
 	Slot::Ptr getCurrentSlot() const;
 	void selectLastSlot();
-	void updateCurrentSlot();
 
 private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;
@@ -108,9 +105,12 @@ private:
 	UserSettings			_userSettings;
 	Slot::List::iterator	_currentSlot;
 
+	SlotItemModel*			_pSlotItemModel;
 	GraphSubWindow*			_pGrapSubWindow;
 	QProcess*				_pProcessAssistant;
 	MidiDevicesWidget*		_pMidiDevicesWidget;
 	QSpinBox*				_pSpinBoxInputBuffer;
 	QDoubleSpinBox*			_pAverageLatency;
+	QUndoStack*				_pUndoStack;
+	ParamItemProxyModel*	_pProxyModel;
 };

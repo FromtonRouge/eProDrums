@@ -29,7 +29,7 @@
 #include <qwt_plot_intervalcurve.h>
 #include <qwt_series_data.h>
 #include <QtGui/QPen>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 #include <QtGui/QCursor>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QVector2D>
@@ -52,8 +52,8 @@ DialogFunction::DialogFunction( const LinearFunction::Description::Ptr& pDescrip
 	widgetPlot->setAxisMaxMinor(QwtPlot::yLeft, 2);
 	widgetPlot->setAxisMaxMinor(QwtPlot::xBottom, 2);
 	widgetPlot->setCanvasBackground(QColor(Qt::black));
-	widgetPlot->setAxisTitle(QwtPlot::xBottom, _pDescription->szLabelX.c_str());
-	widgetPlot->setAxisTitle(QwtPlot::yLeft, _pDescription->szLabelY.c_str());
+	widgetPlot->setAxisTitle(QwtPlot::xBottom, _pDescription->szLabelX);
+	widgetPlot->setAxisTitle(QwtPlot::yLeft, _pDescription->szLabelY);
 
 	_pCurve.reset(new QwtPlotCurve());
 	_pCurve->setStyle(QwtPlotCurve::Lines);

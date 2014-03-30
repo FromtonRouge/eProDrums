@@ -36,7 +36,7 @@ PadNotesWidget::~PadNotesWidget()
 void PadNotesWidget::on_pushButtonAdd_clicked(bool)
 {
 	AddMidiNote dlg(_padDescription);
-	dlg.setWindowTitle(Pad::getName(_padDescription.type).c_str());
+	dlg.setWindowTitle(Pad::getName(_padDescription.type));
 	connect(this, SIGNAL(onMidiIn(const MidiMessage&)), &dlg, SLOT(onMidiNoteOn(const MidiMessage&)));
 
 	if (dlg.exec())

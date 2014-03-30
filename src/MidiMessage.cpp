@@ -42,8 +42,8 @@ bool MidiMessage::isInTimeWindow(const MidiMessage& otherMessage, int timeWindow
 
 void MidiMessage::changeNoteTo(Pad* pPad, bool bChangeModifiedState)
 {
-	padType = pPad->getType();
-	_outputNote = pPad->getDefaultOutputNote();
+	padType = pPad->type->get();
+	_outputNote = pPad->defaultOutputNote->get();
 	_alreadyModified = bChangeModifiedState;
 }
 

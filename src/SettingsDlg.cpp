@@ -25,7 +25,7 @@
 #include "AddMidiNote.h"
 #include "Settings.h"
 
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 
 #include <boost/bind.hpp>
 
@@ -118,7 +118,7 @@ void SettingsDlg::on_pushButtonSetupDrumKit_clicked(bool)
 
 		// Clear the dialog first and set pad info
 		dlg.clear();
-		dlg.setWindowTitle(Pad::getName(padDescription.type).c_str());
+		dlg.setWindowTitle(Pad::getName(padDescription.type));
 		dlg.setPadDescription(padDescription);
 
 		if (dlg.exec())

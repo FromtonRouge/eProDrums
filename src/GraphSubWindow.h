@@ -19,7 +19,7 @@
 // 
 // ============================================================ 
 
-#include <QtGui/QMdiSubWindow>
+#include <QtWidgets/QMdiSubWindow>
 
 #include "EProPlotCurve.h"
 #include "MidiMessage.h"

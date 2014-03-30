@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <QtGui/QSlider>
+#include <QtWidgets/QSlider>
 
 class MidiMessage;
 

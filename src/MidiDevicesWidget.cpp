@@ -21,11 +21,11 @@
 
 #include "MidiDevicesWidget.h"
 
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QLabel>
-#include <QtGui/QComboBox>
-#include <QtGui/QPushButton>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QMessageBox>
 
 MidiDevicesWidget::MidiDevicesWidget(QWidget* pParent):QWidget(pParent)
 {

@@ -24,7 +24,7 @@
 #include "Pad.h"
 #include "ui_PadNotesWidget.h"
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class MidiMessage;
 

@@ -24,7 +24,7 @@
 #include "DrumNoteItemEditor.h"
 #include "Pad.h"
 
-#include <QtGui/QStyledItemDelegate>
+#include <QtWidgets/QStyledItemDelegate>
 
 /**
  * Drum note item delegate.

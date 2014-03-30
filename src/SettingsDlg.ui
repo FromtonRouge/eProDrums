@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>SettingsDlg</class>
  <widget class="QDialog" name="SettingsDlg">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -42,7 +45,16 @@
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_4">
-       <property name="margin">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
         <number>0</number>
        </property>
        <item row="0" column="0">
@@ -55,7 +67,16 @@
          </property>
          <widget class="QWidget" name="pageDrumKit">
           <layout class="QGridLayout" name="gridLayout_2">
-           <property name="margin">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item row="0" column="0">
@@ -119,7 +140,7 @@
               <bool>true</bool>
              </property>
              <attribute name="buttonGroup">
-              <string>buttonGroup</string>
+              <string notr="true">buttonGroup</string>
              </attribute>
             </widget>
            </item>
@@ -129,7 +150,7 @@
               <string>Left Handed</string>
              </property>
              <attribute name="buttonGroup">
-              <string>buttonGroup</string>
+              <string notr="true">buttonGroup</string>
              </attribute>
             </widget>
            </item>
@@ -139,7 +160,7 @@
               <string>Custom</string>
              </property>
              <attribute name="buttonGroup">
-              <string>buttonGroup</string>
+              <string notr="true">buttonGroup</string>
              </attribute>
             </widget>
            </item>

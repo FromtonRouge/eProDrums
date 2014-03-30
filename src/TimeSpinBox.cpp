@@ -21,9 +21,9 @@
 
 #include "TimeSpinBox.h"
 
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QSpinBox>
-#include <QtGui/QLabel>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QLabel>
 
 #include <boost/chrono.hpp>
 

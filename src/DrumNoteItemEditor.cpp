@@ -22,10 +22,10 @@
 #include "DrumNoteItemEditor.h"
 #include "DrumNote.h"
 
-#include <QtGui/QStackedWidget>
-#include <QtGui/QHBoxLayout>
-#include <QtGui/QComboBox>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
 
 DrumNoteItemEditor::DrumNoteItemEditor(Pad::Type type, QWidget* pParent):QWidget(pParent),
 	_type(type)

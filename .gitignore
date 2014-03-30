@@ -23,3 +23,6 @@ src/Thumbs.db
 *.qhc
 *.qch
 tags
+*.db
+*.db
+*.db

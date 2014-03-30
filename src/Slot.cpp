@@ -22,12 +22,17 @@
 #include "Slot.h"
 #include "HiHatPedalElement.h"
 #include "DrumKitMidiMap.h"
+#include "ParamItemModel.h"
 
-Slot::AutoConvertCrashSettings Slot::CRASH_CRASH	= 1<<0;
-Slot::AutoConvertCrashSettings Slot::CRASH_RIDE		= 1<<1;
-Slot::AutoConvertCrashSettings Slot::CRASH_SNARE	= 1<<2;
-Slot::AutoConvertCrashSettings Slot::CRASH_TOM2		= 1<<3;
-Slot::AutoConvertCrashSettings Slot::CRASH_TOM3		= 1<<4;
+Slot::Slot()
+	: cymbalSimHitWindow(new Property<int>(35))
+	, isChameleonCrashWithCrash(new Property<bool>(true))
+	, isChameleonCrashWithRide(new Property<bool>(true))
+	, isChameleonCrashWithSnare(new Property<bool>(false))
+	, isChameleonCrashWithTom2(new Property<bool>(true))
+	, isChameleonCrashWithTom3(new Property<bool>(true))
+{
+}
 
 Slot::Slot(const Slot& rOther)
 {
@@ -59,8 +64,12 @@ Slot& Slot::operator=(const Slot& rOther)
 			}
 		}
 
-		_cymbalSimHitWindow = rOther._cymbalSimHitWindow;
-		_autoConvertCrashSettings = rOther._autoConvertCrashSettings;
+		cymbalSimHitWindow = rOther.cymbalSimHitWindow;
+		isChameleonCrashWithCrash = rOther.isChameleonCrashWithCrash;
+		isChameleonCrashWithRide = rOther.isChameleonCrashWithRide;
+		isChameleonCrashWithSnare = rOther.isChameleonCrashWithSnare;
+		isChameleonCrashWithTom2 = rOther.isChameleonCrashWithTom2;
+		isChameleonCrashWithTom3 = rOther.isChameleonCrashWithTom3;
 	}
 	return *this;
 }
@@ -75,15 +84,16 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 	while (itPad!=_pads.end())
 	{
 		const Pad::Ptr& pPad = *(itPad++);
-		DrumKitMidiMap::Description::Pads::const_iterator it = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->getType());
+		DrumKitMidiMap::Description::Pads::const_iterator it = std::find_if(pads.begin(), pads.end(), boost::bind(&Pad::MidiDescription::type, _1)==pPad->type->get());
 		if (it!=pads.end())
 		{
-			pPad->setColor(it->color);
+			pPad->color->set(it->color);
 			pPad->setInputNotes(it->inputNotes);
-			pPad->setDefaultOutputNote(it->outputNote);
+			pPad->defaultOutputNote->set(it->outputNote);
 		}
 	}
 }
+
 const std::string& Slot::getName() const
 {
 	Mutex::scoped_lock lock(_mutex);
@@ -106,28 +116,4 @@ Pad::List& Slot::getPads()
 {
 	Mutex::scoped_lock lock(_mutex);
 	return _pads;
-}
-
-bool Slot::isAutoConvertCrash(const AutoConvertCrashSettings& bit) const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return (_autoConvertCrashSettings & bit) == bit; 
-}
-
-void Slot::setAutoConvertCrash(const AutoConvertCrashSettings& bit, const Parameter::Value& state)
-{
-	Mutex::scoped_lock lock(_mutex);
-   	_autoConvertCrashSettings = boost::get<bool>(state)?_autoConvertCrashSettings|bit:(_autoConvertCrashSettings|bit)^bit;
-}
-
-int Slot::getCymbalSimHitWindow() const
-{
-	Mutex::scoped_lock lock(_mutex);
-	return boost::get<int>(_cymbalSimHitWindow);
-}
-
-void Slot::setCymbalSimHitWindow(const Parameter::Value& simHit)
-{
-	Mutex::scoped_lock lock(_mutex);
-	_cymbalSimHitWindow = simHit;
 }

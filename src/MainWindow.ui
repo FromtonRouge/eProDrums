@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -18,8 +21,17 @@
     <normaloff>:/EProDrums.png</normaloff>:/EProDrums.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_13">
-    <property name="margin">
+   <layout class="QGridLayout" name="gridLayout_8">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
      <number>0</number>
     </property>
     <item row="0" column="0">
@@ -35,12 +47,21 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>840</width>
-         <height>301</height>
+         <width>565</width>
+         <height>327</height>
         </rect>
        </property>
        <layout class="QGridLayout" name="gridLayout_12">
-        <property name="margin">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
          <number>0</number>
         </property>
         <item row="0" column="0">
@@ -76,10 +97,6 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionAdd_Slot"/>
-    <addaction name="actionDuplicate_Slot"/>
-    <addaction name="actionRemove_Slot"/>
-    <addaction name="separator"/>
     <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -100,113 +117,20 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockWidget_3">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
+  <widget class="QDockWidget" name="dockWidgetSlots">
    <property name="features">
-    <set>QDockWidget::DockWidgetFeatureMask</set>
-   </property>
-   <property name="allowedAreas">
-    <set>Qt::BottomDockWidgetArea</set>
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>Slots &amp; Pad Settings</string>
+    <string>Slots</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>8</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="0" column="0">
-      <widget class="QSplitter" name="splitter">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <widget class="QListWidget" name="listWidgetSlots">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="resizeMode">
-         <enum>QListView::Adjust</enum>
-        </property>
-       </widget>
-       <widget class="QTabWidget" name="tabWidget">
-        <property name="currentIndex">
-         <number>0</number>
-        </property>
-        <widget class="QWidget" name="tab_5">
-         <attribute name="title">
-          <string>Cymbals / Hi-Hat</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_1">
-          <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayoutHiHat"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_6">
-         <attribute name="title">
-          <string>Foot Splash Cancel</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_6">
-          <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayoutFootSplashCancel"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_4">
-         <attribute name="title">
-          <string>Flams</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_4">
-          <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayoutFlams"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_2">
-         <attribute name="title">
-          <string>Ghost Notes</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0">
-           <layout class="QGridLayout" name="gridLayoutGhostNotes"/>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="tab_3">
-         <attribute name="title">
-          <string>Logs</string>
-         </attribute>
-         <layout class="QGridLayout" name="gridLayout_7">
-          <item row="1" column="0" colspan="2">
-           <widget class="QTextEdit" name="textEditLog">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0" colspan="2">
-           <widget class="QPushButton" name="pushButtonClearLogs">
-            <property name="text">
-             <string>Clear</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </widget>
-      </widget>
+      <widget class="SlotListView" name="listViewSlots"/>
      </item>
     </layout>
    </widget>
@@ -238,6 +162,115 @@
    <attribute name="toolBarBreak">
     <bool>true</bool>
    </attribute>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetUndo">
+   <property name="windowTitle">
+    <string>Undo view</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QUndoView" name="listViewUndo"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetPadSettings">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Pad Settings</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QGridLayout" name="gridLayout_4">
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelPadSettingsType">
+       <property name="text">
+        <string>Pad Settings Type</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBoxPadSettingsType">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <item>
+        <property name="text">
+         <string>Cymbals / Hi-Hat</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Foot Splash Cancel</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Flams</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ghost Notes</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="TreeViewParameters" name="treeViewPadSettings"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidgetLogs">
+   <property name="windowTitle">
+    <string>Logs</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_4">
+    <layout class="QGridLayout" name="gridLayout_3">
+     <item row="2" column="1">
+      <widget class="QPushButton" name="pushButtonClearLogs">
+       <property name="text">
+        <string>Clear</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <widget class="QTextEdit" name="textEditLog">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionOpen">
    <property name="icon">
@@ -284,42 +317,6 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionAdd_Slot">
-   <property name="icon">
-    <iconset resource="EProDrums.qrc">
-     <normaloff>:/icons/blue-document--plus.png</normaloff>:/icons/blue-document--plus.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add Slot</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
-  <action name="actionRemove_Slot">
-   <property name="icon">
-    <iconset resource="EProDrums.qrc">
-     <normaloff>:/icons/blue-document--minus.png</normaloff>:/icons/blue-document--minus.png</iconset>
-   </property>
-   <property name="text">
-    <string>Remove Slot</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+X</string>
-   </property>
-  </action>
-  <action name="actionDuplicate_Slot">
-   <property name="icon">
-    <iconset resource="EProDrums.qrc">
-     <normaloff>:/icons/blue-documents.png</normaloff>:/icons/blue-documents.png</iconset>
-   </property>
-   <property name="text">
-    <string>Duplicate Slot</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+C</string>
-   </property>
-  </action>
   <action name="actionAbout">
    <property name="icon">
     <iconset resource="EProDrums.qrc">
@@ -327,26 +324,6 @@
    </property>
    <property name="text">
     <string>About</string>
-   </property>
-  </action>
-  <action name="actionChangelog">
-   <property name="text">
-    <string>ChangeLog</string>
-   </property>
-  </action>
-  <action name="actionChangeLog">
-   <property name="text">
-    <string>ChangeLog</string>
-   </property>
-  </action>
-  <action name="actionHelp">
-   <property name="text">
-    <string>Help</string>
-   </property>
-  </action>
-  <action name="actionPreferences">
-   <property name="text">
-    <string>Preferences...</string>
    </property>
   </action>
   <action name="actionSettings">
@@ -368,6 +345,23 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TreeViewParameters</class>
+   <extends>QTreeView</extends>
+   <header>treeviewparameters.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QUndoView</class>
+   <extends>QListView</extends>
+   <header location="global">QtGui/QUndoView</header>
+  </customwidget>
+  <customwidget>
+   <class>SlotListView</class>
+   <extends>QListView</extends>
+   <header>slotlistview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="EProDrums.qrc"/>
  </resources>

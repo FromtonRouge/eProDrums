@@ -24,17 +24,16 @@
 #include "HiHatPedalElement.h"
 #include "HiHatPositionCurve.h"
 #include "DrumKitMidiMap.h"
+#include "LinearFunction.h"
 
-#include <QtGui/QApplication>
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
 #include <QtCore/QMetaType>
 #include <iostream>
 #include <cmath>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/format.hpp>
-
-Q_DECLARE_METATYPE(MidiMessage)
 
 /**
  * Compute current speed, accel and jerk
@@ -346,7 +345,7 @@ void MidiEngine::transform(MidiMessage& currentMsg)
 			Pad::List::value_type& p = *(it++);
 			if (p->isA(currentMsg.getOriginalNote()))
 			{
-				MidiMessage::History& rHistory = _lastMsgSent[p->getType()];
+				MidiMessage::History& rHistory = _lastMsgSent[p->type->get()];
 				rHistory.push_front(currentMsg);
 				// We save the last 5 notes for this element
 				rHistory.resize(5);
@@ -400,7 +399,7 @@ bool MidiEngine::classify(MidiMessage& midiMessage)
 			if (pPad->isA(midiMessage.getOriginalNote()))
 			{
 				midiMessage.changeNoteTo(pPad.get(), false);
-				midiMessage.padType = pPad->getType();
+				midiMessage.padType = pPad->type->get();
 				bAccepted = true;
 				break;
 			}
@@ -441,12 +440,12 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	const Pad::Ptr& pElRide =		pads[Pad::RIDE];
 	const Pad::Ptr& pElBassDrum =	pads[Pad::BASS_DRUM];
 
-	int cymbalsSimHitWindow = _pCurrentSlot->getCymbalSimHitWindow();
-	bool mutableCrashWithCrash = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_CRASH);
-	bool mutableCrashWithRide = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_RIDE);
-	bool mutableCrashWithSnare = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_SNARE);
-	bool mutableCrashWithTom2 = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM2);
-	bool mutableCrashWithTom3 = _pCurrentSlot->isAutoConvertCrash(Slot::CRASH_TOM3);
+	int cymbalsSimHitWindow = _pCurrentSlot->cymbalSimHitWindow->get();
+	bool mutableCrashWithCrash = _pCurrentSlot->isChameleonCrashWithCrash->get();
+	bool mutableCrashWithRide = _pCurrentSlot->isChameleonCrashWithRide->get();
+	bool mutableCrashWithSnare = _pCurrentSlot->isChameleonCrashWithSnare->get();
+	bool mutableCrashWithTom2 = _pCurrentSlot->isChameleonCrashWithTom2->get();
+	bool mutableCrashWithTom3 = _pCurrentSlot->isChameleonCrashWithTom3->get();
 	bool bHasNextMidiMessage = !_inputBufferedMessages.empty();
 
 	const int DEFAULT_NOTE_MSG_CTRL(4);
@@ -454,28 +453,28 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 	if (currentMsg.isControllerMsg() && currentMsg.getOutputNote() == DEFAULT_NOTE_MSG_CTRL)
 	{
 		int currentControlPos = pElHihatPedal->getCurrentControlPos();
-		bool bSecured = currentControlPos<=pElHihatPedal->getSecurityPosition();
+		bool bSecured = currentControlPos<=pElHihatPedal->securityPosition->get();
 		if (bSecured)
 		{
 			pElHihatPedal->setBlue(false, HiHatPedalElement::IN_SECURED_ZONE);
 		}
 
 		// Half-open mode
-		if (pElHihatPedal->isHalfOpenModeEnabled())
+		if (pElHihatPedal->isHalfOpenModeEnabled->get())
 		{
 			if (bSecured)
 			{
 				pElHihatPedal->setHalfOpenEnteringTime(0);
 				pElHihatPedal->setHalfOpen(false);
 			}
-			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()==0)
+			else if (currentControlPos<=pElHihatPedal->halfOpenMaximumPosition->get() && pElHihatPedal->getHalfOpenEnteringTime()==0)
 			{
 				pElHihatPedal->setHalfOpenEnteringTime(currentTime);
 			}
-			else if (currentControlPos<=pElHihatPedal->getHalfOpenMaximumPosition() && pElHihatPedal->getHalfOpenEnteringTime()>0)
+			else if (currentControlPos<=pElHihatPedal->halfOpenMaximumPosition->get() && pElHihatPedal->getHalfOpenEnteringTime()>0)
 			{
 				int enteringTime = pElHihatPedal->getHalfOpenEnteringTime();
-				int activationTime = pElHihatPedal->getHalfOpenActivationTime();
+				int activationTime = pElHihatPedal->halfOpenActivationTime->get();
 				if (currentTime-enteringTime > activationTime && !pElHihatPedal->isBlue())
 				{
 					// Still yellow after activationTime, we can switch to half-open mode
@@ -494,7 +493,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 
 		// Blue state by pedal acceleration
 		float currentSpeed = pElHihatPedal->getCurrentControlSpeed();
-		if (pElHihatPedal->isBlueDetectionByAcceleration())
+		if (pElHihatPedal->isBlueDetectionByAcceleration->get())
 		{
 			if (!pElHihatPedal->isHalfOpen() && !bSecured)
 			{
@@ -504,7 +503,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				// Are we opening the Hi-Hat
 				if (currentSpeed > 0)
 				{
-					if (currentAccel >= pElHihatPedal->getOpenAcceleration() && deltaPos >= pElHihatPedal->getOpenPositionDelta())
+					if (currentAccel >= pElHihatPedal->openAcceleration->get() && deltaPos >= pElHihatPedal->openPositionDelta->get())
 					{
 						pElHihatPedal->setBlue(true, HiHatPedalElement::OPENING_MOVEMENT);
 					}
@@ -517,7 +516,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else if (currentSpeed < 0)
 				{
 					// Hi-Hat closing
-					if (currentAccel <= pElHihatPedal->getCloseAcceleration() && deltaPos <= pElHihatPedal->getClosePositionDelta())
+					if (currentAccel <= pElHihatPedal->closeAcceleration->get() && deltaPos <= pElHihatPedal->closePositionDelta->get())
 					{
 						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);
 					}
@@ -530,14 +529,14 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 
 		// Blue state by pedal speed
-		if (pElHihatPedal->isBlueDetectionBySpeed())
+		if (pElHihatPedal->isBlueDetectionBySpeed->get())
 		{
 			if (!pElHihatPedal->isHalfOpen() && !bSecured)
 			{
 				// Are we opening the Hi-Hat
 				if (currentSpeed > 0)
 				{
-					if (currentSpeed >= pElHihatPedal->getOpenSpeed())
+					if (currentSpeed >= pElHihatPedal->openSpeed->get())
 					{
 						pElHihatPedal->setBlue(true, HiHatPedalElement::OPENING_MOVEMENT);
 					}
@@ -550,7 +549,7 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 				else if (currentSpeed < 0)
 				{
 					// Hi-Hat closing
-					if (currentSpeed <= pElHihatPedal->getCloseSpeed())
+					if (currentSpeed <= pElHihatPedal->closeSpeed->get())
 					{
 						// Hi Hat closing and the close speed is reached
 						pElHihatPedal->setBlue(false, HiHatPedalElement::CLOSING_MOVEMENT);
@@ -564,20 +563,20 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 
 		// Blue state by pedal position
-		if (!pElHihatPedal->isHalfOpen() && pElHihatPedal->isBlueDetectionByPosition())
+		if (!pElHihatPedal->isHalfOpen() && pElHihatPedal->isBlueDetectionByPosition->get())
 		{
-			if (currentControlPos > pElHihatPedal->getControlPosThreshold())
+			if (currentControlPos > pElHihatPedal->controlPosThreshold->get())
 			{
 				if (pElHihatPedal->getBlueStateEnteringTime()==0)
 				{
 					pElHihatPedal->setBlueStateEnteringTime(currentTime); }
 
-				if (currentTime-pElHihatPedal->getBlueStateEnteringTime() >= pElHihatPedal->getControlPosDelayTime())
+				if (currentTime-pElHihatPedal->getBlueStateEnteringTime() >= pElHihatPedal->controlPosDelayTime->get())
 				{
 					pElHihatPedal->setBlue(true, HiHatPedalElement::POSITION_THRESHOLD);
 				}
 			}
-			else if (!pElHihatPedal->isBlueDetectionBySpeed())
+			else if (!pElHihatPedal->isBlueDetectionBySpeed->get())
 			{
 				pElHihatPedal->setBlueStateEnteringTime(0);
 				pElHihatPedal->setBlue(false, HiHatPedalElement::POSITION_THRESHOLD);
@@ -604,22 +603,22 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		}
 		emit signalHiHatState(state);
 
-		if (pElHihatPedal->isFootCancel())
+		if (pElHihatPedal->isFootCancel->get())
 		{
 			int posDiff = pElHihatPedal->getPositionOnCloseBegin()-currentControlPos;
 			float speed = pElHihatPedal->getCurrentControlSpeed();
 
 			if ( 
 					currentTime > pElHihatPedal->getFootCancelTimeLimit() && 
-					speed <= pElHihatPedal->getFootCancelClosingSpeed() &&
-					currentControlPos <= pElHihatPedal->getFootCancelPos() &&
-					posDiff >= pElHihatPedal->getFootCancelPosDiff()
+					speed <= pElHihatPedal->footCancelClosingSpeed->get() &&
+					currentControlPos <= pElHihatPedal->footCancelPos->get() &&
+					posDiff >= pElHihatPedal->footCancelPosDiff->get()
 			   )
 			{
-				int cancelMaskTime = pElHihatPedal->getFootCancelMaskTime();
+				int cancelMaskTime = pElHihatPedal->footCancelMaskTime->get();
 				pElHihatPedal->setFootCancelTimeLimit(currentTime+cancelMaskTime);
 
-				emit signalFootCancelStarted(currentTime, cancelMaskTime, pElHihatPedal->getFootCancelVelocity());
+				emit signalFootCancelStarted(currentTime, cancelMaskTime, pElHihatPedal->footCancelVelocity->get());
 			}
 		}
 	}
@@ -631,11 +630,11 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		{
 		case Pad::HIHAT_PEDAL:
 			{
-				if (bHasNextMidiMessage && pElHihatPedal->isFootCancelAfterPedalHit())
+				if (bHasNextMidiMessage && pElHihatPedal->isFootCancelAfterPedalHit->get())
 				{
 					MidiMessage* pNextHiHat = getNextMessage(pElHihat);
-					if (	pNextHiHat && currentMsg.isInTimeWindow(*pNextHiHat, pElHihatPedal->getFootCancelAfterPedalHitMaskTime()) &&
-							pNextHiHat->getValue() < pElHihatPedal->getFootCancelAfterPedalHitVelocity())
+					if (	pNextHiHat && currentMsg.isInTimeWindow(*pNextHiHat, pElHihatPedal->footCancelAfterPedalHitMaskTime->get()) &&
+							pNextHiHat->getValue() < pElHihatPedal->footCancelAfterPedalHitVelocity->get())
 					{
 						pNextHiHat->ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 					}
@@ -646,39 +645,39 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 		case Pad::HIHAT:
 			{
 				int currentControlPos = pElHihatPedal->getCurrentControlPos();
-				if ( pElHihatPedal->isCancelHitWhileOpen()
-						&& currentControlPos >= pElHihatPedal->getCancelOpenHitThreshold() 
-						&& currentMsg.getValue()<pElHihatPedal->getCancelOpenHitVelocity())
+				if ( pElHihatPedal->isCancelHitWhileOpen->get()
+						&& currentControlPos >= pElHihatPedal->cancelOpenHitThreshold->get() 
+						&& currentMsg.getValue()<pElHihatPedal->cancelOpenHitVelocity->get())
 				{
 					currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 				}
-				else if (currentMsg.getTimestamp() <= pElHihatPedal->getFootCancelTimeLimit() && currentMsg.getValue() < pElHihatPedal->getFootCancelVelocity())
+				else if (currentMsg.getTimestamp() <= pElHihatPedal->getFootCancelTimeLimit() && currentMsg.getValue() < pElHihatPedal->footCancelVelocity->get())
 				{
 					currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 				}
 
 				if (pElHihatPedal->isBlue())
 				{
-					if (!pElHihatPedal->isBowAlwaysYellow() || !pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::BOW))
+					if (!pElHihatPedal->isBowAlwaysYellow->get() || !pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::BOW))
 					{
 						// Change the yellow hi-hat to blue if the pedal is blue
 						currentMsg.changeNoteTo(pElRide.get());
 					}
 				}
-				else if (pElHihatPedal->isBlueDetectionByAccent() && !pElHihatPedal->isHalfOpen())
+				else if (pElHihatPedal->isBlueDetectionByAccent->get() && !pElHihatPedal->isHalfOpen())
 				{
 					// Above security position ?
-					if (currentControlPos > pElHihatPedal->getSecurityPosition() || pElHihatPedal->isBlueAccentOverride())
+					if (currentControlPos > pElHihatPedal->securityPosition->get() || pElHihatPedal->isBlueAccentOverride->get())
 					{
 						// Accented notes only detected on hi-hat edge (bow are alwyas yellow)
 						if (pElHihat->isA(currentMsg.getOriginalNote(), DrumNote::EDGE))
 						{
 							// When blue detection by speed is activated 
 							// and if the blue state is false because of a closing movement we don't apply linear functions
-							if (!pElHihatPedal->isBlueDetectionBySpeed() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
+							if (!pElHihatPedal->isBlueDetectionBySpeed->get() || pElHihatPedal->getBlueStateChangeReason()!=HiHatPedalElement::CLOSING_MOVEMENT)
 							{
 								float y = 0.f;
-								if (LinearFunction::apply(pElHihatPedal->getBlueAccentFunctions(), currentControlPos, y) && currentMsg.getValue() > y)
+								if (LinearFunction::apply(pElHihatPedal->funcBlueAccent->get(), currentControlPos, y) && currentMsg.getValue() > y)
 								{
 									currentMsg.changeNoteTo(pElRide.get());
 								}
@@ -687,13 +686,13 @@ void MidiEngine::computeMessage(MidiMessage& currentMsg, MidiMessage::DictHistor
 					}
 				}
 
-				if (pElHihatPedal->isFootCancelAfterPedalHit() && !lastMsgSent[Pad::HIHAT_PEDAL].empty())
+				if (pElHihatPedal->isFootCancelAfterPedalHit->get() && !lastMsgSent[Pad::HIHAT_PEDAL].empty())
 				{
 					const MidiMessage& rLastHiHatPedal = lastMsgSent[Pad::HIHAT_PEDAL].front();
 					if (pElHihatPedal->isA(rLastHiHatPedal.getOriginalNote()))
 					{
-						if (	currentMsg.isInTimeWindow(rLastHiHatPedal, pElHihatPedal->getFootCancelAfterPedalHitMaskTime()) &&
-								currentMsg.getValue() < pElHihatPedal->getFootCancelAfterPedalHitVelocity())
+						if (	currentMsg.isInTimeWindow(rLastHiHatPedal, pElHihatPedal->footCancelAfterPedalHitMaskTime->get()) &&
+								currentMsg.getValue() < pElHihatPedal->footCancelAfterPedalHitVelocity->get())
 						{
 							currentMsg.ignore(MidiMessage::IGNORED_BECAUSE_FOOT_CANCEL);
 						}

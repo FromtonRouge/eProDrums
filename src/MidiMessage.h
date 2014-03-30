@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <QtCore/QMetaType>
+
 #include <portmidi.h>
 #include <porttime.h>
 
@@ -114,3 +116,5 @@ private:
 	IgnoreReason		_ignore;
 	bool				_alreadyModified;
 };
+
+Q_DECLARE_METATYPE(MidiMessage)

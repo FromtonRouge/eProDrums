@@ -23,7 +23,7 @@
 
 #include "MidiDevice.h"
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class QComboBox;
 class QPushButton;

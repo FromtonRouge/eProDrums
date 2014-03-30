@@ -23,7 +23,7 @@
 
 #include "Pad.h"
 
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 #include <QtCore/QModelIndex>
 
 class QStackedWidget;

@@ -23,17 +23,19 @@
 
 #include "MidiMessage.h"
 #include "DrumNote.h"
-#include "Parameter.h"
+#include "Property.h"
 
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/split_free.hpp>
+#include <boost/serialization/string.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 
+#include <QtCore/QString>
 #include <vector>
 
 /**
@@ -75,11 +77,30 @@ namespace boost
 				ar << boost::serialization::make_nvp("point", points[i]);
 			}
 		}
+
+		template<class Archive> void serialize(Archive& ar, QString& sz, const unsigned int version)
+		{
+			boost::serialization::split_free(ar, sz, version);
+		}
+
+		template<class Archive> void load(Archive& ar, QString& sz, const unsigned int)
+		{
+			std::string szStd;
+			ar >> boost::serialization::make_nvp("string", szStd);
+			sz = szStd.c_str();
+		}
+
+		template<class Archive> void save(Archive& ar, const QString& sz, const unsigned int)
+		{
+			const std::string& szStd = sz.toStdString();
+			ar << boost::serialization::make_nvp("string", szStd);
+		}
 	}
 }
 
 BOOST_CLASS_VERSION(QPointF, 0)
 BOOST_CLASS_VERSION(QPolygonF, 0)
+BOOST_CLASS_VERSION(QString, 0)
 
 /**
  * Note: Thread safe
@@ -127,14 +148,14 @@ public:
 	 */
 	struct MidiDescription
 	{
-		MidiDescription(Type type = SNARE, int outputNote=0, const std::string& color = std::string()):
+		MidiDescription(Type type = SNARE, int outputNote=0, const QString& color = QString()):
 			type(type),
 		   	color(color),
 		   	outputNote(outputNote)
 	   	{}
 
 		Type			type;
-		std::string		color;
+		QString			color;
 		DrumNotes		inputNotes;
 		int				outputNote;
 
@@ -153,43 +174,25 @@ protected:
 	typedef boost::recursive_mutex Mutex;
 
 public:
-	static Parameter::DictEnums			DICT_NAMES;
-	static std::map<int, std::string>	DICT_COLORS;
+	static std::map<int, QString>	DICT_NAMES;
+	static std::map<int, QString>	DICT_COLORS;
 
 public:
-	static std::string getName(Type type);
-	static std::string getDefaultColor(Type type);
+	static QString getName(Type type);
+	static QString getDefaultColor(Type type);
 
 public:
-	Pad();
-	Pad(Type type, int defaultMidiNote);
-
+	Pad(Type type = SNARE, int defaultMidiNote=0);
 	Pad(const Pad& rOther);
 	Pad& operator=(const Pad& rOther);
 
 	virtual ~Pad();
 
 public:
-	void setInputNotes(const DrumNotes& notes);
-	void setColor(const std::string& color);
-	std::string getColor() const;
-	Type getType() const;
-	void setType(Type type);
-	void setTypeFlam(const Parameter::Value& value);
-	Type getTypeFlam() const;
-	bool isA(int midiNote) const;
-	bool isA(int midiNote, DrumNote::HitZone hitZone) const;
-	void setDefaultOutputNote(int outputNote);
-	int getDefaultOutputNote() const;
-	int getGhostVelocityLimit() const;
-	void setGhostVelocityLimit(const Parameter::Value& velocity);
-	bool isFlamActivated() const;
-	void setFlamActivated(const Parameter::Value& value);
-	QPolygonF getFlamFunctions() const;
-	void setFlamFunctions(const Parameter::Value& value);
-	int getFlamCancelDuringRoll() const;
-	void setFlamCancelDuringRoll(const Parameter::Value& value);
-	std::string getName() const;
+	void		setInputNotes(const DrumNotes& notes);
+	bool		isA(int midiNote) const;
+	bool		isA(int midiNote, DrumNote::HitZone hitZone) const;
+	QString		getName() const;
 
 	/**
 	 * Compute flams, ghosts on current and next midi message.
@@ -201,35 +204,33 @@ private:
 	bool isFlamAllowed(const MidiMessage& beforeFlamHit, const MidiMessage& flamHit) const;
 
 protected:
-	mutable Mutex		_mutex;
+	mutable Mutex	_mutex;
 
 private:
-	DrumNotes			_drumNotes;
-	std::string			_color;
+	DrumNotes		_drumNotes;
 
-	// Archived data
-	Type				_type;
-	Parameter::Value	_typeFlam;
-	int					_defaultOutputNote;
-
-	// Settings
-	Parameter::Value	_ghostVelocityLimit;
-	Parameter::Value	_isFlamActivated;
-	Parameter::Value	_flamFunctions;
-	Parameter::Value	_flamCancelDuringRoll;
+public:
+	Property<Type>::Ptr			type;
+	Property<QString>::Ptr		color;				///! Not saved
+	Property<int>::Ptr			defaultOutputNote;
+	Property<int>::Ptr			typeFlam;
+	Property<int>::Ptr			ghostVelocityLimit;
+	Property<bool>::Ptr			isFlamActivated;
+	Property<QPolygonF>::Ptr	funcFlams;
+	Property<int>::Ptr			flamCancelDuringRoll;
 
 private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int)
 	{
 		// Basic Pad
-		ar  & BOOST_SERIALIZATION_NVP(_type);
-		ar  & BOOST_SERIALIZATION_NVP(_typeFlam);
-		ar  & BOOST_SERIALIZATION_NVP(_defaultOutputNote);
-		ar  & BOOST_SERIALIZATION_NVP(_ghostVelocityLimit);
-		ar  & BOOST_SERIALIZATION_NVP(_isFlamActivated);
-		ar  & BOOST_SERIALIZATION_NVP(_flamFunctions);
-		ar  & BOOST_SERIALIZATION_NVP(_flamCancelDuringRoll);
+		ar  & BOOST_SERIALIZATION_NVP(type);
+		ar  & BOOST_SERIALIZATION_NVP(defaultOutputNote);
+		ar  & BOOST_SERIALIZATION_NVP(typeFlam);
+		ar  & BOOST_SERIALIZATION_NVP(ghostVelocityLimit);
+		ar  & BOOST_SERIALIZATION_NVP(isFlamActivated);
+		ar  & BOOST_SERIALIZATION_NVP(funcFlams);
+		ar  & BOOST_SERIALIZATION_NVP(flamCancelDuringRoll);
 	}
 };
 

@@ -23,22 +23,22 @@
 
 #include "Pad.h"
 
+#include <QtCore/QMetaType>
+
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/serialization/string.hpp>
-#include <boost/serialization/bitset.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/export.hpp> 
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/bind.hpp>
 
 #include <algorithm>
 #include <vector>
 #include <string>
-#include <bitset>
 
 class DrumKitMidiMap;
+class ParamItemModel;
 
 /**
  * Slot configuration.
@@ -50,19 +50,12 @@ public:
 	typedef boost::shared_ptr<Slot> Ptr;
 	typedef std::vector<Ptr> List;
 
-	typedef std::bitset<5> AutoConvertCrashSettings;
-	static AutoConvertCrashSettings CRASH_CRASH;
-	static AutoConvertCrashSettings CRASH_RIDE;
-	static AutoConvertCrashSettings CRASH_SNARE;
-	static AutoConvertCrashSettings CRASH_TOM2;
-	static AutoConvertCrashSettings CRASH_TOM3;
-
 private:
 	typedef boost::recursive_mutex Mutex;
 
 public:
 
-	Slot(): _cymbalSimHitWindow(35), _autoConvertCrashSettings(CRASH_CRASH|CRASH_RIDE|CRASH_TOM2|CRASH_TOM3) {}
+	Slot();
 	Slot(const Slot& rOther);
 	Slot& operator=(const Slot& rOther);
 
@@ -73,25 +66,20 @@ public:
 	const Pad::List& getPads() const;
 	Pad::List& getPads();
 	void onDrumKitLoaded(DrumKitMidiMap*, const boost::filesystem::path&);
-	bool isAutoConvertCrash(const AutoConvertCrashSettings& bit) const;
-	void setAutoConvertCrash(const AutoConvertCrashSettings& bit, const Parameter::Value& state);
-	int getCymbalSimHitWindow() const;
-	void setCymbalSimHitWindow(const Parameter::Value& simHit);
 
 private:
 	mutable Mutex		_mutex;
 	std::string  		_szSlotName;
 	Pad::List    		_pads;
-	Parameter::Value	_cymbalSimHitWindow;
 
-	/**
-	 * 0 = crash-crash
-	 * 1 = crash-ride
-	 * 2 = crash-snare
-	 * 3 = crash-tom2
-	 * 4 = crash-tom3
-	 */
-	AutoConvertCrashSettings _autoConvertCrashSettings;
+public:
+	Property<int>::Ptr					cymbalSimHitWindow;
+	Property<bool>::Ptr					isChameleonCrashWithCrash;
+	Property<bool>::Ptr					isChameleonCrashWithRide;
+	Property<bool>::Ptr					isChameleonCrashWithSnare;
+	Property<bool>::Ptr					isChameleonCrashWithTom2;
+	Property<bool>::Ptr					isChameleonCrashWithTom3;
+	boost::shared_ptr<ParamItemModel>	model;
 
 private:
     friend class boost::serialization::access;
@@ -99,9 +87,15 @@ private:
 	{
 		ar & BOOST_SERIALIZATION_NVP(_szSlotName);
 		ar & BOOST_SERIALIZATION_NVP(_pads);
-		ar & BOOST_SERIALIZATION_NVP(_cymbalSimHitWindow);
-		ar & BOOST_SERIALIZATION_NVP(_autoConvertCrashSettings);
+		ar & BOOST_SERIALIZATION_NVP(cymbalSimHitWindow);
+		ar & BOOST_SERIALIZATION_NVP(isChameleonCrashWithCrash);
+		ar & BOOST_SERIALIZATION_NVP(isChameleonCrashWithRide);
+		ar & BOOST_SERIALIZATION_NVP(isChameleonCrashWithSnare);
+		ar & BOOST_SERIALIZATION_NVP(isChameleonCrashWithTom2);
+		ar & BOOST_SERIALIZATION_NVP(isChameleonCrashWithTom3);
 	}
 };
 
 BOOST_CLASS_VERSION(Slot, 0)
+
+Q_DECLARE_METATYPE(Slot::Ptr)
