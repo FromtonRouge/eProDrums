@@ -65,6 +65,7 @@ void ParamItemModel::setDataNoUndo(	const QModelIndex&	index,
 		{
 			switch (pData->getType())
 			{
+			case ParameterBaseData::GROUP:
 			case ParameterBaseData::PARAMETER:
 				{
 					ParameterData* pParameterData = static_cast<ParameterData*>(pData);
