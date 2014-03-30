@@ -37,9 +37,6 @@ class DrumKitMidiMap
 {
 public:
 
-	/**
-	 * TODO: Find a better name...
-	 */
 	struct Description
 	{
 		typedef std::vector<Description> List;

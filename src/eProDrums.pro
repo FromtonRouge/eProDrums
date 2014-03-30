@@ -34,7 +34,6 @@ unix {
 INCLUDEPATH += $${QWT_DIR}/include
 INCLUDEPATH += $${PORTMIDI_DIR}/include
 
-DEFINES -= UNICODE
 DEFINES += QWT_DLL
 
 win32 {

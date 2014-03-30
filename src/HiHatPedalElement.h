@@ -80,7 +80,6 @@ public:
 
 
 	/* TODO
-	bool isBlueDetectionByPosition() const;
 	void setBlueDetectionByPosition(const Property::Value& state);
 	*/
 

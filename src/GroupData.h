@@ -30,7 +30,8 @@
 class GroupData : public ParameterData
 {
 public:
-	GroupData(const QString& sName) : ParameterData(new Parameter(sName))
+	GroupData(const QString& sName, const QString& sDescription = QString(), const AnyProperty::Ptr& pProperty = AnyProperty::Ptr())
+	   	: ParameterData(new Parameter(sName, sDescription, pProperty))
   	{
 		setType(GROUP);
 	}

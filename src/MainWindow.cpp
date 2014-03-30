@@ -630,8 +630,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 																pElHihatPedal->isBowAlwaysYellow)));
 		}
 
-		TreeNode* pGroup2 = pRoot->addChild(new GroupData(tr("Hi-hat open color on edge accent")));
-		// TODO: pElHihatPedal->isBlueDetectionByAccent
+		TreeNode* pGroup2 = pRoot->addChild(new GroupData(tr("Hi-hat open color on edge accent"), tr(""), pElHihatPedal->isBlueDetectionByAccent));
 		{
 			LinearFunction::Description::Ptr pFuncDesc(new LinearFunction::Description());
 			pFuncDesc->szLabelX = tr("Hi-hat position (unit)");
@@ -645,8 +644,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 																pElHihatPedal->isBlueAccentOverride)));
 		}
 
-		TreeNode* pGroup3 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by position")));
-		// TODO:  pElHihatPedal->isBlueDetectionByPosition
+		TreeNode* pGroup3 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by position"), tr(""), pElHihatPedal->isBlueDetectionByPosition));
 		{
 			pGroup3->addChild(new ParameterData(new Parameter(	tr("Control Position (unit)"),
 																tr("Above this position the hi-hat is converted to open color"),
@@ -656,8 +654,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 																pElHihatPedal->controlPosDelayTime, 0, 5000)));
 		}
 		
-		TreeNode* pGroup4 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by speed")));
-		// TODO: pElHihatPedal->isBlueDetectionBySpeed
+		TreeNode* pGroup4 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by speed"), tr(""), pElHihatPedal->isBlueDetectionBySpeed));
 		{
 			pGroup4->addChild(new ParameterData(new Parameter(	tr("Open speed (unit/s)"),
 																tr("Above this speed the hi-hat is converted to open color"),
@@ -667,16 +664,15 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 																pElHihatPedal->closeSpeed, -5000, 0)));
 		}
 
-		TreeNode* pGroup5 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by acceleration")));
-		// TODO: pElHihatPedal->isBlueDetectionByAcceleration
+		TreeNode* pGroup5 = pRoot->addChild(new GroupData(tr("Hi-hat open color detection by acceleration"), tr(""), pElHihatPedal->isBlueDetectionByAcceleration));
 		{
-			pGroup5->addChild(new ParameterData(new Parameter(	tr("Open acceleration (unit/s²)"),
+			pGroup5->addChild(new ParameterData(new Parameter(	tr("Open acceleration (unit/s2)"),
 																tr("Above this acceleration the hi-hat is converted to open color"),
 																pElHihatPedal->openAcceleration, 0, 50000, false, true)));
 			pGroup5->addChild(new ParameterData(new Parameter(	tr("Open position delta (unit)"),
 																tr("Minimum open delta position"),
 																pElHihatPedal->openPositionDelta, 0, 127)));
-			pGroup5->addChild(new ParameterData(new Parameter(	tr("Close acceleration (unit/s²)"),
+			pGroup5->addChild(new ParameterData(new Parameter(	tr("Close acceleration (unit/s2)"),
 																tr("Under this acceleration the hi-hat is converted to close color"),
 																pElHihatPedal->closeAcceleration, -50000, 0, true, false)));
 			pGroup5->addChild(new ParameterData(new Parameter(	tr("Close position delta (unit)"),
@@ -684,8 +680,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 																pElHihatPedal->closePositionDelta, -127, 0)));
 		}
 
-		TreeNode* pGroup6 = pRoot->addChild(new GroupData(tr("Hi-hat half-open mode")));
-		// TODO: pElHihatPedal->isHalfOpenModeEnabled
+		TreeNode* pGroup6 = pRoot->addChild(new GroupData(tr("Hi-hat half-open mode"), tr(""), pElHihatPedal->isHalfOpenModeEnabled));
 		{
 			pGroup6->addChild(new ParameterData(new Parameter(	tr("Half open maximum position (unit)"),
 																tr("Half open detection algorithm starts between [Security close position] and this position"),
@@ -709,9 +704,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 			pGroup7->addChild(new ParameterData(new Parameter(tr("Tom 3"), szDescription, pSlot->isChameleonCrashWithTom3)));
 		}
 
-		TreeNode* pGroup8 = pRoot->addChild(new GroupData(tr("Foot splash cancel from control speed")));
-		// TODO: pElHihatPedal->isFootCancel
-		// tr("A hi-hat mask window is created if conditions below are met")
+		TreeNode* pGroup8 = pRoot->addChild(new GroupData(tr("Foot splash cancel from control speed"), tr("A hi-hat mask window is created if conditions below are met"), pElHihatPedal->isFootCancel));
 		// TODO: pElHihatPedal->connectFootCancelActivated(boost::bind(&GraphSubWindow::onFootCancelActivated, _pGrapSubWindow, _1));
 		{
 			pGroup8->addChild(new ParameterData(new Parameter(	tr("Control speed (unit/s)"),
@@ -734,9 +727,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 			// TODO: pElHihatPedal->connectFootCancelVelocity(boost::bind(&GraphSubWindow::onFootCancelVelocity, _pGrapSubWindow, _1));
 		}
 
-		TreeNode* pGroup9 = pRoot->addChild(new GroupData(tr("Foot splash cancel after a pedal hit")));
-		// TODO: pElHihatPedal->isFootCancelAfterPedalHit
-		// tr("A hi-hat mask window is created when a hi-hat pedal hit is detected").toStdString()));
+		TreeNode* pGroup9 = pRoot->addChild(new GroupData(tr("Foot splash cancel after a pedal hit"), tr("A hi-hat mask window is created when a hi-hat pedal hit is detected"), pElHihatPedal->isFootCancelAfterPedalHit));
 		// TODO: pElHihatPedal->connectFootCancelAfterPedalHitActivated(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitActivated, _pGrapSubWindow, _1));
 		{
 			pGroup9->addChild(new ParameterData(new Parameter(	tr("Mask time (ms)"),
@@ -750,8 +741,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 			// TODO: pElHihatPedal->connectFootCancelAfterPedalHitVelocity(boost::bind(&GraphSubWindow::onFootCancelAfterPedalHitVelocity, _pGrapSubWindow, _1));
 		}
 
-		TreeNode* pGroup10 = pRoot->addChild(new GroupData(tr("Cancel while open")));
-		// TODO: pElHihatPedal->isCancelHitWhileOpen
+		TreeNode* pGroup10 = pRoot->addChild(new GroupData(tr("Cancel while open"), tr(""), pElHihatPedal->isCancelHitWhileOpen));
 		{
 			pGroup10->addChild(new ParameterData(new Parameter(	tr("Control Position (unit)"),
 																tr("If the current control pos is >= [Position] and hi-hat hit is < [Velocity] the hi-hat hit is ignored"),
@@ -770,8 +760,8 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 			{
 				continue;
 			}
-			TreeNode* pGroup = pRoot->addChild(new GroupData(pPad->getName()));
-			// TODO: pPad->isFlamActivated, pPad->getColor()
+			TreeNode* pGroup = pRoot->addChild(new GroupData(pPad->getName(), tr(""), pPad->isFlamActivated));
+			// TODO: pPad->getColor()
 
 			pGroup->addChild(new ParameterData(new Parameter(	tr("Pad Type of the second hit"),
 																tr("Specify the Pad type of the second hit of the flam"),
