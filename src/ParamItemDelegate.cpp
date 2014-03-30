@@ -25,6 +25,8 @@
 
 #include <QtGui/QPainter>
 #include <QtGui/QFontMetrics>
+#include <QtWidgets/QStyleOptionButton>
+#include <QtWidgets/QStyleOptionViewItem>
 
 ParamItemDelegate::ParamItemDelegate(QObject* pParent)
 	: QStyledItemDelegate(pParent)
@@ -51,22 +53,81 @@ QSize ParamItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QMod
 	return result;
 }
 
-void ParamItemDelegate::initStyleOption(QStyleOptionViewItem* option, const QModelIndex & index) const
+void ParamItemDelegate::initStyleOption(QStyleOptionViewItem* pOption, const QModelIndex& index) const
 {
-	QStyledItemDelegate::initStyleOption(option, index);
+	QStyledItemDelegate::initStyleOption(pOption, index);
+
+	const QVariant& variant = index.data(Qt::EditRole);
+	if (!variant.isNull())
+	{
+		const Parameter& parameter = variant.value<Parameter>();
+		const AnyProperty::Value& value = parameter.getValue();
+		if (value.type()==typeid(int))
+		{
+			if (parameter.hasEnums())
+			{
+				const Parameter::DictEnums& dictEnums = parameter.getEnums();
+				Parameter::DictEnums::const_iterator it = dictEnums.find(boost::any_cast<int>(value));
+				if (it!=dictEnums.end())
+				{
+					pOption->text = it->second;
+				}
+			}
+			else
+			{
+				pOption->text = QString("%1").arg(boost::any_cast<int>(value));
+			}
+		}
+		else if (value.type() == typeid(float))
+		{
+				pOption->text = QString("%1").arg(boost::any_cast<float>(value));
+		}
+		else if (value.type() == typeid(QString))
+		{
+			pOption->text = boost::any_cast<QString>(value);
+		}
+		else if (value.type() == typeid(QPolygonF))
+		{
+			pOption->text = "...";
+		}
+	}
 }
 
-void ParamItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
+void ParamItemDelegate::paint(QPainter* pPainter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-	QStyledItemDelegate::paint(painter, option, index);
+	QStyleOptionViewItem viewItemOption;
+	initStyleOption(&viewItemOption, index);
+
+	// Paint with EditRole data
+	if (index.column()==1)
+	{
+		const QVariant& variant = index.data(Qt::EditRole);
+		if (!variant.isNull())
+		{
+			const Parameter& parameter = variant.value<Parameter>();
+			const AnyProperty::Value& value = parameter.getValue();
+			if (value.type()==typeid(bool))
+			{
+				bool bState = boost::any_cast<bool>(value);
+				QStyle* pStyle = option.widget->style();
+				QStyleOptionButton optCheckBox;
+				optCheckBox.rect = option.rect;
+				optCheckBox.state = QStyle::State_Enabled | (bState?QStyle::State_On:QStyle::State_Off);
+				pStyle->drawControl(QStyle::CE_CheckBox, &optCheckBox, pPainter);
+			}
+		}
+	}
+
+	QStyledItemDelegate::paint(pPainter, option, index);
+
 	/* TODO
 	   if (index.parent().isValid() && index.column()==1)
 	   {
 	   return;
 	   }
-	   painter->save();
+	   pPainter->save();
 
-	   painter->setRenderHint(QPainter::Antialiasing);
+	   pPainter->setRenderHint(QPainter::Antialiasing);
 	   QStyleOptionViewItemV4 opt = option;
 	   QStyledItemDelegate::initStyleOption(&opt, index);
 	   QRectF rect = opt.rect;
@@ -77,18 +138,18 @@ void ParamItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
 	   if (opt.state & QStyle::State_MouseOver)
 	   {
-	   painter->fillRect(rect, pParameter->getColor().darker(110));
+	   pPainter->fillRect(rect, pParameter->getColor().darker(110));
 	   }
 	   else
 	   {
-	   painter->fillRect(rect, pParameter->getColor());
+	   pPainter->fillRect(rect, pParameter->getColor());
 	   }
 
 	   if (index.column()==0)
 	   {
-	   QFont font = painter->font();
+	   QFont font = pPainter->font();
 	   font.setBold(true);
-	   painter->setFont(font);
+	   pPainter->setFont(font);
 
 	// Centering vertically
 	QSize sizeData = sizeHint(opt, index);
@@ -98,11 +159,11 @@ void ParamItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
 	if (opt.state & QStyle::State_Open)
 	{
-	painter->drawText(rect, Qt::AlignLeft, QString("- ") + pParameter->label.c_str());
+	pPainter->drawText(rect, Qt::AlignLeft, QString("- ") + pParameter->label.c_str());
 	}
 	else
 	{
-	painter->drawText(rect, Qt::AlignLeft, QString("+ ") + pParameter->label.c_str());
+	pPainter->drawText(rect, Qt::AlignLeft, QString("+ ") + pParameter->label.c_str());
 	}
 	}
 	}
@@ -123,11 +184,11 @@ void ParamItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
 	if (opt.state & QStyle::State_MouseOver)
 	{
-	painter->fillRect(rect, color.lighter(120));
+	pPainter->fillRect(rect, color.lighter(120));
 	}
 	else
 	{
-	painter->fillRect(rect, color.lighter(130));
+	pPainter->fillRect(rect, color.lighter(130));
 	}
 	}
 
@@ -138,14 +199,14 @@ void ParamItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 	rect.moveBottom(point.y()+offset);	// Relative to up-left corner of the treeview
 
 	// Horizontal indent
-	const int INDENT(painter->fontMetrics().width("- "));
+	const int INDENT(pPainter->fontMetrics().width("- "));
 	rect.moveLeft(point.x()+INDENT);	// Relative to up-left corner of the treeview
 	rect.setWidth(rect.width()-INDENT);
 
-	painter->drawText(rect, Qt::AlignLeft, pParameter->label.c_str());
+	pPainter->drawText(rect, Qt::AlignLeft, pParameter->label.c_str());
 }
 
-painter->restore();
+pPainter->restore();
 */
 }
 
@@ -157,10 +218,8 @@ QWidget* ParamItemDelegate::createEditor(QWidget* parent, const QStyleOptionView
 		connect(pEditor, SIGNAL(editFinished(QWidget*)), this, SIGNAL(commitData(QWidget*)));
 		return pEditor;
 	}
-	else
-	{
-		return NULL;
-	}
+
+	return NULL;
 }
 
 void ParamItemDelegate::setEditorData(QWidget* pWidget, const QModelIndex& index) const
@@ -176,7 +235,10 @@ void ParamItemDelegate::setEditorData(QWidget* pWidget, const QModelIndex& index
 void ParamItemDelegate::setModelData(QWidget* pWidget, QAbstractItemModel* pModel, const QModelIndex& index) const
 {
 	ParamItemEditor* pEditor = dynamic_cast<ParamItemEditor*>(pWidget);
-	QVariant variant;
-	variant.setValue(pEditor->getData());
-	pModel->setData(index, variant);
+	if (pEditor->hasDataChanged())
+	{
+		QVariant variant;
+		variant.setValue(pEditor->getData());
+		pModel->setData(index, variant);
+	}
 }

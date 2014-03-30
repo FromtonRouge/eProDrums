@@ -27,45 +27,7 @@ TreeViewParameters::TreeViewParameters(	QWidget* pParent)
 	: QTreeView(pParent)
 {
 	setItemDelegate(new ParamItemDelegate(this));
+	setEditTriggers(CurrentChanged);
 	//setIndentation(0);
 	//setRootIsDecorated(false);
-}
-
-void TreeViewParameters::openPersistentEditors()
-{
-	QAbstractItemModel* pModel = model();
-	if (pModel)
-	{
-		// Opening editors
-		for (int i=0; i<pModel->rowCount(); ++i)
-		{
-			const QModelIndex& parentIndex = pModel->index(i, 1);
-			for (int j=0; j<pModel->rowCount(parentIndex); ++j)
-			{
-				openPersistentEditor(pModel->index(j, 1, parentIndex));
-			}
-			openPersistentEditor(parentIndex);
-		}
-
-		expandAll();
-		resizeColumnToContents(0);
-	}
-}
-
-void TreeViewParameters::closePersistentEditors()
-{
-	QAbstractItemModel* pModel = model();
-	if (pModel)
-	{
-		// Opening editors
-		for (int i=0; i<pModel->rowCount(); ++i)
-		{
-			const QModelIndex& parentIndex = pModel->index(i, 1);
-			for (int j=0; j<pModel->rowCount(parentIndex); ++j)
-			{
-				closePersistentEditor(pModel->index(j, 1, parentIndex));
-			}
-			closePersistentEditor(parentIndex);
-		}
-	}
 }

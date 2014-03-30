@@ -552,6 +552,7 @@ void MainWindow::on_comboBoxPadSettingsType_currentIndexChanged(int index)
 	_pProxyModel->setPadSettingsType(index);
 	_pProxyModel->invalidate();
 	treeViewPadSettings->expandAll();
+	treeViewPadSettings->resizeColumnToContents(0);
 }
 
 void MainWindow::on_actionSettings_triggered()
@@ -807,9 +808,10 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 		}
 	}
 
-	_pProxyModel->setPadSettingsType(-1);
 	_pProxyModel->setSourceModel(pSlot->model.get());
-	treeViewPadSettings->openPersistentEditors();
+
+	_pProxyModel->setPadSettingsType(comboBoxPadSettingsType->currentIndex());
 	_pProxyModel->invalidate();
-	on_comboBoxPadSettingsType_currentIndexChanged(comboBoxPadSettingsType->currentIndex());
+	treeViewPadSettings->expandAll();
+	treeViewPadSettings->resizeColumnToContents(0);
 }

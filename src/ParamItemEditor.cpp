@@ -34,15 +34,17 @@
 
 const float SLIDER_FACTOR(1000);
 
-ParamItemEditor::ParamItemEditor(QWidget* pParent):QWidget(pParent),
-	_pCheckBox(NULL),
-	_pSpinBox(NULL),
-	_pDoubleSpinBox(NULL),
-	_pSlider(NULL),
-	_pDoubleSlider(NULL),
-	_pLineEdit(NULL),
-	_pComboBox(NULL),
-	_pPushButton(NULL)
+ParamItemEditor::ParamItemEditor(QWidget* pParent)
+	: QWidget(pParent)
+	, _bDataChanged(false)
+	, _pCheckBox(NULL)
+	, _pSpinBox(NULL)
+	, _pDoubleSpinBox(NULL)
+	, _pSlider(NULL)
+	, _pDoubleSlider(NULL)
+	, _pLineEdit(NULL)
+	, _pComboBox(NULL)
+	, _pPushButton(NULL)
 {
 	_pLayout = new QHBoxLayout;
 	_pLayout->setContentsMargins(0,0,0,0);	// Note: without this setting, widgets are not visible
@@ -56,6 +58,7 @@ ParamItemEditor::~ParamItemEditor()
 void ParamItemEditor::onCheckBoxValueChanged(int value)
 {
 	bool bChecked = value==Qt::Checked;
+	_bDataChanged = true;
 	_data.setValue(bChecked);
 	emit editFinished(this);
 }
@@ -92,8 +95,8 @@ void ParamItemEditor::onSpinBoxValueChanged(int value)
 		_pSpinBox->setEnabled(true);
 	}
 
+	_bDataChanged = true;
 	_data.setValue(value);
-
 	emit editFinished(this);
 }
 
@@ -119,13 +122,14 @@ void ParamItemEditor::onDoubleSpinBoxValueChanged(double value)
 		_pDoubleSpinBox->setEnabled(true);
 	}
 
+	_bDataChanged = true;
 	_data.setValue(float(value));
-
 	emit editFinished(this);
 }
 
 void ParamItemEditor::onLineEditValueChanged(const QString& value)
 {
+	_bDataChanged = true;
 	_data.setValue(value);
 	emit editFinished(this);
 }
@@ -135,6 +139,7 @@ void ParamItemEditor::onComboBoxIndexChanged(int index)
 	const QVariant& variant = _pComboBox->itemData(index);
 	if (!variant.isNull())
 	{
+		_bDataChanged = true;
 		_data.setValue(variant.toInt());
 	}
 	emit editFinished(this);
@@ -158,7 +163,9 @@ void ParamItemEditor::setData(const Parameter& data)
 			connect(_pCheckBox, SIGNAL(stateChanged(int)), this, SLOT(onCheckBoxValueChanged(int)));
 		}
 
+		_pCheckBox->blockSignals(true);
 		_pCheckBox->setChecked(boost::any_cast<bool>(value));
+		_pCheckBox->blockSignals(false);
 	}
 	else if (value.type()==typeid(int))
 	{
@@ -198,47 +205,63 @@ void ParamItemEditor::setData(const Parameter& data)
 			// For int values
 			if (!_pSlider && !_pSpinBox)
 			{
+				_pSpinBox = new QSpinBox(this);
+				connect(_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
+				_pLayout->addWidget(_pSpinBox);
+
 				_pSlider = new Slider(Qt::Horizontal, this);
 				connect(_pSlider, SIGNAL(valueChanged(int)), this, SLOT(onSliderValueChanged(int)));
 				_pSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 				_pLayout->addWidget(_pSlider);
-				_pSpinBox = new QSpinBox(this);
-				connect(_pSpinBox, SIGNAL(valueChanged(int)), this, SLOT(onSpinBoxValueChanged(int)));
-				_pLayout->addWidget(_pSpinBox);
 			}
 
 			int minimum = boost::any_cast<int>(_data.getMinimum());
 			int maximum = boost::any_cast<int>(_data.getMaximum());
 			int v = boost::any_cast<int>(value);
-			_pSlider->setMinimum(minimum);
-			_pSlider->setMaximum(maximum);
+
+			_pSpinBox->blockSignals(true);
 			_pSpinBox->setMinimum(minimum);
 			_pSpinBox->setMaximum(maximum);
 			_pSpinBox->setValue(v);
+			_pSpinBox->blockSignals(false);
+
+			_pSlider->blockSignals(true);
+			_pSlider->setMinimum(minimum);
+			_pSlider->setMaximum(maximum);
+			_pSlider->setValue(v);
+			_pSlider->blockSignals(false);
 		}
 	}
 	else if (value.type() == typeid(float))
 	{
 		if (!_pDoubleSlider && !_pDoubleSpinBox)
 		{
-			_pDoubleSlider = new Slider(Qt::Horizontal, this);
-			connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
-			_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-			_pLayout->addWidget(_pDoubleSlider);
 			_pDoubleSpinBox = new QDoubleSpinBox(this);
 			_pDoubleSpinBox->setSingleStep(0.01);
 			connect(_pDoubleSpinBox, SIGNAL(valueChanged(double)), this, SLOT(onDoubleSpinBoxValueChanged(double)));
 			_pLayout->addWidget(_pDoubleSpinBox);
+
+			_pDoubleSlider = new Slider(Qt::Horizontal, this);
+			connect(_pDoubleSlider, SIGNAL(valueChanged(int)), this, SLOT(onDoubleSliderValueChanged(int)));
+			_pDoubleSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			_pLayout->addWidget(_pDoubleSlider);
 		}
 
 		float minimum = boost::any_cast<float>(_data.getMinimum());
 		float maximum = boost::any_cast<float>(_data.getMaximum());
 		float v = boost::any_cast<float>(value);
-		_pDoubleSlider->setMinimum(minimum*SLIDER_FACTOR);
-		_pDoubleSlider->setMaximum(maximum*SLIDER_FACTOR);
+
+		_pDoubleSpinBox->blockSignals(true);
 		_pDoubleSpinBox->setMinimum(minimum);
 		_pDoubleSpinBox->setMaximum(maximum);
 		_pDoubleSpinBox->setValue(v);
+		_pDoubleSpinBox->blockSignals(false);
+
+		_pDoubleSlider->blockSignals(true);
+		_pDoubleSlider->setMinimum(minimum*SLIDER_FACTOR);
+		_pDoubleSlider->setMaximum(maximum*SLIDER_FACTOR);
+		_pDoubleSlider->setValue(v*SLIDER_FACTOR);
+		_pDoubleSlider->blockSignals(false);
 	}
 	else if (value.type() == typeid(QString))
 	{
@@ -248,7 +271,9 @@ void ParamItemEditor::setData(const Parameter& data)
 			_pLayout->addWidget(_pLineEdit);
 			connect(_pLineEdit, SIGNAL(textChanged(const QString&)), this, SLOT(onLineEditValueChanged(const QString&)));
 		}
+		_pLineEdit->blockSignals(true);
 		_pLineEdit->setText(boost::any_cast<QString>(value));
+		_pLineEdit->blockSignals(false);
 	}
 	else if (value.type() == typeid(QPolygonF))
 	{
@@ -270,6 +295,7 @@ void ParamItemEditor::onPushButtonClicked()
 	DialogFunction dlg(_data.getFunctionDescription(), curveSamples, this);
 	if (dlg.exec())
 	{
+		_bDataChanged = true;
 		_data.setValue(dlg.getCurveSamples());
 		emit editFinished(this);
 	}

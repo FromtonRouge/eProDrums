@@ -35,7 +35,4 @@ class TreeViewParameters : public QTreeView
 
 public:
 	TreeViewParameters(QWidget* pParent);
-
-	void openPersistentEditors();
-	void closePersistentEditors();
 };

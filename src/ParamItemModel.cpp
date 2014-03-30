@@ -115,12 +115,12 @@ QVariant ParamItemModel::data(const QModelIndex& index, int role) const
 
 	TreeNode* pNode = static_cast<TreeNode*>(index.internalPointer());
 	ParameterBaseData* pData = static_cast<ParameterBaseData*>(pNode->getData());
-	int type = pData->getType();
 
 	switch (role)
 	{
 	case Qt::ToolTipRole:
 		{
+			// TODO
 			//return pParameter->getDescription().c_str();
 			break;
 		}
@@ -136,23 +136,10 @@ QVariant ParamItemModel::data(const QModelIndex& index, int role) const
 		{
 			if (index.column() == 1)
 			{
-				switch (type)
-				{ 
-				case ParameterBaseData::PARAMETER:
-					{
-						ParameterData* pParameterData = static_cast<ParameterData*>(pData);
-						QVariant variant;
-						variant.setValue(*pParameterData->getParameter());
-						return variant;
-					}
-				case ParameterBaseData::GROUP:
-					{
-						ParameterData* pParameterData = static_cast<ParameterData*>(pData);
-						QVariant variant;
-						variant.setValue(*pParameterData->getParameter());
-						return variant;
-					}
-				}
+				ParameterData* pParameterData = static_cast<ParameterData*>(pData);
+				QVariant variant;
+				variant.setValue(*pParameterData->getParameter());
+				return variant;
 			}
 			break;
 		}

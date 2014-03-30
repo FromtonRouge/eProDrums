@@ -67,6 +67,7 @@ public:
 	virtual ~ParamItemEditor();
 	void setData(const Parameter& data);
 	const Parameter& getData() const {return _data;}
+	bool hasDataChanged() const {return _bDataChanged;}
 
 private slots:
 	void onCheckBoxValueChanged(int);
@@ -79,6 +80,7 @@ private slots:
 	void onPushButtonClicked();
 
 private:
+	bool				_bDataChanged;
 	Parameter			_data;
 
 	QHBoxLayout*		_pLayout;
