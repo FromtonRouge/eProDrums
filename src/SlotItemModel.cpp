@@ -43,6 +43,7 @@ void SlotItemModel::setSlots(Slot::List* pSlots)
 	beginResetModel();
 	_pSlots = pSlots;
 	endResetModel();
+	_pSettings->reloadDrumKitMidiMap();
 }
 
 Qt::ItemFlags SlotItemModel::flags(const QModelIndex& index) const
