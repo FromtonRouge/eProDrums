@@ -25,27 +25,27 @@
 #include "ModelIndex.h"
 
 class AbstractItemModel;
+class QMimeData;
 
-class CmdSetData : public UndoCommand
+class CmdRemoveRows : public UndoCommand
 {
 
 public:
-	CmdSetData( AbstractItemModel* pModel,
-				const QModelIndex& index,
-				const QVariant& value,
-				int role,
-				QUndoCommand* pParent = NULL);
-	virtual ~CmdSetData();
+	CmdRemoveRows(	AbstractItemModel* pModel,
+					int row,
+					int count,
+					const QModelIndex& parent,
+					QUndoCommand* pParent = NULL);
+	virtual ~CmdRemoveRows();
 
 	virtual void	undo();
 	virtual void	redo();
 	virtual int		id() const;
-	virtual bool	mergeWith(const QUndoCommand* pCommand);
 
 private:
 	AbstractItemModel*		_pModel;
-	ModelIndex				_index;
-	QVariant				_oldValue;
-	QVariant				_newValue;
-	int						_role;
+	int						_row;
+	int						_count;
+	ModelIndex				_parent;
+	QMimeData*				_pMimeData;
 };

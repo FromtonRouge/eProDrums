@@ -1,5 +1,4 @@
-// ============================================================
-// 
+// ============================================================ // 
 // This file is a part of the eProDrums rock band project
 // 
 // Copyright (C) 2012 by Vissale Neang <fromtonrouge at gmail dot com>
@@ -19,37 +18,47 @@
 // 
 // ============================================================ 
 
-#include "CmdAddSlot.h"
-#include "SlotItemModel.h"
+#include "CmdRemoveRows.h"
+#include "AbstractItemModel.h"
+#include <QtCore/QMimeData>
 
-#include <QtCore/QAbstractItemModel>
-
-CmdAddSlot::CmdAddSlot(	QAbstractItemModel* pModel,
-						const Slot::Ptr& pSlot,
-						QUndoCommand* pParent)
-	: UndoCommand("Add slot", pParent)
+CmdRemoveRows::CmdRemoveRows(	AbstractItemModel* pModel,
+								int row,
+								int count,
+								const QModelIndex& parent,
+								QUndoCommand* pParent)
+	: UndoCommand(pParent)
 	, _pModel(pModel)
-	, _pSlot(pSlot)
+	, _row(row)
+	, _count(count)
+	, _parent(parent)
+	, _pMimeData(NULL)
+{
+	if (_count==1)
+	{
+		setText(QObject::tr("1 row removed"));
+	}
+	else
+	{
+		setText(QObject::tr("%1 rows removed").arg(_count));
+	}
+}
+
+CmdRemoveRows::~CmdRemoveRows()
 {
 }
 
-CmdAddSlot::~CmdAddSlot()
+void CmdRemoveRows::undo()
 {
+	//TODO
 }
 
-void CmdAddSlot::undo()
+void CmdRemoveRows::redo()
 {
-	SlotItemModel* pModel = static_cast<SlotItemModel*>(_pModel);
-	pModel->removeRow(pModel->rowCount()-1);
+	_pModel->removeRowsNoUndo(_row, _count, _parent);
 }
 
-void CmdAddSlot::redo()
+int CmdRemoveRows::id() const
 {
-	SlotItemModel* pModel = static_cast<SlotItemModel*>(_pModel);
-	pModel->addSlot(_pSlot);
-}
-
-int CmdAddSlot::id() const
-{
-	return static_cast<int>(qHash("CmdAddSlot"));
+	return static_cast<int>(qHash("CmdRemoveRows"));
 }

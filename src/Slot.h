@@ -24,6 +24,7 @@
 #include "Pad.h"
 
 #include <QtCore/QMetaType>
+#include <QtCore/QString>
 
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
@@ -61,15 +62,15 @@ public:
 
 	virtual ~Slot() {}
 
-	const std::string& getName() const;
-	void setName(const std::string& szName);
+	const QString& getName() const;
+	void setName(const QString& szName);
 	const Pad::List& getPads() const;
 	Pad::List& getPads();
 	void onDrumKitLoaded(DrumKitMidiMap*, const boost::filesystem::path&);
 
 private:
 	mutable Mutex		_mutex;
-	std::string  		_szSlotName;
+	QString		  		_szSlotName;
 	Pad::List    		_pads;
 
 public:
@@ -98,4 +99,5 @@ private:
 
 BOOST_CLASS_VERSION(Slot, 0)
 
+Q_DECLARE_METATYPE(Slot)
 Q_DECLARE_METATYPE(Slot::Ptr)

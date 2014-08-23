@@ -48,6 +48,7 @@ void CmdSetData::undo()
 
 void CmdSetData::redo()
 {
+	// TODO: _pModel can be deleted
 	_pModel->setDataNoUndo(_index, _newValue, _role);
 }
 

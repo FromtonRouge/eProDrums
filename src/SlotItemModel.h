@@ -22,16 +22,21 @@
 #pragma once
 
 #include "Slot.h"
-
-#include <QtCore/QAbstractListModel>
+#include "AbstractItemModel.h"
 
 #include <boost/filesystem.hpp>
 
 class Settings;
 
-class SlotItemModel : public QAbstractListModel
+class SlotItemModel : public AbstractItemModel
 {
 	Q_OBJECT
+
+public:
+	enum CustomRole
+	{
+		SLOT_ROLE = Qt::UserRole
+	};
 
 public:
 	SlotItemModel(Settings* pSettings, Slot::List* pSlots = NULL, QObject* pParent = NULL);
@@ -39,16 +44,27 @@ public:
 
 	void setSlots(Slot::List* pSlots);
 	void clear();
-	void insertSlot(int row, const Slot::Ptr& pSlot);
-	void addSlot(const Slot::Ptr& pSlot);
+	void addSlot();
 	void removeSlot(const Slot::Ptr& pSlot);
 
-	virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-	virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-	virtual bool insertRows(int row, int count, const QModelIndex& parent = QModelIndex());
-	virtual bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex());
+	virtual Qt::ItemFlags	flags(const QModelIndex& index) const;
+	virtual int				rowCount(const QModelIndex& parent = QModelIndex()) const;
+	virtual int				columnCount(const QModelIndex&) const {return 1;}
+	virtual QModelIndex		index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
+	virtual QModelIndex		parent(const QModelIndex&) const;
+	virtual QVariant		data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+
+	virtual void			insertRowsNoUndo(int row, int count, const QModelIndex& parent = QModelIndex());
+	virtual void			removeRowsNoUndo(int row, int count, const QModelIndex & parent = QModelIndex());
+	virtual void			setDataNoUndo(const QModelIndex&, const QVariant& , int);
+
+	virtual UndoCommand*	createUndoRemoveRows(int row, int count, const QModelIndex& parent = QModelIndex());
 
 	void onDrumKitChanged(DrumKitMidiMap*, const boost::filesystem::path&);
+
+private:
+	Slot::Ptr	createSlot(const QString& szSlotName);
+	QString		createNewSlotName(const QString& szBaseName = QString("slot")) const;
 
 private:
 	Settings*	_pSettings;

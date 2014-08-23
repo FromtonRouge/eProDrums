@@ -40,16 +40,6 @@ ParamItemDelegate::~ParamItemDelegate()
 QSize ParamItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
 	QSize result = QStyledItemDelegate::sizeHint(option, index);
-	/* TODO
-	   if (index.column()==0)
-	   {
-	   Parameter* pParameter = index.data().value<Parameter*>();
-	   int width = option.fontMetrics.width(pParameter->label.c_str());
-	   const int INDENT(option.fontMetrics.width("- "));
-	   const int UNKNOW_OFFSET(10); // Hack...
-	   result.rwidth() += width + INDENT + UNKNOW_OFFSET;
-	   }
-	   */
 	return result;
 }
 

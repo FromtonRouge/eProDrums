@@ -1,5 +1,4 @@
-// ============================================================
-// 
+// ============================================================ // 
 // This file is a part of the eProDrums rock band project
 // 
 // Copyright (C) 2012 by Vissale Neang <fromtonrouge at gmail dot com>
@@ -22,27 +21,30 @@
 #pragma once
 
 #include "UndoCommand.h"
-#include "Slot.h"
+#include "ModelIndex.h"
 
-#include <boost/function.hpp>
+class AbstractItemModel;
 
-class QAbstractItemModel;
-
-class CmdAddSlot : public UndoCommand
+class CmdInsertRows : public UndoCommand
 {
 
 public:
-	CmdAddSlot( QAbstractItemModel* pModel,
-				const Slot::Ptr& pSlot,
-				QUndoCommand* pParent = NULL);
-	~CmdAddSlot();
+	CmdInsertRows(	AbstractItemModel* pModel,
+					int row,
+					int count,
+					const QModelIndex& parent,
+					QUndoCommand* pParent = NULL);
+	virtual ~CmdInsertRows();
 
 	virtual void undo();
 	virtual void redo();
 	virtual int id() const;
 
 private:
-	QAbstractItemModel*	_pModel;
-	Slot::Ptr			_pSlot;
+	AbstractItemModel*		_pModel;
+	int						_row;
+	int						_count;
+	ModelIndex				_parent;
 };
+
 

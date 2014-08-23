@@ -21,27 +21,49 @@
 
 #pragma once
 
-#include "UndoCommand.h"
-#include "Slot.h"
+#include <QtCore/QPersistentModelIndex>
 
-#include <QtCore/QModelIndex>
-
-class SlotItemModel;
-
-class CmdRemoveSlot : public UndoCommand
+/**
+ * Model index that can be rebuilt automatically when
+ * the internal persistent model index is invalid.
+ */
+class ModelIndex
 {
 public:
-	CmdRemoveSlot(	const QModelIndex& index,
-					QUndoCommand* pParent = NULL);
-	~CmdRemoveSlot();
+	ModelIndex(const QModelIndex& index)
+		: _index(index)
+		, _pModel(index.model())
+	{
+		// Build full path from root to index
+		QModelIndex current = index;
+		while (current.isValid())
+		{
+			_path.push_front(current);
+			current = current.parent();
+		}
+	}
 
-	virtual void undo();
-	virtual void redo();
-	virtual int id() const;
+	operator QModelIndex() const {return index();}
+	bool operator==(const ModelIndex& rObj) const {return index()==rObj.index();}
 
 private:
-	SlotItemModel*			_pModel;
-	int						_removedRow;
-	Slot					_slot;
-};
+	QModelIndex index() const
+	{
+		QModelIndex result = _index;
+		if (!result.isValid())
+		{
+			// rebuild index
+			for (int i=0; i<_path.size(); ++i)
+			{
+				const QModelIndex& current = _path[i];
+				result = _pModel->index(current.row(), current.column(), result);
+			}
+		}
+		return result;
+	}
 
+private:
+	const QAbstractItemModel*	_pModel;
+	QPersistentModelIndex		_index;
+	QVector<QModelIndex>		_path;
+};

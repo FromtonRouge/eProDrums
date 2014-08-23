@@ -47,8 +47,9 @@ win32 {
 HEADERS += AbstractItemModel.h \
 		   AddMidiNote.h \
 		   AnyProperty.h \
-		   CmdAddSlot.h \
-		   CmdRemoveSlot.h \
+		   CmdInsertRows.h \
+		   CmdRemoveRows.h \
+		   CmdRemoveSlots.h \
 		   CmdSetData.h \
            DialogAbout.h \
            DialogFunction.h \
@@ -74,6 +75,7 @@ HEADERS += AbstractItemModel.h \
            MidiDevicesWidget.h \
            MidiEngine.h \
            MidiMessage.h \
+           ModelIndex.h \
            Pad.h \
            PadHandler.h \
            PadNotesWidget.h \
@@ -105,8 +107,9 @@ FORMS += AddMidiNote.ui \
          SettingsDlg.ui
 SOURCES += AbstractItemModel.cpp \
 		   AddMidiNote.cpp \
-		   CmdAddSlot.cpp \
-		   CmdRemoveSlot.cpp \
+		   CmdInsertRows.cpp \
+		   CmdRemoveRows.cpp \
+		   CmdRemoveSlots.cpp \
 		   CmdSetData.cpp \
            DialogAbout.cpp \
            DialogFunction.cpp \

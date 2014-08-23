@@ -94,13 +94,13 @@ void Slot::onDrumKitLoaded(DrumKitMidiMap* pDrumKit, const boost::filesystem::pa
 	}
 }
 
-const std::string& Slot::getName() const
+const QString& Slot::getName() const
 {
 	Mutex::scoped_lock lock(_mutex);
 	return _szSlotName;
 }
 
-void Slot::setName(const std::string& szName)
+void Slot::setName(const QString& szName)
 {
 	Mutex::scoped_lock lock(_mutex);
 	_szSlotName = szName;

@@ -35,7 +35,6 @@
 
 #include <boost/iostreams/stream_buffer.hpp> 
 
-class QIdentityProxyModel;
 class ParamItemProxyModel;
 class Settings;
 class MidiDevicesWidget;
@@ -68,17 +67,12 @@ private slots:
 	void on_actionAssistant_triggered();
 	void on_actionAbout_triggered();
 	void on_actionSettings_triggered();
-
-    void on_menuEdit_aboutToShow();
 	void on_comboBoxPadSettingsType_currentIndexChanged(int index);
-
 	void on_pushButtonClearLogs_clicked(bool checked=false);
 
 	void onInputBufferChanged(int);
-
 	void onMidiEngineStarted();
 	void onMidiEngineStopped();
-
 	void onSlotChanged(const Slot::Ptr&);
 
 protected:
@@ -90,10 +84,9 @@ private:
 	void saveUserSettings(const std::string& szFilePath);
 	void loadUserSettings(const std::string& szFilePath);
 
-	Slot::Ptr createDefaultSlot(const QString& szSlotName = QString("default"));
-	QString createNewSlotName(const QString& szBaseName = QString("slot")) const;
-	Slot::Ptr getCurrentSlot() const;
-	void selectLastSlot();
+	Slot::Ptr	createDefaultSlot(const QString& szSlotName = QString("default"));
+	Slot::Ptr	getCurrentSlot() const;
+	void		selectLastSlot();
 
 private:
 	boost::iostreams::stream_buffer<StreamSink> _streamBuffer;

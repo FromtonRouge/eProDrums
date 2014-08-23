@@ -70,16 +70,8 @@ int main(int argc, char** argv)
 		return programResult;
 	}
 
-	try
-	{
-		MainWindow mainWindow;
-		mainWindow.show();
-		programResult = theApp.exec();
-	}
-	catch (const std::exception& e)
-	{
-		QMessageBox::critical(NULL, "Error while starting application", e.what());
-	}
+	MainWindow mainWindow;
+	mainWindow.show();
 
-	return programResult;
+	return theApp.exec();
 }

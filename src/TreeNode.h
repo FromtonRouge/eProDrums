@@ -60,5 +60,5 @@ protected:
 private:
 	TreeNode*			_pParent;
 	Children			_children;
-	TreeNodeData*	_pData;
+	TreeNodeData*		_pData;
 };

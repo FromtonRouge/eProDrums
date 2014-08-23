@@ -25,8 +25,6 @@
 
 #include <QtWidgets/QListView>
 
-class QUndoStack;
-
 class SlotListView : public QListView
 {
 	Q_OBJECT
@@ -38,11 +36,6 @@ public:
 	SlotListView(QWidget* pParent = NULL);
 	~SlotListView();
 
-	void setUndoStack(QUndoStack* pUndoStack) {_pUndoStack = pUndoStack;}
-	QUndoStack* getUndoStack() const {return _pUndoStack;}
-
-	Slot::Ptr createDefaultSlot(const QString& szSlotName = QString("default"));
-
 private slots:
 	void onAddSlot();
 	void onRemoveSlot();
@@ -51,7 +44,4 @@ private slots:
 protected:
 	virtual void contextMenuEvent(QContextMenuEvent* pEvent);
 	virtual void selectionChanged(const QItemSelection& selected, const QItemSelection& deselected);
-
-private:
-	QUndoStack*		_pUndoStack;
 };

@@ -45,7 +45,6 @@
 #include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QUndoStack>
 #include <QtCore/QItemSelectionModel>
-#include <QtCore/QIdentityProxyModel>
 #include <QtCore/QFileInfo>
 
 #include <boost/filesystem.hpp>
@@ -163,9 +162,9 @@ MainWindow::MainWindow():
 
 	// Create the slot model
 	_pSlotItemModel = new SlotItemModel(_pSettings.get(), NULL, this);
+	_pSlotItemModel->setUndoStack(_pUndoStack);
 
 	listViewSlots->setModel(_pSlotItemModel);
-	listViewSlots->setUndoStack(_pUndoStack);
 
 	// Loading last user settings
 	loadUserSettings(_pSettings->getUserSettingsFile().generic_string());
@@ -382,33 +381,10 @@ void MainWindow::onInputBufferChanged(int value)
 	_userSettings.bufferLength = value;
 }
 
-QString MainWindow::createNewSlotName(const QString& szBaseName) const
-{
-	Slot::List::const_iterator it = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == szBaseName.toStdString());
-	if (it==_userSettings.configSlots.end())
-	{
-		return szBaseName;
-	}
-
-	QString szNewName("error");
-	// Find new name
-	for (size_t i=0; i<_userSettings.configSlots.size(); i++)
-	{
-		QString szName = QString("%1_%2").arg(szBaseName).arg(i+1);
-		Slot::List::const_iterator it = std::find_if(_userSettings.configSlots.begin(), _userSettings.configSlots.end(), boost::bind(&Slot::getName, _1) == szName.toStdString());
-		if (it==_userSettings.configSlots.end())
-		{
-			szNewName = szName;
-			break;
-		}
-	}
-	return szNewName;
-}
-
 Slot::Ptr MainWindow::createDefaultSlot(const QString& szSlotName)
 {
 	Slot::Ptr pDefaultSlot(new Slot());
-	pDefaultSlot->setName(szSlotName.toStdString());
+	pDefaultSlot->setName(szSlotName);
 
 	// Snare
 	const Pad::Ptr& pElSnare = Pad::Ptr(new Pad(Pad::SNARE, Pad::NOTE_SNARE));
@@ -455,25 +431,6 @@ Slot::Ptr MainWindow::createDefaultSlot(const QString& szSlotName)
 	pDefaultSlot->getPads().push_back(pElBassDrum);
 
 	return pDefaultSlot;
-}
-
-void MainWindow::on_menuEdit_aboutToShow()
-{
-	/* TODO
-	const QList<QListWidgetItem*>& selected = listWidgetSlots->selectedItems();
-
-	actionAdd_Slot->setEnabled(true);
-	if (!selected.empty())
-	{
-		actionRemove_Slot->setEnabled(selected[0]->text() != "default");
-		actionDuplicate_Slot->setEnabled(true);
-	}
-	else
-	{
-		actionRemove_Slot->setEnabled(false);
-		actionDuplicate_Slot->setEnabled(false);
-	}
-	*/
 }
 
 void MainWindow::on_actionAssistant_triggered()
@@ -600,7 +557,7 @@ void MainWindow::onSlotChanged(const Slot::Ptr& pSlot)
 	}
 
 	// If the ParamItemModel does not exist we create it
-	if (!pSlot->model)
+	if (!pSlot->model && !pSlot->getPads().empty())
 	{
 		pSlot->model.reset(new ParamItemModel());
 		pSlot->model->setUndoStack(_pUndoStack);

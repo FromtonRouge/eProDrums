@@ -23,29 +23,29 @@
 
 #include "UndoCommand.h"
 #include "ModelIndex.h"
+#include "Slot.h"
 
 class AbstractItemModel;
 
-class CmdSetData : public UndoCommand
+class CmdRemoveSlots : public UndoCommand
 {
 
 public:
-	CmdSetData( AbstractItemModel* pModel,
-				const QModelIndex& index,
-				const QVariant& value,
-				int role,
-				QUndoCommand* pParent = NULL);
-	virtual ~CmdSetData();
+	CmdRemoveSlots(	AbstractItemModel* pModel,
+					int row,
+					int count,
+					const QModelIndex& parent,
+					QUndoCommand* pParent = NULL);
+	virtual ~CmdRemoveSlots();
 
 	virtual void	undo();
 	virtual void	redo();
 	virtual int		id() const;
-	virtual bool	mergeWith(const QUndoCommand* pCommand);
 
 private:
 	AbstractItemModel*		_pModel;
-	ModelIndex				_index;
-	QVariant				_oldValue;
-	QVariant				_newValue;
-	int						_role;
+	int						_row;
+	int						_count;
+	ModelIndex				_parent;
+	Slot::List				_slots;
 };

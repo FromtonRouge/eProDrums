@@ -121,8 +121,12 @@ QVariant ParamItemModel::data(const QModelIndex& index, int role) const
 	{
 	case Qt::ToolTipRole:
 		{
-			// TODO
-			//return pParameter->getDescription().c_str();
+			ParameterData* pParameterData = static_cast<ParameterData*>(pData);
+			Parameter* pParameter = pParameterData->getParameter();
+			if (pParameter)
+			{
+				return pParameter->getDescription();
+			}
 			break;
 		}
 	case Qt::DisplayRole:

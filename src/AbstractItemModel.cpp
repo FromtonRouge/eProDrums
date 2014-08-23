@@ -21,6 +21,8 @@
 
 #include "AbstractItemModel.h"
 #include "CmdSetData.h"
+#include "CmdInsertRows.h"
+#include "CmdRemoveRows.h"
 
 AbstractItemModel::AbstractItemModel(QObject* pParent)
 	: QAbstractItemModel(pParent)
@@ -32,15 +34,77 @@ AbstractItemModel::~AbstractItemModel()
 {
 }
 
-bool AbstractItemModel::setData(const QModelIndex & index, const QVariant & value, int role)
+void AbstractItemModel::beginUndoMacro(const QString& szText)
 {
 	if (_pUndoStack)
 	{
-		_pUndoStack->push(new CmdSetData(this, index, value, role));
+		_pUndoStack->beginMacro(szText);
+	}
+}
+
+void AbstractItemModel::endUndoMacro()
+{
+	if (_pUndoStack)
+	{
+		_pUndoStack->endMacro();
+	}
+}
+
+bool AbstractItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+	if (value==data(index, role))
+	{
+		return true;
+	}
+
+	if (_pUndoStack)
+	{
+		_pUndoStack->push(createUndoSetData(index, value, role));
 	}
 	else
 	{
 		setDataNoUndo(index, value, role);
 	}
 	return true;
+}
+
+bool AbstractItemModel::insertRows(int row, int count, const QModelIndex& parent)
+{
+	if (_pUndoStack)
+	{
+		_pUndoStack->push(createUndoInsertRows(row, count, parent));
+	}
+	else
+	{
+		insertRowsNoUndo(row, count, parent);
+	}
+	return true;
+}
+
+bool AbstractItemModel::removeRows(int row, int count, const QModelIndex & parent)
+{
+	if (_pUndoStack)
+	{
+		_pUndoStack->push(createUndoRemoveRows(row, count, parent));
+	}
+	else
+	{
+		removeRowsNoUndo(row, count, parent);
+	}
+	return true;
+}
+
+UndoCommand* AbstractItemModel::createUndoSetData(const QModelIndex & index, const QVariant & value, int role)
+{
+	return new CmdSetData(this, index, value, role);
+}
+
+UndoCommand* AbstractItemModel::createUndoInsertRows(int row, int count, const QModelIndex& parent)
+{
+	return new CmdInsertRows(this, row, count, parent);
+}
+
+UndoCommand* AbstractItemModel::createUndoRemoveRows(int row, int count, const QModelIndex& parent)
+{
+	return new CmdRemoveRows(this, row, count, parent);
 }

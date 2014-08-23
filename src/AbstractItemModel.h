@@ -24,6 +24,7 @@
 #include <QtCore/QAbstractItemModel>
 
 class QUndoStack;
+class UndoCommand;
 
 class AbstractItemModel : public QAbstractItemModel
 {
@@ -33,11 +34,24 @@ public:
 	AbstractItemModel(QObject* pParent = NULL);
 	virtual ~AbstractItemModel();
 
-	void		setUndoStack(QUndoStack* pUndoStack) {_pUndoStack = pUndoStack;}
-	QUndoStack*	getUndoStack() const {return _pUndoStack;}
+	void			setUndoStack(QUndoStack* pUndoStack)	{_pUndoStack = pUndoStack;}
+	QUndoStack*		getUndoStack() const					{return _pUndoStack;}
+	void			beginUndoMacro(const QString& szText);
+	void			endUndoMacro();
 
-	virtual bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
-	virtual void setDataNoUndo(const QModelIndex&, const QVariant& , int) {}
+	virtual bool			setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+	virtual void			setDataNoUndo(const QModelIndex&, const QVariant& , int) {}
+	virtual UndoCommand*	createUndoSetData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+
+	virtual bool			insertRows(int row, int count, const QModelIndex& parent = QModelIndex());
+	virtual void			insertRowsNoUndo(int, int, const QModelIndex&) {}
+	virtual UndoCommand*	createUndoInsertRows(int row, int count, const QModelIndex& parent = QModelIndex());
+
+	virtual bool			removeRows(int row, int count, const QModelIndex & parent = QModelIndex());
+	virtual void			removeRowsNoUndo(int, int, const QModelIndex&) {}
+	virtual UndoCommand*	createUndoRemoveRows(int row, int count, const QModelIndex& parent = QModelIndex());
+
+	// TODO moveRows
 
 private:
 	QUndoStack*		_pUndoStack;
