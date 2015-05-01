@@ -116,8 +116,6 @@ void MidiEngine::start(int midiInId, int midiOutId)
 {
 	clearAverageLatency();
 
-	Pt_Start(1, &readMidi, this); // start a timer with millisecond accuracy
-
 	Pm_Initialize();
 
 #define INPUT_BUFFER_SIZE 0 // if INPUT_BUFFER_SIZE is 0, PortMidi uses a default value
@@ -161,6 +159,9 @@ void MidiEngine::start(int midiInId, int midiOutId)
 	{
 		QMessageBox::critical(QApplication::activeWindow(), tr("Midi Error"), tr("Cannot open midi out %1, reason : %2").arg(pDeviceOutInfo->name).arg(Pm_GetErrorText(error)));
 	}
+
+	// Now that midi in and out are opened we can start the timer (with millisecond accuracy)
+	Pt_Start(1, &readMidi, this);
 	emit signalStarted();
 }
 
